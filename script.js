@@ -1424,11 +1424,12 @@ function renderFinalReport() {
   finalReport.appendChild(createReportCover());
   finalReport.appendChild(createCompanyReportBlock());
   finalReport.appendChild(createDimensionReportBlock());
-  finalReport.appendChild(createRiskReportBlock(selections));
-  finalReport.appendChild(createTechnicalPendingReportBlock(selections));
-  finalReport.appendChild(createEpiReportBlock(selections));
-  finalReport.appendChild(createTrainingReportBlock(selections));
+  finalReport.appendChild(createSectorJobReportBlock());
+  finalReport.appendChild(createIdentifiedRiskReportBlock(selections));
+  finalReport.appendChild(createRiskSourceReportBlock(selections));
+  finalReport.appendChild(createEpiTrainingReportBlock(selections));
   finalReport.appendChild(createNrReportBlock(selections));
+  finalReport.appendChild(createTechnicalPendingReportBlock(selections));
 }
 
 function createCompanyReportBlock() {
@@ -1464,6 +1465,7 @@ function createReportCover() {
   summary.appendChild(createReportSummaryItem("Funcionários", employeeCountInput.value || "-"));
   summary.appendChild(createReportSummaryItem("Grau de risco", riskGradeOutput.textContent || "-"));
   summary.appendChild(createReportSummaryItem("Organização", getRiskModeLabel() || "-"));
+  summary.appendChild(createReportSummaryItem("Gerado em", new Date().toLocaleDateString("pt-BR")));
 
   cover.appendChild(label);
   cover.appendChild(title);
@@ -1498,7 +1500,7 @@ function getRiskModeLabel() {
 }
 
 function createDimensionReportBlock() {
-  const block = createReportBlock("Dimensionamento");
+  const block = createReportBlock("Dimensionamento CIPA/SESMT");
   const list = document.createElement("ul");
 
   list.className = "report-list";
@@ -1514,8 +1516,52 @@ function createDimensionReportBlock() {
   return block;
 }
 
-function createRiskReportBlock(selections) {
-  const block = createReportBlock("Riscos e fontes levantadas");
+function createSectorJobReportBlock() {
+  const block = createReportBlock("Setores e cargos");
+  const container = document.createElement("div");
+
+  container.className = "report-card-list";
+
+  Array.from(selectedSectorNames).forEach((sectorName) => {
+    const jobs = jobsBySector.get(sectorName) || [];
+    const card = createReportMiniCard(
+      sectorName,
+      jobs.length ? `${jobs.length} cargo(s) cadastrado(s)` : "Nenhum cargo cadastrado",
+      jobs.map((job) => `${job.name} - ${job.quantity} funcionário(s)`)
+    );
+    container.appendChild(card);
+  });
+
+  if (container.children.length === 0) {
+    container.appendChild(createReportMiniCard("Nenhum setor informado", "", ["Preencha os setores para consolidar esta seção."]));
+  }
+
+  block.appendChild(container);
+
+  return block;
+}
+
+function createIdentifiedRiskReportBlock(selections) {
+  const block = createReportBlock("Riscos identificados");
+  const container = document.createElement("div");
+
+  container.className = "report-card-list";
+  groupSelectionsByTarget(selections).forEach((group) => {
+    const risks = group.selections.map((selection) => `${selection.risk.code} - ${selection.risk.name}`);
+    container.appendChild(createReportMiniCard(group.title, `${risks.length} risco(s) selecionado(s)`, risks));
+  });
+
+  if (container.children.length === 0) {
+    container.appendChild(createReportMiniCard("Nenhum risco informado", "", ["Selecione riscos para consolidar esta seção."]));
+  }
+
+  block.appendChild(container);
+
+  return block;
+}
+
+function createRiskSourceReportBlock(selections) {
+  const block = createReportBlock("Fontes geradoras");
   const container = document.createElement("div");
 
   container.className = "report-card-list";
@@ -1544,7 +1590,7 @@ function createRiskReportBlock(selections) {
 }
 
 function createTechnicalPendingReportBlock(selections) {
-  const block = createReportBlock("Medições e avaliações necessárias");
+  const block = createReportBlock("Pendências para validação técnica");
   const list = document.createElement("ul");
   const pending = selections.filter((selection) => {
     const sourceData = getRiskSourceData(selection.targetId, selection.risk.code);
@@ -1567,57 +1613,49 @@ function createTechnicalPendingReportBlock(selections) {
   return block;
 }
 
-function createEpiReportBlock(selections) {
-  const block = createReportBlock("EPIs informados");
-  const list = document.createElement("ul");
-
-  list.className = "report-list";
-
-  const items = selections.flatMap((selection) => {
-    const epiData = getEpiData(selection.targetId, selection.risk.code);
-
-    if (epiData.applicable !== "Sim") {
-      return [];
-    }
-
-    return [`${formatTargetGroupTitle(selection)} - ${selection.risk.name}: ${epiData.items.join(", ") || "EPI aplicável, mas não informado"}`];
-  });
-
-  if (items.length === 0) {
-    addReportItem(list, "Nenhum EPI aplicável informado.");
-  } else {
-    items.forEach((item) => addReportItem(list, item));
-  }
-
-  block.appendChild(list);
-
-  return block;
-}
-
-function createTrainingReportBlock(selections) {
-  const block = createReportBlock("Treinamentos sugeridos");
+function createEpiTrainingReportBlock(selections) {
+  const block = createReportBlock("EPIs e treinamentos sugeridos");
   const container = document.createElement("div");
 
   container.className = "report-card-list";
   groupSelectionsByTarget(selections).forEach((group) => {
     const title = document.createElement("h4");
     const suggestions = getTrainingSuggestions(group.selections);
+    const epiLines = getEpiReportLines(group.selections);
 
     title.textContent = group.title;
     container.appendChild(title);
 
+    container.appendChild(createReportMiniCard(
+      "EPIs",
+      epiLines.length ? "EPIs informados no levantamento" : "Nenhum EPI aplicável informado",
+      epiLines.length ? epiLines : ["Validar necessidade de EPI com o responsável técnico."]
+    ));
+
     if (suggestions.length === 0) {
-      container.appendChild(createReportMiniCard("Sem sugestão pré-cadastrada", "", ["Validar necessidade com o responsável técnico."]));
+      container.appendChild(createReportMiniCard("Treinamentos", "Sem sugestão pré-cadastrada", ["Validar necessidade com o responsável técnico."]));
       return;
     }
 
     suggestions.forEach((training) => {
-      container.appendChild(createReportMiniCard(training.title, training.reason, [`Sugerido por: ${training.matches.join(", ")}`]));
+      container.appendChild(createReportMiniCard(`Treinamento: ${training.title}`, training.reason, [`Sugerido por: ${training.matches.join(", ")}`]));
     });
   });
   block.appendChild(container);
 
   return block;
+}
+
+function getEpiReportLines(selections) {
+  return selections.flatMap((selection) => {
+    const epiData = getEpiData(selection.targetId, selection.risk.code);
+
+    if (epiData.applicable !== "Sim") {
+      return [];
+    }
+
+    return [`${selection.risk.name}: ${epiData.items.join(", ") || "EPI aplicável, mas não informado"}`];
+  });
 }
 
 function createNrReportBlock(selections) {
@@ -1628,16 +1666,20 @@ function createNrReportBlock(selections) {
   getNrReportItems(selections)
     .filter((item) => item.status !== "Não identificado" && item.status !== "Revogada")
     .forEach((item) => {
-    const card = createReportMiniCard(`${item.nr} - ${item.title}`, item.reason, []);
-    const status = document.createElement("span");
-    status.className = "nr-status";
-    if (item.status === "Verificar") {
-      status.classList.add("is-warning");
-    }
-    status.textContent = item.status;
-    card.prepend(status);
-    container.appendChild(card);
-  });
+      const card = createReportMiniCard(`${item.nr} - ${item.title}`, item.reason, []);
+      const status = document.createElement("span");
+      status.className = "nr-status";
+      if (item.status === "Verificar") {
+        status.classList.add("is-warning");
+      } else if (item.status === "Não dimensionado") {
+        status.classList.add("is-neutral");
+      } else {
+        status.classList.add("is-ok");
+      }
+      status.textContent = item.status;
+      card.prepend(status);
+      container.appendChild(card);
+    });
 
   if (container.children.length === 0) {
     container.appendChild(createReportMiniCard("Nenhuma NR aplicável identificada", "", ["Revise o levantamento ou valide com o responsável técnico."]));
