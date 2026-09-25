@@ -1,5 +1,5 @@
-import { authClient, getTeamMember } from './auth-client.js';
-import { usernameToEmail, friendlyAuthError } from './auth-utils.js';
+import { authClient, getTeamMember, signInWithUsername } from './auth-client.js';
+import { normalizeUsername, friendlyAuthError } from './auth-utils.js';
 
 const form = document.querySelector('#login-form');
 const submit = document.querySelector('#submit-login');
@@ -41,11 +41,11 @@ password.addEventListener('blur', () => { document.querySelector('#caps-hint').h
 form.addEventListener('submit', async event => {
   event.preventDefault();
   if (busy || !form.reportValidity()) return;
-  const email = usernameToEmail(username.value);
-  if (!email) { showMessage('Use de 3 a 40 caracteres: letras, números, ponto, hífen ou sublinhado.'); username.focus(); return; }
+  const loginName = normalizeUsername(username.value);
+  if (!loginName) { showMessage('Use de 3 a 40 caracteres: letras, números, ponto, hífen ou sublinhado.'); username.focus(); return; }
   setBusy(true); showMessage('');
   try {
-    const { error } = await authClient.auth.signInWithPassword({ email, password: password.value });
+    const { error } = await signInWithUsername(loginName, password.value);
     if (error) { showMessage(friendlyAuthError(error, navigator.onLine)); return; }
     await enterWorkspace();
   } catch (error) { showMessage(friendlyAuthError(error, navigator.onLine)); }

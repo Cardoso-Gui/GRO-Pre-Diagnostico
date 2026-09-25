@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import vm from 'node:vm';
-import { usernameToEmail, friendlyAuthError } from '../auth-utils.js';
+import { normalizeUsername, friendlyAuthError } from '../auth-utils.js';
 
 const source = await fs.readFile(new URL('../login.js', import.meta.url), 'utf8');
 const utilities = await fs.readFile(new URL('../auth-utils.js', import.meta.url), 'utf8');
@@ -22,7 +22,8 @@ async function fixture({ signInError = null, member = { display_name: 'Teste' },
   } };
   const context = vm.createContext({ URL, URLSearchParams, navigator: { onLine: true }, document: { querySelector: s => element(s.slice(1)), getElementById: element },
     location: { href: 'https://example.test/GRO-Pre-Diagnostico/index.html', search: '', replace: url => calls.redirects.push(url) } });
-  const auth = new vm.SyntheticModule(['authClient', 'getTeamMember'], function () {
+  const auth = new vm.SyntheticModule(['authClient', 'getTeamMember', 'signInWithUsername'], function () {
+    this.setExport('signInWithUsername', async (username, password) => { calls.signins.push({ username, password }); return { error: signInError }; });
     this.setExport('authClient', client); this.setExport('getTeamMember', async () => ({ member, error: memberError, reason }));
   }, { context });
   const utils = new vm.SourceTextModule(utilities, { context });
@@ -32,12 +33,12 @@ async function fixture({ signInError = null, member = { display_name: 'Teste' },
   return { element, calls, async submit() { element('username').value = ' Gui.Cardoso '; element('password').value = 'test-only-password'; await element('login-form').handlers.submit({ preventDefault() {} }); } };
 }
 test('username accepts normalized names and rejects email / injected destinations', () => {
-  assert.equal(usernameToEmail(' Gui.Cardoso '), 'gui.cardoso@users.gro.invalid');
-  for (const value of ['a', 'gui@external.test', '../admin', 'a b', '<script>', 'a'.repeat(41)]) assert.equal(usernameToEmail(value), null);
+  assert.equal(normalizeUsername(' Gui.Cardoso '), 'gui.cardoso');
+  for (const value of ['a', 'gui@external.test', '../admin', 'a b', '<script>', 'a'.repeat(41)]) assert.equal(normalizeUsername(value), null);
 });
 test('valid member signs in and reaches fixed protected destination', async () => {
   const f = await fixture(); await f.submit();
-  assert.equal(f.calls.signins[0].email, 'gui.cardoso@users.gro.invalid');
+  assert.equal(f.calls.signins[0].username, 'gui.cardoso');
   assert.equal(f.calls.redirects[0], 'https://example.test/GRO-Pre-Diagnostico/levantamento.html');
   assert.equal(f.element('password').value, '');
 });

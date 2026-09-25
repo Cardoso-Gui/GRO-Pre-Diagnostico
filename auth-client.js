@@ -12,3 +12,14 @@ export async function getTeamMember() {
   const result = await authClient.from('team_members').select('user_id,display_name,role,active').eq('user_id', user.id).eq('active', true).maybeSingle();
   return { member: result.data, error: result.error, reason: result.error ? 'network' : 'membership' };
 }
+
+export async function signInWithUsername(username, password) {
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/gro-login`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY },
+    body: JSON.stringify({ username, password }), signal: AbortSignal.timeout(20000)
+  });
+  const data = await response.json();
+  if (!response.ok) return { error: { code: data.code, status: response.status } };
+  return authClient.auth.setSession({ access_token: data.access_token, refresh_token: data.refresh_token });
+}
+

@@ -1,7 +1,7 @@
-export function usernameToEmail(value) {
+export function normalizeUsername(value) {
   const username = value.trim().toLowerCase();
   if (!/^[a-z0-9][a-z0-9._-]{2,39}$/.test(username)) return null;
-  return `${username}@users.gro.invalid`;
+  return username;
 }
 
 export function friendlyAuthError(error, online = true) {
@@ -11,3 +11,4 @@ export function friendlyAuthError(error, online = true) {
   if (['AbortError', 'TimeoutError', 'AuthRetryableFetchError'].includes(error?.name) || !online) return 'Não foi possível conectar. Confira sua internet e tente novamente.';
   return 'Não foi possível concluir agora. Tente novamente em instantes.';
 }
+
