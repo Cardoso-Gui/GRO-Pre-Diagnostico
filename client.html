@@ -12,7 +12,7 @@
 <label class="wide">Razão social *<input name="legal_name" required maxlength="240" autocomplete="organization"></label>
 <label>Nome fantasia<input name="trade_name" maxlength="240"></label>
 <label>CNPJ<input name="cnpj" maxlength="18" placeholder="00.000.000/0000-00" aria-describedby="cnpj-help"><small id="cnpj-help">Informe o CNPJ completo, se disponível.</small></label>
-<label>CNAE principal<input name="cnae" maxlength="9" placeholder="0000-0/00"></label>
+<div class="wide cnpj-lookup"><button id="lookup-cnpj" class="secondary-button" type="button">Consultar CNPJ</button><small>Consulta pública via BrasilAPI. Preenche apenas campos vazios.</small><p id="cnpj-status" role="status"></p></div><label>CNAE principal<input name="cnae" maxlength="9" placeholder="0000-0/00"></label>
 </div></section>
 <section class="form-section"><h2>Endereço</h2><div class="field-grid">
 <label>CEP<input name="postal_code" maxlength="9" autocomplete="postal-code" inputmode="numeric" placeholder="00000-000"></label>
@@ -30,4 +30,6 @@
 </div></section></fieldset>
 <p id="feedback" role="status" tabindex="-1"></p><div class="form-actions"><button id="save" class="primary-button" type="submit">Salvar cliente</button><button id="edit" class="primary-button" type="button" hidden>Editar cadastro</button><button id="cancel" class="secondary-button" type="button" hidden>Cancelar edição</button><a href="./inicio.html?view=clients">Voltar aos clientes</a></div>
 </form></section></main></body></html>
+
+
 

@@ -1,4 +1,5 @@
 import { authClient, getTeamMember } from './auth-client.js';
+import { lookupCompany } from './cnpj.js';
 const $ = selector => document.querySelector(selector);
 const form = $('#client-form');
 const fields = $('#fields');
@@ -8,6 +9,33 @@ const addressFields = ['postal_code','state','street','number','complement','dis
 const requestedId = new URLSearchParams(location.search).get('id');
 const id = requestedId || crypto.randomUUID();
 let saved = null, dirty = false, busy = false, checking = false, initialized = false, uncertain = false;
+let consulting = false;
+$('#lookup-cnpj').addEventListener('click', async () => {
+  if (consulting || busy || fields.disabled) return;
+  consulting = true;
+  const cnpj = input('cnpj').value;
+  const before = Object.fromEntries([...basic, ...addressFields].map(key => [key, input(key).value]));
+  $('#lookup-cnpj').disabled = true; $('#save').disabled = true; $('#cancel').disabled = true;
+  $('#cnpj-status').textContent = 'Consultando CNPJ…';
+  try {
+    const values = await lookupCompany(cnpj, async () => {
+      const {data, error} = await authClient.functions.invoke('gro-cnpj', {body:{cnpj}});
+      return {ok:!error, status:error?.context?.status || 502, json:async()=>data};
+    });
+    if (input('cnpj').value !== cnpj) { $('#cnpj-status').textContent = 'O CNPJ mudou. Consulte novamente para preencher os dados corretos.'; return; }
+    let filled = 0;
+    for (const [key, value] of Object.entries(values)) {
+      const field = input(key);
+      if (value && !before[key].trim() && field.value === before[key]) {
+        field.value = field.maxLength > 0 ? value.slice(0, field.maxLength) : value;
+        field.setCustomValidity(''); filled++;
+      }
+    }
+    if (filled) dirty = true;
+    $('#cnpj-status').textContent = filled ? 'Dados disponíveis preenchidos. Confira antes de salvar. Campos já preenchidos foram mantidos.' : 'Consulta concluída. Os campos já preenchidos foram mantidos.';
+  } catch (error) { $('#cnpj-status').textContent = error.message; }
+  finally { consulting = false; $('#lookup-cnpj').disabled = false; $('#save').disabled = false; $('#cancel').disabled = false; }
+});
 for (const state of 'AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO'.split(' ')) {
   const option = document.createElement('option'); option.value = option.textContent = state; input('state').append(option);
 }
@@ -70,7 +98,7 @@ function validate() {
 }
 form.addEventListener('input', event => { dirty = true; if (event.target.setCustomValidity) event.target.setCustomValidity(''); message(''); });
 form.addEventListener('submit', async event => {
-  event.preventDefault(); if (busy || fields.disabled) return;
+  event.preventDefault(); if (busy || consulting || fields.disabled) return;
   const payload = validate(); if (!payload) return;
   busy = true; fields.disabled = true; $('#save').disabled = true; $('#cancel').disabled = true; message('Salvando…');
   try {
@@ -105,4 +133,5 @@ authClient.auth.onAuthStateChange(event => { if (event === 'SIGNED_OUT') { dirty
 document.addEventListener('visibilitychange', () => { if (document.hidden) $('#content').hidden = true; else initialize(); });
 window.addEventListener('pageshow', event => { if (event.persisted) initialize(); });
 await initialize();
+
 
