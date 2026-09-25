@@ -61,7 +61,7 @@ async function loadForm(){
  try{await access();row=await saveAssessment(authClient,row,snapshot);dirty=changes!==version;say(dirty?'Rascunho salvo. Há alterações novas nesta tela; salve novamente.':`Rascunho salvo no sistema às ${new Date().toLocaleTimeString('pt-BR')}.`);}
  catch(error){say(error.message,true);}finally{saving=false;$('#save-draft-button').disabled=false;}
  },reload:()=>{if(!dirty||confirm('Descartar alterações não salvas e recarregar o rascunho?')){dirty=false;location.reload();}}};
- for(const file of ['cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','script.js'])await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=file;script.onload=resolve;script.onerror=reject;document.body.append(script);});
+ for(const file of ['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','script.js'])await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=file;script.onload=resolve;script.onerror=reject;document.body.append(script);});
  globalThis.GRO_FORM.restore(row.answers);
  $('#questionnaire').hidden=false;$('#page-title').textContent=row.title;$('#cnpj-form').hidden=true;$('#clear-draft-button').hidden=true;$('#load-draft-button').textContent='Recarregar rascunho';
  say('Rascunho carregado. Clique em Salvar rascunho para guardar suas alterações no sistema.');
@@ -78,6 +78,7 @@ window.addEventListener('beforeunload',event=>{if(dirty||saving){event.preventDe
 document.addEventListener('visibilitychange',()=>{if(document.hidden)workspace.hidden=true;else initialize();});
 window.addEventListener('pageshow',event=>{if(event.persisted)initialize();});
 await initialize();
+
 
 
 

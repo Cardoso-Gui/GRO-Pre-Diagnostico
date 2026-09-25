@@ -2010,8 +2010,10 @@ function calculateCheckDigit(numbers, weights) {
 }
 
 function formatCnae(company) {
-  const code = company.cnae_fiscal;
-  const description = company.cnae_fiscal_descricao;
+  const raw = String(company.cnae_fiscal || '').replace(/\D/g, '');
+  const digits = raw ? raw.padStart(7, '0') : '';
+  const code = digits.length === 7 ? digits.replace(/^(\d{4})(\d)(\d{2})$/, '$1-$2/$3') : company.cnae_fiscal;
+  const description = company.cnae_fiscal_descricao || globalThis.GRO_CNAE_DESCRIPTIONS?.[digits];
 
   if (!code && !description) {
     return "-";
