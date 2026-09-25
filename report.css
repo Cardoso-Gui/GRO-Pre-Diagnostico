@@ -114,4 +114,4 @@ body{margin:0;background:#f4f7f8;color:#203943;font-family:'Segoe UI',Arial,sans
 #report-content .report-dimension-card h4{margin:0 0 8px;font-size:15px;color:#137b68}
 #report-content .report-dimension-card p{margin:6px 0;font-size:13px;line-height:1.6;color:#29454f}
 @media(max-width:640px){.report-dimension-grid{grid-template-columns:1fr}}
-@media print{#report-content .report-cover{break-inside:auto}.report-dimension-grid{grid-template-columns:1fr 1fr;gap:3mm;margin-top:4mm}.report-dimension-card{padding:3mm}#report-content .report-dimension-card p{font-size:9pt}#report-content .report-dimension-card h4{font-size:11pt}}
+@media print{#report-content .report-cover{break-inside:auto}.report-dimension-grid{grid-template-columns:1fr 1fr;gap:3mm;margin-top:4mm}.report-dimension-card{padding:3mm}#report-content .report-dimension-card p{font-size:9pt}#report-content .report-dimension-card h4{font-size:11pt}}@media print{#report-content .report-sectors{break-before:page;page-break-before:always}}

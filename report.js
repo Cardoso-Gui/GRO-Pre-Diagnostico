@@ -70,6 +70,8 @@ async function load(){
    summaryGrid.replaceChildren(...[cnaeCard,riskCard,revisionCard].filter(Boolean));
  }
  const sizingBlock=Array.from(content.querySelectorAll('.report-block')).find(block=>block.querySelector('h3')?.textContent.trim()==='Dimensionamento CIPA/SESMT');
+ const sectorsBlock=Array.from(content.querySelectorAll('.report-block')).find(block=>block.querySelector('h3')?.textContent.trim()==='Setores e cargos');
+ if(sectorsBlock)sectorsBlock.classList.add('report-sectors');
  const introduction=document.createElement('p');introduction.className='report-introduction';
  introduction.textContent=`Em visita realizada em ${date}${responsible?', por '+responsible:''}, à empresa ${identity}${cnpj?', inscrita no CNPJ sob o nº '+cnpj:''}${fullAddress?', localizada em '+fullAddress:''}, foram levantadas informações sobre os setores, as atividades e as condições de trabalho. Este relatório apresenta os riscos identificados, as medidas de prevenção informadas e as necessidades de avaliação complementar, conforme as condições observadas na ocasião.`;
  const cover=content.querySelector('.report-cover');
