@@ -41,3 +41,15 @@
   #report-validation li { flex-direction: column; align-items: flex-start; gap: 8px; }
   #report-validation li button { flex-basis: auto; }
 }
+
+/* Ações do histórico de rascunhos */
+#draft-list article { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+#draft-list article > p { flex: 0 0 100%; min-width: 0; overflow-wrap: anywhere; margin: 0 0 6px; }
+#draft-list article > a,
+#draft-list article > .delete-draft { display: inline-flex; align-items: center; justify-content: center; width: auto; min-height: 42px; margin: 0; padding: 10px 16px; border: 1px solid transparent; border-radius: 8px; font: 600 14px/1.4 "Segoe UI", sans-serif; text-decoration: none; box-shadow: none; }
+#draft-list article > a { background: #137b68; color: #fff; }
+#draft-list article > a:hover { background: #106653; }
+#draft-list article > .delete-draft { background: #b42318; border-color: #b42318; color: #fff; }
+#draft-list article > .delete-draft:hover { background: #912018; border-color: #912018; }
+#draft-list article > a:focus-visible,
+#draft-list article > .delete-draft:focus-visible { outline: 3px solid #82bdb0; outline-offset: 3px; }
