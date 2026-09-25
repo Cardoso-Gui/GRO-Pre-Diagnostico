@@ -103,5 +103,5 @@ body{margin:0;background:#f4f7f8;color:#203943;font-family:'Segoe UI',Arial,sans
 @media print{#report-content .report-cover .report-introduction{font-size:10pt;line-height:1.5;margin:4mm 0;padding-top:3mm}.report-closing{break-inside:avoid;border-radius:0;padding:5mm;margin-top:6mm}.report-closing h3{font-size:12pt}.report-closing p{font-size:10pt}.report-attribution{margin-top:5mm;padding-top:3mm}.report-attribution span{font-size:9pt}}
 
 .report-signatures{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:36px;break-inside:avoid}.report-signature{min-width:0;text-align:center;display:grid;gap:7px;font-size:12px}.report-signature-line{height:48px;border-bottom:1px solid #647c84}.report-signature strong{font-weight:600;overflow-wrap:anywhere}.report-signature span{color:#627981}@media(max-width:600px){.report-signatures{grid-template-columns:1fr;gap:24px}}@media print{.report-signatures{grid-template-columns:1fr 1fr;gap:12mm;margin-top:8mm}.report-signature-line{height:16mm}.report-signature{font-size:9pt}}
-#report-content .report-summary-item .report-combined-label{margin-top:12px;padding-top:10px;border-top:1px solid #d5e2dd}
+
 @media print{#report-content .report-dimensioning{break-before:page;page-break-before:always}}

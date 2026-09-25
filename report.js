@@ -49,14 +49,6 @@ async function load(){
      item.querySelector('span').textContent='CNAE principal';item.querySelector('strong').textContent=cnae||'Não informado';
    }
  });
- const summaryItems=Array.from(content.querySelectorAll('.report-summary-item'));
- const cnaeItem=summaryItems.find(item=>item.querySelector('span')?.textContent.trim()==='CNAE principal');
- const riskItem=summaryItems.find(item=>item.querySelector('span')?.textContent.trim()==='Grau de risco');
- if(cnaeItem&&riskItem){
-   const riskLabel=document.createElement('span');riskLabel.textContent='Grau de risco';riskLabel.className='report-combined-label';
-   const riskValue=document.createElement('strong');riskValue.textContent=riskItem.querySelector('strong')?.textContent||'Não informado';
-   cnaeItem.append(riskLabel,riskValue);riskItem.remove();
- }
  companyLines.forEach(line=>{if(/^(Razão social:|Nome fantasia:|CNPJ:|Endereço:|CNAE principal:)/.test(line.textContent))line.remove();});
  if(companyBlock)companyBlock.remove();
  const sizingBlock=Array.from(content.querySelectorAll('.report-block')).find(block=>block.querySelector('h3')?.textContent.trim()==='Dimensionamento CIPA/SESMT');
