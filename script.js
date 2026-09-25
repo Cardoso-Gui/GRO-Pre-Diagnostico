@@ -1819,7 +1819,7 @@ function cleanupPrintMode() {
   document.body.classList.remove("printing-report");
 }
 
-function saveDraft() {
+function getDraft() {
   const draft = {
     cnpj: input.value,
     currentCompany,
@@ -1833,6 +1833,11 @@ function saveDraft() {
     epiBySelection: Array.from(epiBySelection.entries()),
   };
 
+  return draft;
+}
+
+function saveDraft() {
+  const draft = getDraft();
   if (globalThis.GRO_CLOUD) { globalThis.GRO_CLOUD.save(draft); return; }
   localStorage.setItem(draftStorageKey, JSON.stringify(draft));
   showMessage("Rascunho salvo neste navegador.");
@@ -2091,6 +2096,6 @@ function setLoading(isLoading) {
   button.textContent = isLoading ? "Consultando..." : "Consultar";
 }
 
-globalThis.GRO_FORM = { restore: restoreDraft };
+globalThis.GRO_FORM = { restore: restoreDraft, snapshot: getDraft };
 
 

@@ -57,17 +57,29 @@ async function loadForm(){
  row=data;
  globalThis.GRO_CLOUD={save:async answers=>{
  if(saving)return;saving=true;$('#save-draft-button').disabled=true;
- const version=changes; const snapshot=JSON.parse(JSON.stringify(answers));
- try{await access();row=await saveAssessment(authClient,row,snapshot);dirty=changes!==version;say(dirty?'Rascunho salvo. Há alterações novas nesta tela; salve novamente.':`Rascunho salvo no sistema às ${new Date().toLocaleTimeString('pt-BR')}.`);}
+ const version=fingerprint(); const snapshot=JSON.parse(JSON.stringify(answers));
+ try{await access();row=await saveAssessment(authClient,row,snapshot);cleanState=version;dirty=fingerprint()!==cleanState;say(dirty?'Rascunho salvo. Há alterações novas nesta tela; salve novamente.':`Rascunho salvo no sistema às ${new Date().toLocaleTimeString('pt-BR')}.`);}
  catch(error){say(error.message,true);}finally{saving=false;$('#save-draft-button').disabled=false;}
  },reload:()=>{if(!dirty||confirm('Descartar alterações não salvas e recarregar o rascunho?')){dirty=false;location.reload();}}};
  for(const file of ['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','script.js'])await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=file;script.onload=resolve;script.onerror=reject;document.body.append(script);});
  globalThis.GRO_FORM.restore(row.answers);
+ cleanState=fingerprint();dirty=false;
  $('#questionnaire').hidden=false;$('#page-title').textContent=row.title;$('#cnpj-form').hidden=true;$('#clear-draft-button').hidden=true;$('#load-draft-button').textContent='Recarregar rascunho';
  say('Rascunho carregado. Clique em Salvar rascunho para guardar suas alterações no sistema.');
 }
-let changes=0;
-for(const event of ['input','change','submit','click'])$('#questionnaire').addEventListener(event,e=>{if(['save-draft-button','load-draft-button','print-report-button'].includes(e.target.id))return;dirty=true;changes++;});
+let cleanState='';
+function fingerprint(){return JSON.stringify({answers:globalThis.GRO_FORM?.snapshot(),inputs:Array.from($('#questionnaire').querySelectorAll('input,select,textarea'),field=>[field.name||field.id,field.value,field.checked])});}
+function refreshDirty(){if(row&&globalThis.GRO_FORM)dirty=fingerprint()!==cleanState;}
+for(const event of ['input','change','submit','click'])$('#questionnaire').addEventListener(event,()=>queueMicrotask(refreshDirty));
+const leaveDialog=$('#leave-dialog');
+document.querySelector('.session-home').addEventListener('click',event=>{
+ event.preventDefault();refreshDirty();
+ if(saving){say('Aguarde o salvamento terminar antes de voltar.',true);return;}
+ if(dirty){leaveDialog.showModal();return;}
+ location.assign('./inicio.html');
+});
+$('#keep-editing').addEventListener('click',()=>leaveDialog.close());
+$('#leave-without-saving').addEventListener('click',()=>{dirty=false;leaveDialog.close();location.assign('./inicio.html');});
 async function initialize(){if(loading)return;loading=true;workspace.hidden=true;notice.hidden=false;try{await access();if(!loaded){await loadForm();loaded=true;}workspace.hidden=false;notice.hidden=true;}catch(error){notice.querySelector('p').textContent=error.message;}finally{loading=false;}}
 $('#client-select').addEventListener('change',()=>{const client=clientChoices.get($('#client-select').value);if(client)choose(client);else{selected=null;creationId=null;$('#client-history').hidden=true;}});
 $('#retry-clients').addEventListener('click',()=>clientList());
