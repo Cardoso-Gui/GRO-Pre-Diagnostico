@@ -92,6 +92,9 @@ async function initialize() {
 }
 function validate() {
   for (const name of [...basic,...addressFields]) input(name).setCustomValidity('');
+  for (const name of [...basic,...addressFields].filter(name => !['trade_name','complement'].includes(name))) {
+    if (!input(name).value.trim()) input(name).setCustomValidity('Preencha este campo obrigatório.');
+  }
   input('legal_name').setCustomValidity(input('legal_name').value.trim() ? '' : 'Informe a razão social.');
   const cnpj = input('cnpj').value.replace(/[.\/\s-]/g, '').toUpperCase();
   if (cnpj && !/^\d{14}$/.test(cnpj)) input('cnpj').setCustomValidity('Informe o CNPJ completo: 14 números.');
