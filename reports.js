@@ -15,7 +15,7 @@ async function load(reset=true){
  const info=document.createElement('p');info.textContent=new Date(row.completed_at).toLocaleString('pt-BR')+' · '+(row.team_members?.display_name||'Equipe');
  const actions=document.createElement('div');actions.className='report-actions';
  for(const [label,suffix] of [['Visualizar',''],['Imprimir / salvar PDF','&print=1']]){const a=document.createElement('a');a.textContent=label;a.href='./report.html?id='+encodeURIComponent(row.id)+suffix;actions.append(a);}
- if(isAdmin){const remove=document.createElement('button');remove.className='delete-report';remove.textContent='Excluir relatório';remove.onclick=()=>askDelete(row,remove);actions.append(remove);}
+ if(isAdmin){const remove=document.createElement('button');remove.className='delete-report';remove.setAttribute('aria-label','Excluir relatório');remove.title='Excluir relatório';remove.onclick=()=>askDelete(row,remove);actions.append(remove);}
  card.append(title,info,actions);list.append(card);
  }offset+=Math.min(20,data.length);more.hidden=data.length<=20;status.textContent=offset?'':'Este cliente ainda não tem relatórios gerados.';
  }catch{if(ticket===sequence)status.textContent='Não foi possível carregar os relatórios. Clique em Atualizar para tentar novamente.';}
