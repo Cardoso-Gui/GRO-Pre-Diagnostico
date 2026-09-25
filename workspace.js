@@ -1,5 +1,5 @@
 import {authClient,getTeamMember} from './auth-client.js';
-import {companyFromClient,saveAssessment,clientOptionLabel} from './assessment-data.js';
+import {companyFromClient,saveAssessment,clientOptionLabel,deleteDraft} from './assessment-data.js';
 const $=s=>document.querySelector(s);
 const workspace=$('#protected-workspace'), notice=$('#session-check');
 let member, row, selected, saving=false, dirty=false, loading=false, loaded=false, sequence=0, offset=0, historyOffset=0;
@@ -25,14 +25,26 @@ async function historyList(reset=true){
  const clientId=selected.id;if(reset){historyOffset=0;$('#draft-list').replaceChildren();}$('#more-drafts').hidden=true;
  const start=historyOffset;
  $('#history-status').textContent='Carregando histórico…';
- try{const {data,error}=await authClient.from('assessments').select('id,title,status,updated_at,responsible_id,team_members!assessments_responsible_id_fkey(display_name)').eq('client_id',clientId).order('created_at',{ascending:false}).order('id').range(start,start+20);
+ try{const {data,error}=await authClient.from('assessments').select('id,title,status,revision,updated_at,responsible_id,team_members!assessments_responsible_id_fkey(display_name)').eq('client_id',clientId).order('created_at',{ascending:false}).order('id').range(start,start+20);
  if(selected?.id!==clientId)return;if(error)throw error;
  for(const item of data.slice(0,20)){const article=document.createElement('article');const label=document.createElement('p');label.textContent=`${item.title} · ${item.status==='draft'?'Rascunho':'Concluído'} · ${new Date(item.updated_at).toLocaleString('pt-BR')} · ${item.team_members?.display_name || 'Equipe'}`;article.append(label);
- if(item.status==='draft'&&(member.role==='admin'||item.responsible_id===member.user_id)){const a=document.createElement('a');a.href=`./levantamento.html?id=${encodeURIComponent(item.id)}`;a.textContent='Continuar rascunho';article.append(a);}$('#draft-list').append(article);}
+ if(item.status==='draft'&&(member.role==='admin'||item.responsible_id===member.user_id)){const a=document.createElement('a');a.href=`./levantamento.html?id=${encodeURIComponent(item.id)}`;a.textContent='Continuar rascunho';article.append(a);const remove=document.createElement('button');remove.type='button';remove.className='delete-draft';remove.textContent='Excluir rascunho';remove.addEventListener('click',()=>askDelete(item));article.append(remove);}$('#draft-list').append(article);}
  historyOffset+=Math.min(data.length,20);$('#more-drafts').hidden=data.length<=20;$('#history-status').textContent=historyOffset?'':'Nenhum levantamento para este cliente ainda.';
  }catch{$('#history-status').textContent='Não foi possível carregar o histórico. Selecione o cliente novamente para tentar.';}
 }
 let creationId=null;
+let pendingDelete=null,deleting=false;
+const deleteDialog=$('#delete-dialog');
+function askDelete(item){if(deleting)return;pendingDelete=item;$('#delete-name').textContent=item.title;$('#delete-status').textContent='';deleteDialog.showModal();}
+$('#cancel-delete').addEventListener('click',()=>{if(!deleting)deleteDialog.close();});
+deleteDialog.addEventListener('cancel',event=>{if(deleting)event.preventDefault();});
+$('#confirm-delete').addEventListener('click',async()=>{
+ if(!pendingDelete||deleting)return;deleting=true;$('#confirm-delete').disabled=true;$('#cancel-delete').disabled=true;
+ $('#delete-status').textContent='Excluindo rascunho…';
+ try{await access();await deleteDraft(authClient,pendingDelete);deleteDialog.close();pendingDelete=null;await historyList(true);say('Rascunho excluído.');}
+ catch(error){$('#delete-status').textContent=error.message;}
+ finally{deleting=false;$('#confirm-delete').disabled=false;$('#cancel-delete').disabled=false;}
+});
 $('#create-assessment').addEventListener('submit',async event=>{
  event.preventDefault();if(!selected||saving)return;const title=$('#assessment-title').value.trim();if(!title)return;
  saving=true;$('#client-select').disabled=true;$('#start-assessment').disabled=true;say('Criando levantamento…');
@@ -90,6 +102,7 @@ window.addEventListener('beforeunload',event=>{if(dirty||saving){event.preventDe
 document.addEventListener('visibilitychange',()=>{if(document.hidden)workspace.hidden=true;else initialize();});
 window.addEventListener('pageshow',event=>{if(event.persisted)initialize();});
 await initialize();
+
 
 
 

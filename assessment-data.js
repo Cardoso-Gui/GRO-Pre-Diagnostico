@@ -14,4 +14,10 @@ export async function saveAssessment(client, row, answers) {
  if(!data) throw new Error('Este rascunho foi alterado por outra pessoa ou ficou indisponível. Suas respostas continuam nesta tela. Abra o levantamento em outra aba para comparar antes de recarregar.');
  return {...row,...data,answers};
 }
+export async function deleteDraft(client, draft) {
+ const {data,error}=await client.from('assessments').delete().eq('id',draft.id).eq('revision',draft.revision).eq('status','draft').select('id').maybeSingle();
+ if(error)throw new Error('Não foi possível confirmar a exclusão. Atualize o histórico antes de tentar novamente.');
+ if(!data)throw new Error('O rascunho foi alterado, já foi excluído ou seu acesso mudou. Atualize o histórico antes de tentar novamente.');
+ return data;
+}
 
