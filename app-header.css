@@ -1,0 +1,23 @@
+.gro-header{display:block;height:96px;padding:0;background:#fff;color:#203943;border-bottom:1px solid #dce5e7;font-family:Inter,"Segoe UI",Arial,sans-serif}
+.gro-header .topbar-inner{max-width:1180px;margin:auto;height:100%;display:flex;align-items:center;gap:54px;padding:0 32px;box-sizing:border-box}
+.gro-header .brand{display:flex;gap:11px;align-items:center;text-decoration:none;color:#203943}
+.gro-header .brand-mark{height:43px;width:43px;border:1px solid #d1e2dd;border-radius:12px;display:grid;place-items:center;color:#137b68;flex-shrink:0}
+.gro-header svg{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.gro-header .brand-mark svg{width:26px;height:26px}
+.gro-header .brand strong{display:block;font-size:27px;line-height:1.1;letter-spacing:-1px}
+.gro-header .brand small{display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#71818a;margin-top:5px;white-space:nowrap}
+.gro-header nav{position:static;align-self:stretch;display:flex;align-items:stretch}
+.gro-header .nav-current{display:flex;align-items:center;color:#137b68;font-size:14px;font-weight:650;text-decoration:none;border-bottom:2px solid #137b68;padding:2px 4px 0}
+.gro-header .user-menu{margin-left:auto;display:flex;align-items:center;gap:12px}
+.gro-header .avatar{width:36px;height:36px;background:#e6f1ed;border-radius:50%;display:grid;place-items:center;color:#286554;font-size:12px;font-weight:750;flex-shrink:0}
+.gro-header .user-info strong{display:block;font-size:13px;font-weight:650;white-space:nowrap}
+.gro-header .user-info small{display:block;font-size:11px;color:#71818a;margin-top:4px}
+.gro-header .sign-out{display:flex;align-items:center;gap:7px;background:none;border:0;border-left:1px solid #dce5e7;border-radius:0;padding:8px 0 8px 22px;margin:0 0 0 12px;color:#71818a;font:13px "Segoe UI",sans-serif;width:auto;min-height:36px;box-shadow:none;cursor:pointer}
+.gro-header .sign-out:hover{color:#137b68;transform:none}
+.gro-header .sign-out svg{width:18px;height:18px}
+.gro-header :focus-visible{outline:3px solid #369d88;outline-offset:4px}
+.page-back{display:inline-block;margin-bottom:20px;color:#137b68;font-size:14px}
+@media(max-width:1020px){.gro-header .topbar-inner{gap:24px}.gro-header .user-info{display:none}}
+@media(max-width:760px){.gro-header{height:80px}.gro-header .topbar-inner{padding:0 16px;gap:16px}.gro-header .brand small{display:none}.gro-header .brand strong{font-size:24px}.gro-header .brand-mark{width:36px;height:36px}.gro-header .sign-out{padding-left:10px;margin-left:0}.gro-header .user-menu{gap:8px}}
+@media(max-width:380px){.gro-header .avatar{display:none}}
+@media print{.gro-header,.page-back{display:none!important}}

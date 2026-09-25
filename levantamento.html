@@ -10,11 +10,15 @@
     <meta name="referrer" content="no-referrer" />
     <script src="vendor/supabase-2.117.2.js" defer></script>
     <script type="module" src="workspace.js"></script>
-  <link rel="stylesheet" href="dimension.css"></head>
+  <link rel="stylesheet" href="dimension.css"><link rel="stylesheet" href="./app-header.css"></head>
   <body>
     <section id="session-check" class="session-check" aria-live="polite"><p>Verificando seu acesso…</p><a href="index.html">Voltar ao login</a></section>
     <div id="protected-workspace" hidden>
-    <header class="session-bar"><a class="session-home" href="./inicio.html" aria-label="Voltar à página inicial">← <span class="session-brand">GRO</span> <span>Início</span></a><div class="session-person"><span id="session-name"></span><button id="sign-out" type="button">Sair da conta</button></div></header>
+    <header class="topbar gro-header"><div class="topbar-inner">
+   <a class="brand" href="./inicio.html" aria-label="GRO — página inicial"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 8 9 8 9s8-4.5 8-9V6l-8-3Z"/><path d="m8 12 3 3 5-6"/></svg></span><span><strong>GRO</strong><small>Gestão de riscos ocupacionais</small></span></a>
+   <nav aria-label="Navegação principal"><a class="nav-current session-home" href="./inicio.html">Início</a></nav>
+   <div class="user-menu"><span id="user-avatar" class="avatar" aria-hidden="true"></span><div class="user-info"><strong id="session-name"></strong><small id="user-role"></small></div><button id="sign-out" class="sign-out" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v16h5m5-13 5 5-5 5M8 12h11"/></svg><span>Sair</span></button></div>
+  </div></header>
     <p class="session-note">Cada novo levantamento mantém um registro separado no histórico do cliente. Salve o rascunho antes de sair.</p>
     <p id="cloud-status" class="session-note" role="status"></p>
 <section id="assessment-picker" class="assessment-picker" hidden>

@@ -1,3 +1,4 @@
+import {updateHeader} from './app-header.js';
 import { authClient, getTeamMember } from './auth-client.js';
 import { lookupCompany } from './cnpj.js';
 const $ = selector => document.querySelector(selector);
@@ -66,6 +67,7 @@ async function verify() {
   const result = await getTeamMember();
   if (result.error && result.reason === 'network') throw new Error('Não foi possível verificar seu acesso. Confira a conexão e tente novamente.');
   if (!result.member) { dirty = false; location.replace('./index.html?reason=expired'); throw new Error('Sua sessão terminou. Entre novamente.'); }
+  updateHeader(result.member);
 }
 async function readClient() {
   const { data, error } = await authClient.from('clients').select('*').eq('id', id).eq('archived', false).maybeSingle();
@@ -148,3 +150,5 @@ window.addEventListener('pageshow', event => { if (event.persisted) initialize()
 await initialize();
 
 
+
+document.querySelector('#sign-out').addEventListener('click',async()=>{if(busy)return;if(dirty&&!confirm('Sair sem salvar as alterações do cadastro?'))return;dirty=false;await authClient.auth.signOut({scope:'local'});location.assign('./index.html?reason=signedout');});

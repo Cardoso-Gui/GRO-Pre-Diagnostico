@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import vm from 'node:vm';
+const awaitHeader = await fs.readFile(new URL('../app-header.js', import.meta.url), 'utf8');
 const source = await fs.readFile(new URL('../client.js', import.meta.url), 'utf8');
 async function fixture({existing = null, error = null, conflict = false, member = true, lookup = async()=>({})} = {}) {
  const elements = new Map(), writes = [], filters = [];
@@ -15,7 +16,7 @@ async function fixture({existing = null, error = null, conflict = false, member 
  const redirects=[];
  const context=vm.createContext({URLSearchParams,crypto:{randomUUID:()=> '11111111-1111-4111-8111-111111111111'},document:{querySelector:s=>el(s.replace(/^#/,'')),createElement:()=>({}),addEventListener(){}},location:{search:existing?'?id=11111111-1111-4111-8111-111111111111':'',replace:u=>redirects.push(u)},history:{replaceState(){}},window:{addEventListener(){}},confirm:()=>true});
  const auth=new vm.SyntheticModule(['authClient','getTeamMember'],function(){this.setExport('authClient',client);this.setExport('getTeamMember',async()=>({member:member?{}:null}));},{context});
- const mod=new vm.SourceTextModule(source,{context});await mod.link(name=>name === './auth-client.js' ? auth : new vm.SyntheticModule(['lookupCompany'],function(){this.setExport('lookupCompany',lookup);},{context}));await mod.evaluate();
+ const mod=new vm.SourceTextModule(source,{context});await mod.link(name=>name === './app-header.js' ? new vm.SourceTextModule(awaitHeader,{context}) : name === './auth-client.js' ? auth : new vm.SyntheticModule(['lookupCompany'],function(){this.setExport('lookupCompany',lookup);},{context}));await mod.evaluate();
  for(const [key,value] of Object.entries({cnpj:'19131243000197',cnae:'1234567',postal_code:'01234567',state:'SP',street:'Rua Teste',number:'1',district:'Centro',city:'São Paulo',contact_name:'Responsável',contact_phone:'11999999999',contact_email:'teste@example.com'})) if(!el(key).value)el(key).value=value;
  return {el,writes,filters,redirects,async submit(){await el('client-form').handlers.submit({preventDefault(){}});}};
 }

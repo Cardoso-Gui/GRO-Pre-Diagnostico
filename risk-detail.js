@@ -1,3 +1,4 @@
+import {updateHeader} from './app-header.js';
 import {authClient,getTeamMember} from './auth-client.js';
 import {saveAssessment} from './assessment-data.js';
 import {detailKey,detailTargets,detailAnswers} from './risk-detail-data.js';
@@ -47,6 +48,7 @@ async function persistDetails(){
 }
 async function load(){try{
  const access=await getTeamMember();if(!access.member)throw Error('Entre na sua conta para acessar o detalhamento.');
+ updateHeader(access.member);
  if(!id||!/^[0-9a-f-]{36}$/i.test(id))throw Error('Abra o detalhamento a partir de um levantamento.');
  const result=await authClient.from('assessments').select('*').eq('id',id).maybeSingle();if(result.error||!result.data)throw Error('Não foi possível carregar o levantamento. Recarregue para tentar novamente.');
  row=result.data;if(row.status!=='draft'||(access.member.role!=='admin'&&row.responsible_id!==access.member.user_id))throw Error('Somente o responsável ou administrador pode editar um rascunho.');
@@ -58,4 +60,6 @@ async function load(){try{
  if(requested>=0){current=requested;index=Math.max(0,targets[current].risks.findIndex(r=>r.code===params.get('risk')));$('#target-select').value=String(current);}
  $('#editor').hidden=false;say('Alterne entre os riscos e salve todas as alterações no botão Salvar detalhamento.');render();
  }catch(error){say(error.message)}}
+for(const link of document.querySelectorAll('.gro-header a'))link.onclick=event=>$('#back').onclick(event);
+$('#sign-out').onclick=async()=>{if(saving)return;if(dirty()&&!confirm('Sair sem salvar o detalhamento?'))return;baseline=fingerprint();await authClient.auth.signOut({scope:'local'});location.assign('./index.html?reason=signedout');};
 await load();

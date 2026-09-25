@@ -1,3 +1,4 @@
+import {updateHeader} from './app-header.js';
 import {authClient,getTeamMember} from './auth-client.js';
 import {companyFromClient,saveAssessment,clientOptionLabel,deleteDraft} from './assessment-data.js';
 const $=s=>document.querySelector(s);
@@ -5,7 +6,7 @@ const workspace=$('#protected-workspace'), notice=$('#session-check');
 let member, row, selected, saving=false, dirty=false, loading=false, loaded=false, sequence=0, offset=0, historyOffset=0;
 const login=()=>location.replace('./index.html?reason=expired');
 const say=(text,error=false)=>{ $('#cloud-status').textContent=text; $('#cloud-status').classList.toggle('error',error); };
-async function access(){const result=await getTeamMember();if(result.error&&result.reason==='network')throw Error('Não foi possível verificar seu acesso. Recarregue para tentar novamente.');if(!result.member){dirty=false;login();throw Error('Sua sessão terminou.');}member=result.member;$('#session-name').textContent=member.display_name;}
+async function access(){const result=await getTeamMember();if(result.error&&result.reason==='network')throw Error('Não foi possível verificar seu acesso. Recarregue para tentar novamente.');if(!result.member){dirty=false;login();throw Error('Sua sessão terminou.');}member=result.member;updateHeader(member);$('#session-name').textContent=member.display_name;}
 const clientChoices = new Map();
 async function clientList(){
  const ticket=++sequence;const select=$('#client-select');select.disabled=true;select.replaceChildren();clientChoices.clear();selected=null;$('#client-history').hidden=true;$('#retry-clients').hidden=true;say('Carregando empresas cadastradas…');

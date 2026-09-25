@@ -4,3 +4,14 @@
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 .client-search{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:20px;background:#f5f8f9;border:1px solid var(--line);border-radius:12px;margin-bottom:22px}.client-search label{display:grid;gap:8px;font-size:13px;font-weight:600;min-width:0}.client-search input{width:100%;min-width:0;min-height:44px;padding:11px 12px;border:1px solid #cbd9dd;border-radius:8px;background:white;color:var(--ink);font:inherit;font-weight:400}.client-search input::placeholder{color:var(--muted);font-size:12px}.search-actions{grid-column:1/-1;display:flex;gap:10px}@media(max-width:600px){.client-search{grid-template-columns:1fr;padding:16px}.search-actions{flex-wrap:wrap}.search-actions button{flex:1}}
 .new-client{display:inline-block;text-decoration:none;margin-bottom:20px}.record-link{display:inline-block;color:var(--green);font-size:13px;font-weight:600;margin-top:12px}
+
+/* Contraste dos cards claros da página inicial. */
+.action-card:not(.card-featured) {
+  background: #fff;
+  border-color: #bdcfD2;
+  box-shadow: 0 5px 16px rgba(16, 47, 60, .09), 0 1px 3px rgba(16, 47, 60, .05);
+}
+.action-card:not(.card-featured):hover {
+  border-color: #7eafa3;
+  box-shadow: 0 10px 24px rgba(16, 47, 60, .14);
+}
