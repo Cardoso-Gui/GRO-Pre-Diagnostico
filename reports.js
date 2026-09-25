@@ -1,6 +1,7 @@
 import {authClient,getTeamMember} from './auth-client.js';
 import {updateHeader} from './app-header.js?v=20260925-header2';
 import {clientOptionLabel} from './assessment-data.js';
+import {addReuseButton} from './reuse-report.js';
 const select=document.querySelector('#report-client'),list=document.querySelector('#report-list'),status=document.querySelector('#list-status'),more=document.querySelector('#list-more');
 let sequence=0,offset=0,isAdmin=false;
 async function load(reset=true){
@@ -14,6 +15,7 @@ async function load(reset=true){
  const title=document.createElement('h2');title.textContent=row.title;
  const info=document.createElement('p');info.textContent=new Date(row.completed_at).toLocaleString('pt-BR')+' · '+(row.team_members?.display_name||'Equipe');
  const actions=document.createElement('div');actions.className='report-actions';
+ addReuseButton(actions,row.id,authClient,getTeamMember,text=>{status.textContent=text;});
  for(const [label,suffix] of [['Visualizar',''],['Imprimir / salvar PDF','&print=1']]){const a=document.createElement('a');a.textContent=label;a.href='./report.html?id='+encodeURIComponent(row.id)+suffix;actions.append(a);}
  if(isAdmin){const remove=document.createElement('button');remove.className='delete-report';remove.setAttribute('aria-label','Excluir relatório');remove.title='Excluir relatório';const icon=document.createElementNS('http://www.w3.org/2000/svg','svg');icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('aria-hidden','true');const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d','M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7');icon.append(path);remove.append(icon);remove.onclick=()=>askDelete(row,remove);actions.append(remove);}
  card.append(title,info,actions);list.append(card);

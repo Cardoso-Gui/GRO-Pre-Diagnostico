@@ -1,6 +1,7 @@
 import {authClient,getTeamMember} from './auth-client.js';
 import {updateHeader} from './app-header.js?v=20260925-header2';
 import {organizeReport} from './report-layout.js?v=20260925-layout3';
+import {addReuseButton} from './reuse-report.js';
 const message=document.querySelector('#report-status'),content=document.querySelector('#report-content'),print=document.querySelector('#report-print');
 const tags=new Set(['section','div','article','h2','h3','h4','p','span','strong','small','ul','li']);
 function renderNode(node,depth=0){
@@ -112,6 +113,8 @@ async function load(){
  organizeReport(content,data.final_snapshot?.answers||{});
  message.textContent='Concluído em '+new Date(data.completed_at).toLocaleString('pt-BR')+'. Versão preservada no histórico.';
  content.hidden=false;print.disabled=false;
+ document.querySelector('.report-toolbar .reuse-report')?.remove();
+ addReuseButton(document.querySelector('.report-toolbar'),id,authClient,getTeamMember,text=>{message.textContent=text;});
  if(new URLSearchParams(location.search).get('print')==='1'){history.replaceState(null,'','./report.html?id='+encodeURIComponent(id));await document.fonts.ready;window.print();}
  }catch(error){message.textContent=error.message;}
 }
