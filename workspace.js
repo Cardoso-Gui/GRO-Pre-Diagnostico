@@ -1,5 +1,5 @@
 import {authClient,getTeamMember} from './auth-client.js';
-import {companyFromClient,saveAssessment} from './assessment-data.js';
+import {companyFromClient,saveAssessment,clientOptionLabel} from './assessment-data.js';
 const $=s=>document.querySelector(s);
 const workspace=$('#protected-workspace'), notice=$('#session-check');
 let member, row, selected, saving=false, dirty=false, loading=false, loaded=false, sequence=0, offset=0, historyOffset=0;
@@ -14,7 +14,7 @@ async function clientList(){
   for(let start=0;;start+=200){
    const {data,error}=await authClient.from('clients').select('id,legal_name,trade_name,cnpj,cnae,address,contact_phone,contact_email').eq('archived',false).order('legal_name').order('id').range(start,start+199);
    if(ticket!==sequence)return;if(error)throw error;
-   for(const client of data){clientChoices.set(client.id,client);const option=document.createElement('option');option.value=client.id;option.textContent=`${client.trade_name || client.legal_name} — ${client.cnpj || client.legal_name}`;select.append(option);}
+   for(const client of data){clientChoices.set(client.id,client);const option=document.createElement('option');option.value=client.id;option.textContent=clientOptionLabel(client);select.append(option);}
    if(data.length<200)break;
   }
   select.disabled=clientChoices.size===0;say(clientChoices.size?'Selecione a empresa para ver seus levantamentos.':'Nenhuma empresa cadastrada. Cadastre uma empresa para começar.');
