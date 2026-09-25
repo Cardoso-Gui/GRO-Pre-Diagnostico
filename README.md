@@ -24,4 +24,3 @@ Publicar a raiz da branch no GitHub Pages. Todos os caminhos são relativos e fu
 
 Executar `npm test` com Node.js 22 ou superior. Os testes simulam respostas de autenticação; não criam contas nem enviam e-mails. A entrada bem-sucedida com conta real requer uma conta Auth vinculada a um membro ativo.
 
-

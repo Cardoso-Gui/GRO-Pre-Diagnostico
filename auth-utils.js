@@ -11,4 +11,3 @@ export function friendlyAuthError(error, online = true) {
   if (['AbortError', 'TimeoutError', 'AuthRetryableFetchError'].includes(error?.name) || !online) return 'Não foi possível conectar. Confira sua internet e tente novamente.';
   return 'Não foi possível concluir agora. Tente novamente em instantes.';
 }
-

@@ -6,9 +6,22 @@ export function clientOptionLabel(client) {
 }
 export function companyFromClient(client) {
  const a=client.address || {};
- return {cnpj:client.cnpj || '',razao_social:client.legal_name,nome_fantasia:client.trade_name || '',cnae_fiscal:client.cnae || '',logradouro:a.street || '',numero:a.number || '',complemento:a.complement || '',bairro:a.district || '',municipio:a.city || '',uf:a.state || '',cep:a.postal_code || '',ddd_telefone_1:client.contact_phone || '',email:client.contact_email || '',descricao_situacao_cadastral:'Cadastro da equipe'};
+ return {cnpj:client.cnpj || '',razao_social:client.legal_name,nome_fantasia:client.trade_name || '',cnae_fiscal:client.cnae || '',logradouro:a.street || '',numero:a.number || '',complemento:a.complement || '',bairro:a.district || '',municipio:a.city || '',uf:a.state || '',cep:a.postal_code || '',contact_name:client.contact_name || '',ddd_telefone_1:client.contact_phone || '',email:client.contact_email || '',descricao_situacao_cadastral:'Cadastro da equipe'};
 }
 export async function saveAssessment(client, row, answers) {
+ if(row.unsaved){
+  const payload={id:row.id,client_id:row.client_id,title:row.title,responsible_id:row.responsible_id,status:'draft',answers};
+  let {data,error}=await client.from('assessments').insert(payload).select('id,revision,updated_at').maybeSingle();
+  if(error?.code==='23505'){
+   const existing=await client.from('assessments').select('*').eq('id',row.id).maybeSingle();
+   if(!existing.error&&existing.data?.status==='draft'&&existing.data.responsible_id===row.responsible_id&&existing.data.client_id===row.client_id){
+    throw new Error('Este registro já foi recebido pelo sistema. Abra o histórico em outra aba para conferir a versão salva antes de continuar.');
+   }
+  }
+  if(error||!data)throw new Error('Não foi possível confirmar o salvamento. Mantenha esta página aberta e tente novamente.');
+  return {...row,...data,answers,unsaved:false};
+ }
+
  const {data,error}=await client.from('assessments').update({answers}).eq('id',row.id).eq('revision',row.revision).eq('status','draft').select('id,revision,updated_at').maybeSingle();
  if(error) throw new Error('Não foi possível confirmar o salvamento. Mantenha esta página aberta e tente novamente.');
  if(!data) throw new Error('Este rascunho foi alterado por outra pessoa ou ficou indisponível. Suas respostas continuam nesta tela. Abra o levantamento em outra aba para comparar antes de recarregar.');

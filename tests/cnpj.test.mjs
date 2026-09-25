@@ -7,4 +7,3 @@ test('normalizes formatted CNPJ and omits credentials',async()=>{await lookupCom
 test('invalid input never makes request',async()=>{await assert.rejects(lookupCompany('123',()=>{throw Error('should not fetch');}),/completo/);});
 test('rejects mismatched company',()=>{assert.throws(()=>mapCompany({cnpj:'00000000000000',razao_social:'Empresa'},cnpj),/incompletos/);});
 test('service failures give manual fallback',async()=>{for(const status of [404,429,500])await assert.rejects(lookupCompany(cnpj,async()=>({ok:false,status})),/manual|Aguarde/);});
-

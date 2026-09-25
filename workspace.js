@@ -12,7 +12,7 @@ async function clientList(){
  const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='Selecione uma empresa';select.append(placeholder);
  try{
   for(let start=0;;start+=200){
-   const {data,error}=await authClient.from('clients').select('id,legal_name,trade_name,cnpj,cnae,address,contact_phone,contact_email').eq('archived',false).order('legal_name').order('id').range(start,start+199);
+   const {data,error}=await authClient.from('clients').select('id,legal_name,trade_name,cnpj,cnae,address,contact_name,contact_phone,contact_email').eq('archived',false).order('legal_name').order('id').range(start,start+199);
    if(ticket!==sequence)return;if(error)throw error;
    for(const client of data){clientChoices.set(client.id,client);const option=document.createElement('option');option.value=client.id;option.textContent=clientOptionLabel(client);select.append(option);}
    if(data.length<200)break;
@@ -50,18 +50,16 @@ $('#create-assessment').addEventListener('submit',async event=>{
  saving=true;$('#client-select').disabled=true;$('#start-assessment').disabled=true;say('Criando levantamento…');
  const client=selected;creationId ||= crypto.randomUUID();
  try{await access();const answers={cnpj:client.cnpj,currentCompany:companyFromClient(client)};
- const {error}=await authClient.from('assessments').insert({id:creationId,client_id:client.id,title,responsible_id:member.user_id,answers});
- if(error&&error.code!=='23505')throw error;
- if(error){const result=await authClient.from('assessments').select('id').eq('id',creationId).eq('client_id',client.id).maybeSingle();if(result.error||!result.data)throw error;}
- saving=false; location.assign(`./levantamento.html?id=${creationId}`);
- }catch{say('Não foi possível confirmar a criação. Tente novamente; o mesmo registro será conferido para evitar duplicação.',true);}
+ row={id:creationId,client_id:client.id,title,responsible_id:member.user_id,answers,status:'draft',unsaved:true};
+ await loadForm();$('#assessment-picker').hidden=true;
+ }catch{say('Não foi possível abrir o levantamento. Recarregue para tentar novamente.',true);}
  finally{saving=false;$('#client-select').disabled=false;$('#start-assessment').disabled=false;}
 });
 async function loadForm(){
  const id=new URLSearchParams(location.search).get('id');
- if(!id){$('#assessment-picker').hidden=false;await clientList();return;}
- if(!/^[0-9a-f-]{36}$/i.test(id))throw Error('Endereço de levantamento inválido. Volte ao início.');
- const {data,error}=await authClient.from('assessments').select('*').eq('id',id).maybeSingle();
+ if(!id&&!row?.unsaved){$('#assessment-picker').hidden=false;await clientList();return;}
+ if(!row?.unsaved&&!/^[0-9a-f-]{36}$/i.test(id))throw Error('Endereço de levantamento inválido. Volte ao início.');
+ const {data,error}=row?.unsaved ? {data:row,error:null} : await authClient.from('assessments').select('*').eq('id',id).maybeSingle();
  if(error)throw Error('Não foi possível carregar o levantamento. Recarregue para tentar novamente.');
  if(!data)throw Error('Levantamento não encontrado. Volte ao início.');
  if(data.status!=='draft')throw Error('Este levantamento está concluído e preservado no histórico.');
@@ -70,18 +68,19 @@ async function loadForm(){
  globalThis.GRO_CLOUD={save:async answers=>{
  if(saving)return;saving=true;$('#save-draft-button').disabled=true;
  const version=fingerprint(); const snapshot=JSON.parse(JSON.stringify(answers));
- try{await access();row=await saveAssessment(authClient,row,snapshot);cleanState=version;dirty=fingerprint()!==cleanState;say(dirty?'Rascunho salvo. Há alterações novas nesta tela; salve novamente.':`Rascunho salvo no sistema às ${new Date().toLocaleTimeString('pt-BR')}.`);}
- catch(error){say(error.message,true);}finally{saving=false;$('#save-draft-button').disabled=false;}
+ try{await access();row=await saveAssessment(authClient,row,snapshot);history.replaceState(null,'',`./levantamento.html?id=${encodeURIComponent(row.id)}`);cleanState=version;dirty=fingerprint()!==cleanState;say(dirty?'Rascunho salvo. Há alterações novas nesta tela; salve novamente.':`Rascunho salvo no sistema às ${new Date().toLocaleTimeString('pt-BR')}.`);}
+ catch(error){say(error.message,true);return null;}finally{saving=false;$('#save-draft-button').disabled=false;}
+ return row;
  },reload:()=>{if(!dirty||confirm('Descartar alterações não salvas e recarregar o rascunho?')){dirty=false;location.reload();}}};
- for(const file of ['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','script.js'])await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=file;script.onload=resolve;script.onerror=reject;document.body.append(script);});
+ for(const file of ['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js', 'script.js'])await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=file;script.onload=resolve;script.onerror=reject;document.body.append(script);});
  globalThis.GRO_FORM.restore(row.answers);
- cleanState=fingerprint();dirty=false;
+ cleanState=fingerprint();dirty=Boolean(row.unsaved);
  $('#questionnaire').hidden=false;$('#page-title').textContent=row.title;$('#cnpj-form').hidden=true;$('#clear-draft-button').hidden=true;$('#load-draft-button').textContent='Recarregar rascunho';
- say('Rascunho carregado. Clique em Salvar rascunho para guardar suas alterações no sistema.');
+ say(row.unsaved?'Novo levantamento ainda não salvo. Use Salvar rascunho para incluí-lo no histórico.':'Rascunho carregado. Clique em Salvar rascunho para guardar suas alterações no sistema.');
 }
 let cleanState='';
 function fingerprint(){return JSON.stringify({answers:globalThis.GRO_FORM?.snapshot(),inputs:Array.from($('#questionnaire').querySelectorAll('input,select,textarea'),field=>[field.name||field.id,field.value,field.checked])});}
-function refreshDirty(){if(row&&globalThis.GRO_FORM)dirty=fingerprint()!==cleanState;}
+function refreshDirty(){if(row&&globalThis.GRO_FORM)dirty=Boolean(row.unsaved)||fingerprint()!==cleanState;}
 for(const event of ['input','change','submit','click'])$('#questionnaire').addEventListener(event,()=>queueMicrotask(refreshDirty));
 const leaveDialog=$('#leave-dialog');
 document.querySelector('.session-home').addEventListener('click',event=>{

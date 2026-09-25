@@ -4,4 +4,40 @@
 .assessment-picker select{display:block;width:100%;box-sizing:border-box;min-height:48px;padding:12px;margin-bottom:18px;border:1px solid #b8cbd1;border-radius:8px;background:white;color:#203943;font:inherit}.assessment-picker select:focus-visible{outline:3px solid #369d88;outline-offset:3px}
 #leave-dialog{max-width:480px;width:calc(100% - 40px);box-sizing:border-box;border:1px solid #c6d8d9;border-radius:14px;padding:26px;color:#203943}#leave-dialog::backdrop{background:#102f3c99}#leave-dialog p{line-height:1.6}#leave-dialog div{display:flex;gap:12px;flex-wrap:wrap}#leave-dialog button{padding:12px;border:1px solid #c6d8d9;border-radius:8px;cursor:pointer}#keep-editing{background:#137b68;color:white}
 #delete-dialog{max-width:480px;width:calc(100% - 40px);box-sizing:border-box;border:1px solid #c6d8d9;border-radius:14px;padding:26px;color:#203943}#delete-dialog::backdrop{background:#102f3c99}#delete-dialog p{line-height:1.6;overflow-wrap:anywhere}#delete-dialog div{display:flex;gap:12px;flex-wrap:wrap}#delete-dialog button{padding:12px;border:1px solid #c6d8d9;border-radius:8px;cursor:pointer}#confirm-delete{background:#a3372c;color:white}.assessment-picker .delete-draft{margin-left:16px;color:#a3372c;background:white}
+/* Ficha da empresa: identidade, dados e início do preenchimento. */
+#company-card{border:0;background:transparent;padding:0;box-shadow:none;margin-top:28px;overflow:visible}
+#company-card>.company-header{padding:28px 30px;margin:0;background:#123542;color:white;border-radius:16px 16px 0 0;align-items:flex-start;gap:20px}
+#company-card .company-header .result-label{color:#9cd9c8;letter-spacing:1.8px;font-size:11px;margin:0 0 10px}
+#company-name{font-size:30px;letter-spacing:-.7px;margin:0;color:white;overflow-wrap:anywhere}
+.company-cnpj{font-size:14px;color:#c6dce2;margin:10px 0 0;letter-spacing:.3px}
+#company-status{background:#ffffff12;border:1px solid #ffffff30;color:#c4eadf;font-size:11px;white-space:nowrap}
+#company-card>.details-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:0;padding:8px 30px 14px;background:white;border:1px solid #dce5e7;border-top:0;border-radius:0 0 16px 16px}
+#company-card>.details-grid>.detail-item{background:none;border:0;border-radius:0;padding:23px 20px 23px 0;min-width:0;border-bottom:1px solid #e6edef}
+#company-card>.details-grid>.detail-item:nth-last-child(-n+2){border-bottom:0}
+#company-card .detail-item>span{font-size:10px;font-weight:700;letter-spacing:1.3px;color:#6b818b;margin-bottom:10px}
+#company-card .detail-item>strong{font-size:14px;line-height:1.7;font-weight:500;color:#243e49;overflow-wrap:anywhere;white-space:pre-line}
+#company-card>.dimension-form{margin-top:32px;padding:28px 30px;background:#fff;border:1px solid #dce5e7;border-radius:16px}
+@media(max-width:640px){#company-card>.company-header{padding:23px;flex-direction:column;gap:16px}#company-name{font-size:26px}#company-card>.details-grid{grid-template-columns:1fr;padding:0 23px 8px}#company-card>.details-grid>.detail-item{padding:20px 0;border-bottom:1px solid #e6edef}#company-card>.details-grid>.detail-item:last-child{border-bottom:0}#company-card>.dimension-form{padding:23px}}
+#company-card>.details-grid>.detail-item{grid-column:auto}
+#questionnaire{padding-top:28px}#questionnaire .panel-heading h1{font-size:32px;line-height:1.25;letter-spacing:-.8px}#company-card>.details-grid>.detail-item{box-shadow:none}
+.visual-preview .draft-actions,.visual-preview .session-note,.visual-preview #sign-out{display:none}.visual-preview #cloud-status{display:none}
 
+/* Setores e cargos */
+#jobs-section{margin-top:20px;padding-top:0;border:0}#jobs-section>.dimension-heading{display:none}#jobs-grid{display:grid;grid-template-columns:1fr;gap:20px}.job-card{padding:25px;background:white;border:1px solid #dce5e7;border-radius:14px;box-shadow:none}.job-card h3{font-size:21px;margin:0 0 15px}.job-edit-row{display:grid;grid-template-columns:1fr 140px;gap:14px 24px;padding:22px 0;border-top:1px solid #e7eeee}.job-edit-row>strong{align-self:center}.job-card label{font-size:12px;color:#687f8a}.job-card input,.job-card textarea{width:100%;box-sizing:border-box;margin-top:8px;padding:12px;border:1px solid #d7e2e6;border-radius:8px;background:#fbfcfd;color:#23434d;font:inherit}.job-card textarea{min-height:75px;resize:vertical}.job-card textarea::placeholder{color:#91a1a9;opacity:1}.job-activities{grid-column:1/-1}.job-card .remove-job{justify-self:start;background:none;color:#94635c;border:0;box-shadow:none;font-size:12px;padding:0}.job-card .add-job{background:#edf6f2;color:#137b68;border:0;box-shadow:none;padding:10px 14px;font-size:13px}.job-card .job-form{display:grid;grid-template-columns:1fr 140px;gap:16px;margin-top:18px}.sector-picker{border:1px solid #dce5e7;border-radius:10px;padding:16px;background:white}.sector-picker summary{cursor:pointer;color:#137b68;font-weight:600}#distribution-count{padding:18px;background:#e7f2ed;border-radius:10px;color:#356457;font-size:14px}#selected-sectors{display:none}@media(max-width:600px){.job-card{padding:18px}.job-edit-row,.job-card .job-form{grid-template-columns:1fr 100px;gap:12px}}
+
+.sector-picker .custom-sector-form{margin-top:0}.sector-help{font-size:12px;color:#6b818b;margin:10px 0 0}
+
+#risk-mode-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}@media(max-width:640px){#risk-mode-form{grid-template-columns:1fr}}
+
+.job-card .food-handling{grid-column:1/-1;display:flex;align-items:center;gap:10px;font-size:13px}.job-card .food-handling input{width:18px;height:18px;min-height:0;margin:0;flex-shrink:0}.food-help{grid-column:1/-1;font-size:12px;color:#6b818b}
+
+#report-validation ul { list-style: none; padding: 0; }
+#report-validation li { display: flex; align-items: center; gap: 16px; margin: 12px 0; }
+#report-validation li button { flex: 0 0 140px; margin: 0; padding: 9px 10px; font-size: 14px; line-height: 1.25; background: #b42318; color: #fff; box-shadow: 0 5px 12px #b4231826; }
+#report-validation li button:hover { background: #912018; }
+#report-validation li button:focus-visible { outline: 3px solid #b42318; outline-offset: 3px; }
+#report-validation li span { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  #report-validation li { flex-direction: column; align-items: flex-start; gap: 8px; }
+  #report-validation li button { flex-basis: auto; }
+}
