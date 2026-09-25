@@ -6,7 +6,7 @@ export function mapCompany(data, cnpj) {
 }
 export async function lookupCompany(value, fetcher = fetch) {
   const cnpj = value.replace(/[.\/\s-]/g, '').toUpperCase();
-  if (!/^[A-Z0-9]{12}[0-9]{2}$/.test(cnpj)) throw new Error('Informe o CNPJ completo para consultar: 12 letras ou números e 2 dígitos finais.');
+  if (!/^\d{14}$/.test(cnpj)) throw new Error('Informe o CNPJ completo para consultar: 14 números.');
   let response;
   try { response = await fetcher(`https://brasilapi.com.br/api/cnpj/v1/${cnpj}`, {signal: AbortSignal.timeout(15000), credentials:'omit', referrerPolicy:'no-referrer'}); }
   catch { throw new Error('Não foi possível consultar agora. Tente novamente ou preencha os dados manualmente.'); }
@@ -14,5 +14,6 @@ export async function lookupCompany(value, fetcher = fetch) {
   let data; try { data = await response.json(); } catch { throw new Error('Resposta inválida da consulta. Você pode preencher manualmente.'); }
   return mapCompany(data, cnpj);
 }
+
 
 

@@ -4,6 +4,16 @@ const $ = selector => document.querySelector(selector);
 const form = $('#client-form');
 const fields = $('#fields');
 const input = name => form.elements.namedItem(name);
+input('cnpj').addEventListener('input', () => {
+  input('cnpj').value = input('cnpj').value.replace(/\D/g, '').slice(0, 14);
+});
+input('cnpj').addEventListener('paste', event => {
+  event.preventDefault();
+  const field = input('cnpj');
+  const digits = event.clipboardData.getData('text').replace(/\D/g, '');
+  field.value = (field.value.slice(0, field.selectionStart) + digits + field.value.slice(field.selectionEnd)).slice(0, 14);
+  field.setCustomValidity(''); dirty = true; message('');
+});
 const basic = ['legal_name','trade_name','cnpj','cnae','contact_name','contact_phone','contact_email'];
 const addressFields = ['postal_code','state','street','number','complement','district','city'];
 const requestedId = new URLSearchParams(location.search).get('id');
@@ -84,7 +94,7 @@ function validate() {
   for (const name of [...basic,...addressFields]) input(name).setCustomValidity('');
   input('legal_name').setCustomValidity(input('legal_name').value.trim() ? '' : 'Informe a razão social.');
   const cnpj = input('cnpj').value.replace(/[.\/\s-]/g, '').toUpperCase();
-  if (cnpj && !/^[A-Z0-9]{12}[0-9]{2}$/.test(cnpj)) input('cnpj').setCustomValidity('Informe o CNPJ completo: 12 letras ou números e 2 dígitos finais.');
+  if (cnpj && !/^\d{14}$/.test(cnpj)) input('cnpj').setCustomValidity('Informe o CNPJ completo: 14 números.');
   const cnae = input('cnae').value.replace(/[.\/\s-]/g, '');
   if (cnae && !/^\d{7}$/.test(cnae)) input('cnae').setCustomValidity('Informe os 7 números do CNAE.');
   const cep = input('postal_code').value.replace(/[\s-]/g, '');
@@ -133,5 +143,6 @@ authClient.auth.onAuthStateChange(event => { if (event === 'SIGNED_OUT') { dirty
 document.addEventListener('visibilitychange', () => { if (document.hidden) $('#content').hidden = true; else initialize(); });
 window.addEventListener('pageshow', event => { if (event.persisted) initialize(); });
 await initialize();
+
 
 
