@@ -16,7 +16,7 @@ async function load(){
  const access=await getTeamMember();if(!access.member){if(access.reason==='network')throw Error('Não foi possível verificar seu acesso. Tente novamente.');location.replace('./index.html?reason=expired');return;}
  updateHeader(access.member);
  const id=new URLSearchParams(location.search).get('id');if(!/^[0-9a-f-]{36}$/i.test(id||''))throw Error('Endereço de relatório inválido.');
- const {data,error}=await authClient.from('assessments').select('title,final_snapshot,completed_at,team_members!assessments_responsible_id_fkey(display_name)').eq('id',id).eq('status','completed').maybeSingle();
+ const {data,error}=await authClient.from('assessments').select('title,report_revision,final_snapshot,completed_at,team_members!assessments_responsible_id_fkey(display_name)').eq('id',id).eq('status','completed').maybeSingle();
  if(error||!data)throw Error('Relatório indisponível. Volte à lista ou tente novamente.');
  const doc=data.final_snapshot?.answers?.report_document;
  if(doc?.version!==1||!Array.isArray(doc.children))throw Error('Este relatório não possui uma versão de visualização compatível.');
@@ -51,12 +51,32 @@ async function load(){
  });
  companyLines.forEach(line=>{if(/^(Razão social:|Nome fantasia:|CNPJ:|Endereço:|CNAE principal:)/.test(line.textContent))line.remove();});
  if(companyBlock)companyBlock.remove();
+ const summaryGrid=content.querySelector('.report-summary-grid');
+ if(summaryGrid){
+   const items=Array.from(summaryGrid.querySelectorAll('.report-summary-item'));
+   const findItem=label=>items.find(item=>item.querySelector('span')?.textContent.trim()===label);
+   const cnaeCard=findItem('CNAE principal'),riskCard=findItem('Grau de risco'),staffCard=findItem('Funcionários'),organizationCard=findItem('Organização');
+   if(riskCard&&staffCard){
+     staffCard.querySelector('span')?.classList.add('report-second-label');
+     riskCard.append(...Array.from(staffCard.childNodes));
+   }
+   const revisionCard=document.createElement('div');revisionCard.className='report-summary-item';
+   for(const [label,value] of [['Revisão',Number.isInteger(data.report_revision)?'Rev '+String(data.report_revision).padStart(2,'0'):'Não informada'],['Data da visita',date]]){
+     const caption=document.createElement('span');caption.textContent=label;if(label==='Data da visita')caption.className='report-second-label';
+     const strong=document.createElement('strong');strong.textContent=value;revisionCard.append(caption,strong);
+   }
+   const riskBlock=Array.from(content.querySelectorAll('.report-block')).find(block=>block.querySelector('h3')?.textContent.trim()==='Riscos identificados');
+   if(riskBlock&&organizationCard){const organization=document.createElement('p');organization.textContent='Organização: '+organizationCard.querySelector('strong').textContent;riskBlock.querySelector('h3').after(organization);}
+   summaryGrid.replaceChildren(...[cnaeCard,riskCard,revisionCard].filter(Boolean));
+ }
  const sizingBlock=Array.from(content.querySelectorAll('.report-block')).find(block=>block.querySelector('h3')?.textContent.trim()==='Dimensionamento CIPA/SESMT');
  if(sizingBlock)sizingBlock.classList.add('report-dimensioning');
  const introduction=document.createElement('p');introduction.className='report-introduction';
  introduction.textContent=`Em visita realizada em ${date}${responsible?', por '+responsible:''}, à empresa ${identity}${cnpj?', inscrita no CNPJ sob o nº '+cnpj:''}${fullAddress?', localizada em '+fullAddress:''}, foram levantadas informações sobre os setores, as atividades e as condições de trabalho. Este relatório apresenta os riscos identificados, as medidas de prevenção informadas e as necessidades de avaliação complementar, conforme as condições observadas na ocasião.`;
  const cover=content.querySelector('.report-cover');
  if(cover){const summary=cover.querySelector('.report-summary-grid');if(summary)summary.before(introduction);else cover.append(introduction);}
+ const objective=document.createElement('p');objective.className='report-objective';objective.textContent='O levantamento tem como objetivo apoiar a identificação dos perigos e o planejamento das ações de prevenção, considerando as atividades desenvolvidas e as informações fornecidas pela empresa.';
+ introduction.after(objective);
  const closing=document.createElement('section');closing.className='report-closing';
  const heading=document.createElement('h3');heading.textContent='Considerações finais';
  const paragraph=document.createElement('p');paragraph.textContent='Este levantamento registra as condições observadas na data da visita e as informações fornecidas pela empresa. As necessidades de avaliação complementar e as melhorias apontadas deverão ser analisadas pelos responsáveis técnicos, para definição das medidas e dos prazos de implementação.';
