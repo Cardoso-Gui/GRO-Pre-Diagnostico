@@ -19,8 +19,8 @@
     <p id="cloud-status" class="session-note" role="status"></p>
 <section id="assessment-picker" class="assessment-picker" hidden>
  <h1>Levantamentos por cliente</h1><p>Selecione uma empresa para iniciar outro levantamento ou continuar um rascunho.</p>
- <form id="client-search-form"><label for="client-filter">Buscar cliente por nome ou CNPJ</label><div class="picker-search"><input id="client-filter" type="search" maxlength="240"><button>Buscar</button></div></form>
- <a href="./client.html">Cadastrar cliente</a><div id="client-options"></div><button id="more-clients" hidden>Carregar mais clientes</button>
+<label for="client-select">Empresa cadastrada</label><select id="client-select" disabled><option value="">Carregando empresas…</option></select><button id="retry-clients" type="button" hidden>Tentar novamente</button>
+ <a href="./client.html">Cadastrar cliente</a>
  <section id="client-history" hidden><h2 id="selected-client"></h2><form id="create-assessment"><label for="assessment-title">Título do novo levantamento</label><input id="assessment-title" required maxlength="240"><button id="start-assessment">Iniciar novo levantamento</button></form><h3>Histórico do cliente</h3><p id="history-status" role="status"></p><div id="draft-list"></div><button id="more-drafts" hidden>Carregar mais levantamentos</button></section>
 </section>
 <main id="questionnaire" class="app-shell" hidden>
@@ -288,5 +288,6 @@
     </div>
   </body>
 </html>
+
 
 
