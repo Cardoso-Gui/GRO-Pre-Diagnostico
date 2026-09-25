@@ -63,6 +63,10 @@ function appendRecord(row, view) {
     detail.textContent = [row.clients?.legal_name, row.completed_at ? `Concluído em ${new Date(row.completed_at).toLocaleDateString('pt-BR')}` : null].filter(Boolean).join(' · ');
   }
   article.append(title, detail); list.append(article);
+  if (view === 'clients') {
+    const link = document.createElement('a'); link.href = `./client.html?id=${encodeURIComponent(row.id)}`;
+    link.textContent = 'Consultar / editar'; link.className = 'record-link'; article.append(link);
+  }
 }
 async function loadRecords(reset = false) {
   const ticket = ++generation;
@@ -96,6 +100,7 @@ async function loadRecords(reset = false) {
 function openRecords(view) {
   currentView = view;
   search.hidden = view !== 'clients';
+  document.querySelector('#new-client').hidden = view !== 'clients';
   search.reset(); filters = { name: '', cnpj: '' };
   document.querySelector('#records-title').textContent = view === 'clients' ? 'Clientes' : 'Relatórios';
   document.querySelector('#records-description').textContent = view === 'clients'
@@ -127,4 +132,5 @@ authClient.auth.onAuthStateChange(event => { if (event === 'SIGNED_OUT') { hideW
 window.addEventListener('pageshow', event => { if (event.persisted) verifyAccess(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden) hideWorkspace(); else verifyAccess(); });
 await verifyAccess();
+if (!home.hidden && new URLSearchParams(location.search).get('view') === 'clients') openRecords('clients');
 
