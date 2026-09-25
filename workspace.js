@@ -76,7 +76,7 @@ async function loadForm(){
  if(saving)return false;saving=true;$('#generate-report-button').disabled=true;
  const fields=[...$('#questionnaire').querySelectorAll('input,select,textarea,button')];
  const states=fields.map(field=>field.disabled);fields.forEach(field=>field.disabled=true);
- try{await access();row=await completeAssessment(authClient,row,JSON.parse(JSON.stringify(answers)));dirty=false;cleanState=fingerprint();location.assign('./reports.html?client='+encodeURIComponent(row.client_id));return true;}
+ try{await access();row=await completeAssessment(authClient,row,JSON.parse(JSON.stringify(answers)));dirty=false;saving=false;cleanState=fingerprint();location.assign('./reports.html?client='+encodeURIComponent(row.client_id));return true;}
  catch(error){say(error.message,true);return false;}
  finally{saving=false;fields.forEach((field,i)=>field.disabled=states[i]);$('#generate-report-button').disabled=false;}
 },reload:()=>{if(!dirty||confirm('Descartar alterações não salvas e recarregar o rascunho?')){dirty=false;location.reload();}}};
