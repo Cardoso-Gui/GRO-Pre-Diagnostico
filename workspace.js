@@ -1,4 +1,4 @@
-import {updateHeader} from './app-header.js';
+import {updateHeader} from './app-header.js?v=20260925-header2';
 import {authClient,getTeamMember} from './auth-client.js';
 import {companyFromClient,saveAssessment,clientOptionLabel,deleteDraft} from './assessment-data.js';
 const $=s=>document.querySelector(s);
@@ -73,7 +73,7 @@ async function loadForm(){
  catch(error){say(error.message,true);return null;}finally{saving=false;$('#save-draft-button').disabled=false;}
  return row;
  },reload:()=>{if(!dirty||confirm('Descartar alterações não salvas e recarregar o rascunho?')){dirty=false;location.reload();}}};
- for(const file of ['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js', 'script.js'])await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=file;script.onload=resolve;script.onerror=reject;document.body.append(script);});
+ for(const file of ['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js', 'script.js'])await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=file+'?v=20260925-header2';script.onload=resolve;script.onerror=reject;document.body.append(script);});
  globalThis.GRO_FORM.restore(row.answers);
  cleanState=fingerprint();dirty=Boolean(row.unsaved);
  $('#questionnaire').hidden=false;$('#page-title').textContent=row.title;$('#cnpj-form').hidden=true;$('#clear-draft-button').hidden=true;$('#load-draft-button').textContent='Recarregar rascunho';

@@ -1,4 +1,4 @@
-import {updateHeader} from './app-header.js';
+import {updateHeader} from './app-header.js?v=20260925-header2';
 import { authClient, getTeamMember } from './auth-client.js';
 import { lookupCompany } from './cnpj.js';
 const $ = selector => document.querySelector(selector);

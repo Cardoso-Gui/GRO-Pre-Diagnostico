@@ -1,4 +1,4 @@
-import {updateHeader} from './app-header.js';
+import {updateHeader} from './app-header.js?v=20260925-header2';
 import {authClient,getTeamMember} from './auth-client.js';
 import {saveAssessment} from './assessment-data.js';
 import {detailKey,detailTargets,detailAnswers} from './risk-detail-data.js';
