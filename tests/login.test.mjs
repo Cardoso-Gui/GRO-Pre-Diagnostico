@@ -60,13 +60,13 @@ test('existing session is revalidated against membership', async () => {
   const f = await fixture({ session: { access_token: 'test' }, member: null });
   assert.equal(f.calls.signouts, 1); assert.equal(f.calls.redirects.length, 0);
 });
-test('password reveal and administrator recovery help work', async () => {
+test('password reveal can be toggled', async () => {
   const f = await fixture(); f.element('reveal-password').handlers.click();
   assert.equal(f.element('password').type, 'text');
   f.element('reveal-password').handlers.click(); assert.equal(f.element('password').type, 'password');
-  f.element('password-help').handlers.click(); assert.match(f.element('access-help').textContent, /administrador/);
 });
 test('network and rate limit errors have actionable messages', () => {
   assert.match(friendlyAuthError({ status: 429 }), /Aguarde/);
   assert.match(friendlyAuthError({}, false), /internet/);
 });
+

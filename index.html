@@ -6,6 +6,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://vjtzragdciexixjzeann.supabase.co wss://vjtzragdciexixjzeann.supabase.co; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
 <title>Entrar · GRO</title><link rel="icon" href="./favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="./login.css">
 <script src="./vendor/supabase-2.117.2.js" defer></script><script type="module" src="./login.js"></script>
+<script type="module" src="./help-contact.js"></script>
 </head>
 <body>
 <a class="skip-link" href="#username">Ir para o login</a>
@@ -21,12 +22,23 @@
 <form id="login-form" aria-describedby="login-message">
 <div class="field"><label for="username">Usuário</label><input id="username" name="username" type="text" placeholder="seu.usuario" autocomplete="username" autocapitalize="none" spellcheck="false" minlength="3" maxlength="40" required aria-describedby="username-hint"><span id="username-hint" class="screen-reader">Use o usuário fornecido pelo administrador.</span></div>
 <div class="field"><label for="password">Senha</label><div class="password-wrap"><input id="password" name="password" type="password" placeholder="Digite sua senha" autocomplete="current-password" required><button class="reveal" id="reveal-password" type="button" aria-label="Mostrar senha" aria-pressed="false" aria-controls="password"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><p class="caps-hint" id="caps-hint" hidden>Caps Lock está ativado.</p></div>
-<div class="password-tools"><button type="button" class="text-button" id="password-help" aria-expanded="false" aria-controls="access-help">Esqueceu a senha?</button></div>
+<div class="password-tools"><button type="button" class="text-button" id="password-help" aria-haspopup="dialog" aria-controls="contact-dialog">Esqueceu a senha?</button></div>
 <p id="login-message" class="message" role="status" aria-live="polite" hidden></p>
 <button class="primary" id="submit-login" type="submit"><span>Entrar na minha conta</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
 <noscript><p class="message">Ative o JavaScript no navegador para entrar na sua conta.</p></noscript>
 </form>
-<div class="access-help"><span>Ainda não tem acesso?</span><button type="button" class="text-button" id="request-access" aria-expanded="false" aria-controls="access-help">Saiba como entrar</button></div>
-<p class="message" id="access-help" data-kind="info" role="status" hidden></p>
+<div class="access-help"><span>Ainda não tem acesso?</span><button type="button" class="text-button" id="request-access" aria-haspopup="dialog" aria-controls="contact-dialog">Saiba como entrar</button></div>
 <p class="form-footer">Acesso exclusivo para pessoas autorizadas.<br>Ao terminar, saia da sua conta.</p>
-</div></section></main></body></html>
+</div></section></main>
+<dialog id="contact-dialog" class="contact-dialog" aria-labelledby="contact-title" aria-describedby="contact-description">
+ <button id="contact-close" class="dialog-close" type="button" aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+ <span class="contact-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 10 10 0 0 1-4-.8L3 21l1.8-5.5a10 10 0 0 1-.8-4A8.5 8.5 0 0 1 12.5 3 8.5 8.5 0 0 1 21 11.5Z"/><path d="M8 11.5h9M8 8.5h6"/></svg></span>
+ <p class="section-label">Conte com o administrador</p>
+ <h2 id="contact-title">Vamos ajudar você.</h2>
+ <p id="contact-description" class="contact-description"></p>
+ <a id="contact-whatsapp" class="primary whatsapp-link" target="_blank" rel="noopener noreferrer" hidden>Falar pelo WhatsApp <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg><span class="screen-reader"> (abre em uma nova aba)</span></a>
+ <p class="contact-note">Não envie sua senha pelo WhatsApp.</p>
+ <button id="contact-back" class="text-button" type="button">Voltar ao login</button>
+</dialog>
+</body></html>
+

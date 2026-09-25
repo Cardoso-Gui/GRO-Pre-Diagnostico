@@ -7,7 +7,6 @@ const username = document.querySelector('#username');
 const password = document.querySelector('#password');
 const message = document.querySelector('#login-message');
 const reveal = document.querySelector('#reveal-password');
-const help = document.querySelector('#access-help');
 let busy = false;
 
 function showMessage(text, kind = 'error') {
@@ -38,16 +37,6 @@ reveal.addEventListener('click', () => {
 });
 password.addEventListener('keyup', event => { document.querySelector('#caps-hint').hidden = !event.getModifierState('CapsLock'); });
 password.addEventListener('blur', () => { document.querySelector('#caps-hint').hidden = true; });
-for (const id of ['password-help', 'request-access']) {
-  document.getElementById(id).addEventListener('click', () => {
-    help.hidden = false;
-    help.textContent = id === 'password-help'
-      ? 'Para redefinir sua senha, fale com o administrador da equipe. Ele providenciará a recuperação do seu acesso. Nunca compartilhe sua senha.'
-      : 'O administrador cadastra e libera o acesso dos integrantes da equipe. Peça a ele a criação da sua conta.';
-    document.getElementById('password-help').setAttribute('aria-expanded', String(id === 'password-help'));
-    document.getElementById('request-access').setAttribute('aria-expanded', String(id === 'request-access'));
-  });
-}
 
 form.addEventListener('submit', async event => {
   event.preventDefault();
@@ -74,3 +63,4 @@ try {
   else if (session) await enterWorkspace();
 } catch (error) { showMessage(friendlyAuthError(error, navigator.onLine)); }
 finally { setBusy(false); }
+
