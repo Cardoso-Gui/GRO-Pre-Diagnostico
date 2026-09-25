@@ -39,7 +39,7 @@ test('username accepts normalized names and rejects email / injected destination
 test('valid member signs in and reaches fixed protected destination', async () => {
   const f = await fixture(); await f.submit();
   assert.equal(f.calls.signins[0].username, 'gui.cardoso');
-  assert.equal(f.calls.redirects[0], 'https://example.test/GRO-Pre-Diagnostico/levantamento.html');
+  assert.equal(f.calls.redirects[0], 'https://example.test/GRO-Pre-Diagnostico/inicio.html');
   assert.equal(f.element('password').value, '');
 });
 test('invalid credentials give generic error and restore submit button', async () => {

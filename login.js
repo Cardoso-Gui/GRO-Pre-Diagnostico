@@ -26,7 +26,7 @@ async function enterWorkspace() {
     return;
   }
   password.value = '';
-  location.replace(new URL('./levantamento.html', location.href).href);
+  location.replace(new URL('./inicio.html', location.href).href);
 }
 
 reveal.addEventListener('click', () => {

@@ -1,6 +1,6 @@
 # GRO · Pré-diagnóstico
 
-Site estático compatível com GitHub Pages. `index.html` oferece login com usuário e senha; `levantamento.html` verifica a sessão e a participação ativa na equipe antes de carregar o formulário existente.
+Site estático compatível com GitHub Pages. `index.html` oferece login com usuário e senha e abre `inicio.html`, a página inicial com cards de Clientes, Novo levantamento e Relatórios. Clientes e Relatórios consultam registros reais no Supabase, com paginação e estados vazios/erro; o cadastro de clientes ainda será implementado. `levantamento.html` verifica a sessão e a participação ativa na equipe antes de carregar o formulário existente.
 
 ## Autenticação
 
