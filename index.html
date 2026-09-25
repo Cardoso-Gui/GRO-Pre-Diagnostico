@@ -1,279 +1,44 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mapa de Riscos - CNPJ</title>
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <main class="app-shell">
-      <section class="cnpj-panel" aria-labelledby="page-title">
-        <div class="panel-heading">
-          <p class="eyebrow">Etapa 01</p>
-          <h1 id="page-title">Consulta por CNPJ</h1>
-          <p class="intro">
-            Encontre os dados iniciais da empresa para montar o relatório.
-          </p>
-        </div>
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Acesso da equipe ao GRO — Gestão de Riscos Ocupacionais."><meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://vjtzragdciexixjzeann.supabase.co wss://vjtzragdciexixjzeann.supabase.co; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>Entrar · GRO</title><link rel="icon" href="./favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="./login.css">
+<script src="./vendor/supabase-2.117.2.js" defer></script><script type="module" src="./login.js"></script>
+<script type="module" src="./help-contact.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#username">Ir para o login</a>
+<main class="login-layout">
+<aside class="brand-panel" aria-label="GRO — Gestão de Riscos Ocupacionais">
+<div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3 4 6v6c0 4.5 8 9 8 9s8-4.5 8-9V6l-8-3Z"/><path d="m8 12 3 3 5-6"/></svg></span><div><span class="brand-name">GRO</span><span class="brand-subtitle">Gestão de riscos ocupacionais</span></div></div>
+<div class="brand-story"><div class="eyebrow">Cuidado em cada etapa</div><h2>Um olhar atento.<br>Um ambiente<br><em>mais seguro.</em></h2><p>O ponto de partida para identificar riscos e cuidar de quem faz a empresa acontecer.</p></div>
+<div class="brand-caption"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Área de trabalho da equipe</div>
+</aside>
+<section class="form-panel" aria-labelledby="login-title"><div class="form-card">
+<div class="brand mobile-brand" aria-label="GRO"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3 4 6v6c0 4.5 8 9 8 9s8-4.5 8-9V6l-8-3Z"/><path d="m8 12 3 3 5-6"/></svg></span><div><span class="brand-name">GRO</span><span class="brand-subtitle">Gestão de riscos ocupacionais</span></div></div>
+<p class="section-label">Acesso da equipe</p><h1 id="login-title">Bem-vindo de volta.</h1><p class="intro">Entre na sua conta para continuar.</p>
+<form id="login-form" aria-describedby="login-message">
+<div class="field"><label for="username">Usuário</label><input id="username" name="username" type="text" placeholder="seu.usuario" autocomplete="username" autocapitalize="none" spellcheck="false" minlength="3" maxlength="40" required aria-describedby="username-hint"><span id="username-hint" class="screen-reader">Use o usuário fornecido pelo administrador.</span></div>
+<div class="field"><label for="password">Senha</label><div class="password-wrap"><input id="password" name="password" type="password" placeholder="Digite sua senha" autocomplete="current-password" required><button class="reveal" id="reveal-password" type="button" aria-label="Mostrar senha" aria-pressed="false" aria-controls="password"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><p class="caps-hint" id="caps-hint" hidden>Caps Lock está ativado.</p></div>
+<div class="password-tools"><button type="button" class="text-button" id="password-help" aria-haspopup="dialog" aria-controls="contact-dialog">Esqueceu a senha?</button></div>
+<p id="login-message" class="message" role="status" aria-live="polite" hidden></p>
+<button class="primary" id="submit-login" type="submit"><span>Entrar na minha conta</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
+<noscript><p class="message">Ative o JavaScript no navegador para entrar na sua conta.</p></noscript>
+</form>
+<div class="access-help"><span>Ainda não tem acesso?</span><button type="button" class="text-button" id="request-access" aria-haspopup="dialog" aria-controls="contact-dialog">Saiba como entrar</button></div>
+<p class="form-footer">Acesso exclusivo para pessoas autorizadas.<br>Ao terminar, saia da sua conta.</p>
+</div></section></main>
+<dialog id="contact-dialog" class="contact-dialog" aria-labelledby="contact-title" aria-describedby="contact-description">
+ <button id="contact-close" class="dialog-close" type="button" aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+ <span class="contact-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 10 10 0 0 1-4-.8L3 21l1.8-5.5a10 10 0 0 1-.8-4A8.5 8.5 0 0 1 12.5 3 8.5 8.5 0 0 1 21 11.5Z"/><path d="M8 11.5h9M8 8.5h6"/></svg></span>
+ <p class="section-label">Conte com o administrador</p>
+ <h2 id="contact-title">Vamos ajudar você.</h2>
+ <p id="contact-description" class="contact-description"></p>
+ <a id="contact-whatsapp" class="primary whatsapp-link" target="_blank" rel="noopener noreferrer" hidden>Falar pelo WhatsApp <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg><span class="screen-reader"> (abre em uma nova aba)</span></a>
+ <p class="contact-note">Não envie sua senha pelo WhatsApp.</p>
+ <button id="contact-back" class="text-button" type="button">Voltar ao login</button>
+</dialog>
+</body></html>
 
-        <section class="draft-actions" aria-label="Rascunho do questionário">
-          <button type="button" id="save-draft-button">Salvar rascunho</button>
-          <button type="button" id="load-draft-button">Carregar rascunho</button>
-          <button type="button" id="clear-draft-button">Limpar rascunho</button>
-        </section>
-
-        <form class="search-box" id="cnpj-form">
-          <label for="cnpj-input">CNPJ</label>
-          <div class="search-row">
-            <input
-              id="cnpj-input"
-              name="cnpj"
-              type="text"
-              inputmode="numeric"
-              autocomplete="off"
-              placeholder="00.000.000/0000-00"
-              maxlength="18"
-              required
-            />
-            <button type="submit" id="search-button">Consultar</button>
-          </div>
-          <p class="form-message" id="form-message" aria-live="polite"></p>
-        </form>
-
-        <section class="company-card" id="company-card" hidden>
-          <div class="company-header">
-            <div>
-              <p class="result-label">Empresa encontrada</p>
-              <h2 id="company-name">-</h2>
-            </div>
-            <span class="status-badge" id="company-status">-</span>
-          </div>
-
-          <div class="details-grid">
-            <article class="detail-item">
-              <span>Razão social</span>
-              <strong id="legal-name">-</strong>
-            </article>
-
-            <article class="detail-item">
-              <span>Nome fantasia</span>
-              <strong id="trade-name">-</strong>
-            </article>
-
-            <article class="detail-item">
-              <span>CNAE principal</span>
-              <strong id="main-cnae">-</strong>
-            </article>
-
-            <article class="detail-item">
-              <span>Endereço</span>
-              <strong id="address">-</strong>
-            </article>
-
-            <article class="detail-item">
-              <span>Contato</span>
-              <strong id="contact">-</strong>
-            </article>
-          </div>
-
-          <form class="dimension-form" id="dimension-form">
-            <div class="dimension-heading">
-              <p class="eyebrow">Etapa 02</p>
-              <h2>Dimensionamento</h2>
-            </div>
-
-            <div class="dimension-controls">
-              <label>
-                Quantidade de funcionários
-                <input
-                  id="employee-count"
-                  type="number"
-                  min="1"
-                  step="1"
-                  placeholder="Ex.: 85"
-                  required
-                />
-              </label>
-
-              <label>
-                Grau de risco
-                <output class="risk-output" id="risk-grade-output">
-                  Aguardando CNAE
-                </output>
-              </label>
-
-              <button type="submit">Dimensionar</button>
-            </div>
-          </form>
-
-          <section class="dimension-results" id="dimension-results" hidden>
-            <article class="result-card">
-              <span>CIPA</span>
-              <strong id="cipa-summary">-</strong>
-              <p id="cipa-note">-</p>
-            </article>
-
-            <article class="result-card">
-              <span>SESMT</span>
-              <strong id="sesmt-summary">-</strong>
-              <ul id="sesmt-list"></ul>
-            </article>
-          </section>
-
-          <section class="sectors-section" aria-labelledby="sectors-title">
-            <div class="dimension-heading">
-              <p class="eyebrow">Etapa 03</p>
-              <h2 id="sectors-title">Setores</h2>
-            </div>
-
-            <div class="sector-options" id="sector-options"></div>
-
-            <form class="custom-sector-form" id="custom-sector-form">
-              <label for="custom-sector-input">Adicionar outro setor</label>
-              <div class="search-row">
-                <input
-                  id="custom-sector-input"
-                  type="text"
-                  placeholder="Ex.: Expedição"
-                  autocomplete="off"
-                />
-                <button type="submit">Adicionar</button>
-              </div>
-            </form>
-
-            <div class="selected-sectors" id="selected-sectors" hidden>
-              <p class="result-label">Setores selecionados</p>
-              <div class="selected-sector-list" id="selected-sector-list"></div>
-            </div>
-          </section>
-
-          <section class="jobs-section" id="jobs-section" hidden>
-            <div class="dimension-heading">
-              <p class="eyebrow">Etapa 04</p>
-              <h2>Cargos por setor</h2>
-            </div>
-
-            <div class="jobs-grid" id="jobs-grid"></div>
-          </section>
-
-          <section class="risk-mode-section" id="risk-mode-section" hidden>
-            <div class="dimension-heading">
-              <p class="eyebrow">Etapa 05</p>
-              <h2>Organização dos riscos</h2>
-            </div>
-
-            <form class="risk-mode-form" id="risk-mode-form">
-              <label class="mode-option">
-                <input type="radio" name="risk-mode" value="ghe" />
-                <span>
-                  <strong>Por GHE</strong>
-                  <small>Recomendado para agrupar exposições semelhantes.</small>
-                </span>
-              </label>
-
-              <label class="mode-option">
-                <input type="radio" name="risk-mode" value="job" />
-                <span>
-                  <strong>Por cargo</strong>
-                  <small>Mais direto quando cada cargo tem riscos próprios.</small>
-                </span>
-              </label>
-
-              <label class="mode-option">
-                <input type="radio" name="risk-mode" value="sector" />
-                <span>
-                  <strong>Por setor</strong>
-                  <small>Define riscos do setor e permite exceções por cargo.</small>
-                </span>
-              </label>
-            </form>
-
-            <article class="risk-mode-summary" id="risk-mode-summary" hidden>
-              <span>Próxima etapa</span>
-              <strong id="risk-mode-title">-</strong>
-              <p id="risk-mode-description">-</p>
-            </article>
-          </section>
-
-          <section class="risk-selection-section" id="risk-selection-section" hidden>
-            <div class="dimension-heading">
-              <p class="eyebrow">Etapa 06</p>
-              <h2>Riscos ocupacionais</h2>
-            </div>
-
-            <form class="ghe-form" id="ghe-form" hidden>
-              <label for="ghe-name-input">Nome do GHE</label>
-              <div class="ghe-name-row">
-                <input
-                  id="ghe-name-input"
-                  type="text"
-                  placeholder="Ex.: GHE Produção - Máquinas"
-                  autocomplete="off"
-                />
-                <button type="submit">Criar GHE</button>
-              </div>
-
-              <div class="ghe-association-panel">
-                <p class="result-label">Setores e cargos do GHE</p>
-                <div class="ghe-association-list" id="ghe-association-list"></div>
-              </div>
-            </form>
-
-            <div class="risk-selection-grid" id="risk-selection-grid"></div>
-          </section>
-
-          <section class="risk-source-section" id="risk-source-section" hidden>
-            <div class="dimension-heading">
-              <p class="eyebrow">Etapa 07</p>
-              <h2>Fontes dos riscos</h2>
-            </div>
-
-            <div class="risk-source-grid" id="risk-source-grid"></div>
-          </section>
-
-          <section class="epi-section" id="epi-section" hidden>
-            <div class="dimension-heading">
-              <p class="eyebrow">Etapa 08</p>
-              <h2>EPIs aplicáveis</h2>
-            </div>
-
-            <div class="epi-grid" id="epi-grid"></div>
-          </section>
-
-          <section class="training-section" id="training-section" hidden>
-            <div class="dimension-heading">
-              <p class="eyebrow">Etapa 09</p>
-              <h2>Treinamentos sugeridos</h2>
-            </div>
-
-            <div class="training-grid" id="training-grid"></div>
-          </section>
-
-          <section class="final-report-section" id="final-report-section" hidden>
-            <div class="dimension-heading">
-              <p class="eyebrow">Etapa 10</p>
-              <h2>Relatório final</h2>
-            </div>
-
-            <button type="button" id="generate-report-button">
-              Gerar relatório
-            </button>
-            <button type="button" id="print-report-button" hidden>
-              Imprimir / salvar PDF
-            </button>
-
-            <div class="final-report" id="final-report" hidden></div>
-          </section>
-        </section>
-      </section>
-    </main>
-
-    <script src="cnae-risk-map.js"></script>
-    <script src="esocial-risk-table.js"></script>
-    <script src="occupational-risk-table.js"></script>
-    <script src="training-rules.js"></script>
-    <script src="nr-report-rules.js"></script>
-    <script src="script.js"></script>
-  </body>
-</html>
