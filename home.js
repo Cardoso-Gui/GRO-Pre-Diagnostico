@@ -7,6 +7,8 @@ const list = document.querySelector('#records-list');
 const status = document.querySelector('#records-status');
 const more = document.querySelector('#more-records');
 const retry = document.querySelector('#retry-records');
+const search = document.querySelector('#client-search');
+let filters = { name: '', cnpj: '' };
 const pageSize = 20;
 let checking = false;
 let currentView = 'clients';
@@ -71,13 +73,21 @@ async function loadRecords(reset = false) {
     ? authClient.from('clients').select('id,legal_name,trade_name,cnpj,contact_phone').eq('archived', false).order('legal_name').order('id')
     : authClient.from('assessments').select('id,title,completed_at,clients(legal_name)').eq('status', 'completed').order('completed_at', { ascending: false }).order('id');
   try {
+    if (view === 'clients') {
+      if (filters.name) {
+        const pattern = `%${filters.name.replace(/[\\%_]/g, '\\$&')}%`;
+        const quoted = `"${pattern.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+        query = query.or(`legal_name.ilike.${quoted},trade_name.ilike.${quoted}`);
+      }
+      if (filters.cnpj) query = query.ilike('cnpj', `%${filters.cnpj}%`);
+    }
     const { data, error } = await query.range(offset, offset + pageSize);
     if (ticket !== generation || !dialog.open) return;
     if (error) throw error;
     const rows = data.slice(0, pageSize);
     rows.forEach(row => appendRecord(row, view)); offset += rows.length;
     more.hidden = data.length <= pageSize;
-    status.textContent = offset ? '' : view === 'clients' ? 'Ainda não há clientes cadastrados.' : 'Ainda não há levantamentos concluídos salvos no sistema.';
+    status.textContent = offset ? '' : view === 'clients' ? (filters.name || filters.cnpj ? 'Nenhum cliente encontrado para esta busca. Tente outro nome ou CNPJ.' : 'Ainda não há clientes cadastrados.') : 'Ainda não há levantamentos concluídos salvos no sistema.';
   } catch {
     if (ticket !== generation || !dialog.open) return;
     status.textContent = 'Não foi possível carregar os registros. Confira a conexão e tente novamente.'; retry.hidden = false;
@@ -85,6 +95,8 @@ async function loadRecords(reset = false) {
 }
 function openRecords(view) {
   currentView = view;
+  search.hidden = view !== 'clients';
+  search.reset(); filters = { name: '', cnpj: '' };
   document.querySelector('#records-title').textContent = view === 'clients' ? 'Clientes' : 'Relatórios';
   document.querySelector('#records-description').textContent = view === 'clients'
     ? 'Empresas cadastradas e disponíveis para sua equipe.'
@@ -92,6 +104,18 @@ function openRecords(view) {
   dialog.showModal(); loadRecords(true);
 }
 document.querySelector('#open-clients').addEventListener('click', () => openRecords('clients'));
+search.addEventListener('submit', event => {
+  event.preventDefault();
+  filters = {
+    name: document.querySelector('#search-name').value.trim(),
+    cnpj: document.querySelector('#search-cnpj').value.replace(/[^a-z0-9]/gi, '').toUpperCase()
+  };
+  loadRecords(true);
+});
+document.querySelector('#clear-search').addEventListener('click', () => {
+  search.reset(); filters = { name: '', cnpj: '' }; loadRecords(true);
+  document.querySelector('#search-name').focus();
+});
 document.querySelector('#open-reports').addEventListener('click', () => openRecords('reports'));
 for (const id of ['close-records', 'back-home']) document.getElementById(id).addEventListener('click', () => dialog.close());
 dialog.addEventListener('close', () => { generation++; });
