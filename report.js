@@ -22,12 +22,37 @@ async function load(){
  if(doc?.version!==1||!Array.isArray(doc.children))throw Error('Este relatório não possui uma versão de visualização compatível.');
  const fragment=document.createDocumentFragment();doc.children.forEach(node=>fragment.append(renderNode(node)));
  content.replaceChildren(fragment);content.querySelectorAll(".report-mini-card").forEach(card=>card.classList.toggle("report-long",card.textContent.length>1400));document.title=data.title+' · GRO';document.querySelector('#report-title').textContent=data.title;
+ content.querySelectorAll('.report-summary-item').forEach(item=>{
+   if(item.querySelector('span')?.textContent.trim()!=='CNPJ')return;
+   const value=item.querySelector('strong');if(!value)return;
+   const digits=value.textContent.replace(/\D/g,'');
+   if(digits.length===14)value.textContent=digits.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,'$1.$2.$3/$4-$5');
+ });
  const date=new Date(data.completed_at).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'});
  const responsible=data.team_members?.display_name?.trim();
  const company=data.final_snapshot?.client;
  const companyName=company?.trade_name?.trim()||company?.legal_name||content.querySelector('.report-cover h3')?.textContent||'empresa';
+ const companyBlock=Array.from(content.querySelectorAll('.report-block')).find(block=>block.querySelector('h3')?.textContent==='Dados da empresa');
+ const companyLines=Array.from(companyBlock?.querySelectorAll('li')||[]);
+ const lineValue=prefix=>companyLines.find(line=>line.textContent.startsWith(prefix))?.textContent.slice(prefix.length).trim();
+ const cnpjDigits=String(company?.cnpj||data.final_snapshot?.answers?.cnpj||'').replace(/\D/g,'');
+ const cnpj=cnpjDigits.length===14?cnpjDigits.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,'$1.$2.$3/$4-$5'):cnpjDigits;
+ const address=company?.address||{};
+ const street=[address.street,address.number,address.complement].filter(Boolean).join(', ');
+ const cep=String(address.postal_code||'').replace(/^(\d{5})(\d{3})$/,'$1-$2');
+ const fullAddress=[street,address.district,[address.city,address.state].filter(Boolean).join('/'),cep?'CEP: '+cep:''].filter(Boolean).join(', ')||lineValue('Endereço:');
+ const legalName=company?.legal_name?.trim();
+ const identity=legalName&&legalName!==companyName?`${legalName} (${companyName})`:companyName;
+ const cnae=lineValue('CNAE principal:')||String(company?.cnae||'').replace(/^(\d{4})(\d)(\d{2})$/,'$1-$2/$3');
+ content.querySelectorAll('.report-summary-item').forEach(item=>{
+   if(item.querySelector('span')?.textContent.trim()==='CNPJ'){
+     item.querySelector('span').textContent='CNAE principal';item.querySelector('strong').textContent=cnae||'Não informado';
+   }
+ });
+ companyLines.forEach(line=>{if(/^(Razão social:|Nome fantasia:|CNPJ:|Endereço:|CNAE principal:)/.test(line.textContent))line.remove();});
+ if(companyBlock)companyBlock.remove();
  const introduction=document.createElement('p');introduction.className='report-introduction';
- introduction.textContent=`Em visita realizada em ${date}${responsible?', por '+responsible:''}, à empresa ${companyName}, foram levantadas informações sobre os setores, as atividades e as condições de trabalho. Este relatório apresenta os riscos identificados, as medidas de prevenção informadas e as necessidades de avaliação complementar, conforme as condições observadas na ocasião.`;
+ introduction.textContent=`Em visita realizada em ${date}${responsible?', por '+responsible:''}, à empresa ${identity}${cnpj?', inscrita no CNPJ sob o nº '+cnpj:''}${fullAddress?', localizada em '+fullAddress:''}, foram levantadas informações sobre os setores, as atividades e as condições de trabalho. Este relatório apresenta os riscos identificados, as medidas de prevenção informadas e as necessidades de avaliação complementar, conforme as condições observadas na ocasião.`;
  const cover=content.querySelector('.report-cover');
  if(cover){const summary=cover.querySelector('.report-summary-grid');if(summary)summary.before(introduction);else cover.append(introduction);}
  const closing=document.createElement('section');closing.className='report-closing';
@@ -37,7 +62,17 @@ async function load(){
  const name=document.createElement('strong');name.textContent=responsible||'Responsável não disponível';
  const role=document.createElement('span');role.textContent='Responsável pelo levantamento';
  const completed=document.createElement('span');completed.textContent='Concluído em '+date;
- attribution.append(name,role,completed);closing.append(heading,paragraph,attribution);content.append(closing);
+ attribution.append(completed);
+ const signatures=document.createElement('div');signatures.className='report-signatures';
+ const companyResponsible=company?.contact_name?.trim()||data.final_snapshot?.answers?.currentCompany?.contact_name?.trim()||'';
+ for(const [person,label] of [[companyResponsible,'Responsável da empresa'],[responsible||'','Responsável pela visita']]){
+   const field=document.createElement('div');field.className='report-signature';
+   const line=document.createElement('div');line.className='report-signature-line';line.setAttribute('aria-label','Espaço para assinatura');
+   const personName=document.createElement('strong');personName.textContent=person||'Nome: __________________________________';
+   const caption=document.createElement('span');caption.textContent=label;
+   field.append(line,personName,caption);signatures.append(field);
+ }
+ closing.append(heading,paragraph,attribution,signatures);content.append(closing);
  message.textContent='Concluído em '+new Date(data.completed_at).toLocaleString('pt-BR')+'. Versão preservada no histórico.';
  content.hidden=false;print.disabled=false;
  if(new URLSearchParams(location.search).get('print')==='1'){history.replaceState(null,'','./report.html?id='+encodeURIComponent(id));await document.fonts.ready;window.print();}

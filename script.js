@@ -1301,7 +1301,7 @@ function createReportCover() {
   description.textContent =
     "Este relatório consolida as informações coletadas no questionário. Ele não substitui PGR, PCMSO, LTCAT, laudos técnicos, avaliações quantitativas ou validação dos responsáveis técnicos.";
 
-  summary.appendChild(createReportSummaryItem("CNPJ", input.value || "-"));
+  summary.appendChild(createReportSummaryItem("CNPJ", formatCnpj(input.value) || "-"));
   summary.appendChild(createReportSummaryItem("Funcionários", employeeCountInput.value || "-"));
   summary.appendChild(createReportSummaryItem("Grau de risco", riskGradeOutput.textContent || "-"));
   summary.appendChild(createReportSummaryItem("Organização", getRiskModeLabel() || "-"));
