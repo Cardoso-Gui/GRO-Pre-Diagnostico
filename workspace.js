@@ -1,6 +1,6 @@
-import {updateHeader} from './app-header.js?v=20260925-header2';
+import {updateHeader} from './app-header.js?v=20260925-reports1';
 import {authClient,getTeamMember} from './auth-client.js';
-import {companyFromClient,saveAssessment,clientOptionLabel,deleteDraft} from './assessment-data.js';
+import {companyFromClient,saveAssessment,clientOptionLabel,deleteDraft,completeAssessment} from './assessment-data.js?v=20260925-reports1';
 const $=s=>document.querySelector(s);
 const workspace=$('#protected-workspace'), notice=$('#session-check');
 let member, row, selected, saving=false, dirty=false, loading=false, loaded=false, sequence=0, offset=0, historyOffset=0;
@@ -72,8 +72,15 @@ async function loadForm(){
  try{await access();row=await saveAssessment(authClient,row,snapshot);history.replaceState(null,'',`./levantamento.html?id=${encodeURIComponent(row.id)}`);cleanState=version;dirty=fingerprint()!==cleanState;say(dirty?'Rascunho salvo. Há alterações novas nesta tela; salve novamente.':`Rascunho salvo no sistema às ${new Date().toLocaleTimeString('pt-BR')}.`);}
  catch(error){say(error.message,true);return null;}finally{saving=false;$('#save-draft-button').disabled=false;}
  return row;
- },reload:()=>{if(!dirty||confirm('Descartar alterações não salvas e recarregar o rascunho?')){dirty=false;location.reload();}}};
- for(const file of ['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js', 'script.js'])await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=file+'?v=20260925-header2';script.onload=resolve;script.onerror=reject;document.body.append(script);});
+ },complete:async answers=>{
+ if(saving)return false;saving=true;$('#generate-report-button').disabled=true;
+ const fields=[...$('#questionnaire').querySelectorAll('input,select,textarea,button')];
+ const states=fields.map(field=>field.disabled);fields.forEach(field=>field.disabled=true);
+ try{await access();row=await completeAssessment(authClient,row,JSON.parse(JSON.stringify(answers)));dirty=false;cleanState=fingerprint();location.assign('./reports.html?client='+encodeURIComponent(row.client_id));return true;}
+ catch(error){say(error.message,true);return false;}
+ finally{saving=false;fields.forEach((field,i)=>field.disabled=states[i]);$('#generate-report-button').disabled=false;}
+},reload:()=>{if(!dirty||confirm('Descartar alterações não salvas e recarregar o rascunho?')){dirty=false;location.reload();}}};
+ for(const file of ['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js', 'script.js'])await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=file+'?v=20260925-reports1';script.onload=resolve;script.onerror=reject;document.body.append(script);});
  globalThis.GRO_FORM.restore(row.answers);
  cleanState=fingerprint();dirty=Boolean(row.unsaved);
  $('#questionnaire').hidden=false;$('#page-title').textContent=row.title;$('#cnpj-form').hidden=true;$('#clear-draft-button').hidden=true;$('#load-draft-button').textContent='Recarregar rascunho';
@@ -81,7 +88,7 @@ async function loadForm(){
 }
 let cleanState='';
 function fingerprint(){return JSON.stringify({answers:globalThis.GRO_FORM?.snapshot(),inputs:Array.from($('#questionnaire').querySelectorAll('input,select,textarea'),field=>[field.name||field.id,field.value,field.checked])});}
-function refreshDirty(){if(row&&globalThis.GRO_FORM)dirty=Boolean(row.unsaved)||fingerprint()!==cleanState;}
+function refreshDirty(){if(row?.status==='completed'){dirty=false;return;}if(row&&globalThis.GRO_FORM)dirty=Boolean(row.unsaved)||fingerprint()!==cleanState;}
 for(const event of ['input','change','submit','click'])$('#questionnaire').addEventListener(event,()=>queueMicrotask(refreshDirty));
 const leaveDialog=$('#leave-dialog');
 document.querySelector('.session-home').addEventListener('click',event=>{

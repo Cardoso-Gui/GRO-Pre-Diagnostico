@@ -33,4 +33,10 @@ export async function deleteDraft(client, draft) {
  if(!data)throw new Error('O rascunho foi alterado, já foi excluído ou seu acesso mudou. Atualize o histórico antes de tentar novamente.');
  return data;
 }
+export async function completeAssessment(client, row, answers) {
+ const saved = row.unsaved ? await saveAssessment(client,row,answers) : row;
+ const {data,error}=await client.from('assessments').update({answers,status:'completed'}).eq('id',saved.id).eq('revision',saved.revision).eq('status','draft').select('id,status,revision,completed_at').maybeSingle();
+ if(error||!data)throw Error('Não foi possível confirmar a conclusão. Suas respostas continuam aqui. Confira o histórico antes de tentar novamente.');
+ return {...saved,...data,answers};
+}
 

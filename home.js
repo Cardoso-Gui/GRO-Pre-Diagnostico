@@ -63,6 +63,11 @@ function appendRecord(row, view) {
     detail.textContent = [row.clients?.legal_name, row.completed_at ? `Concluído em ${new Date(row.completed_at).toLocaleDateString('pt-BR')}` : null].filter(Boolean).join(' · ');
   }
   article.append(title, detail); list.append(article);
+  if(view==='reports'){
+    for(const [label,suffix] of [['Visualizar',''],['Imprimir / salvar PDF','&print=1']]){
+      const link=document.createElement('a');link.className='record-link';link.textContent=label;link.href='./report.html?id='+encodeURIComponent(row.id)+suffix;article.append(link);
+    }
+  }
   if (view === 'clients') {
     const link = document.createElement('a'); link.href = `./client.html?id=${encodeURIComponent(row.id)}`;
     link.textContent = 'Consultar / editar'; link.className = 'record-link'; article.append(link);
@@ -121,7 +126,7 @@ document.querySelector('#clear-search').addEventListener('click', () => {
   search.reset(); filters = { name: '', cnpj: '' }; loadRecords(true);
   document.querySelector('#search-name').focus();
 });
-document.querySelector('#open-reports').addEventListener('click', () => openRecords('reports'));
+document.querySelector('#open-reports').addEventListener('click', () => location.assign('./reports.html'));
 for (const id of ['close-records', 'back-home']) document.getElementById(id).addEventListener('click', () => dialog.close());
 dialog.addEventListener('close', () => { generation++; });
 dialog.addEventListener('click', event => { const r = dialog.getBoundingClientRect(); if (event.target === dialog && (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom)) dialog.close(); });
@@ -132,4 +137,4 @@ authClient.auth.onAuthStateChange(event => { if (event === 'SIGNED_OUT') { hideW
 window.addEventListener('pageshow', event => { if (event.persisted) verifyAccess(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden) hideWorkspace(); else verifyAccess(); });
 await verifyAccess();
-if (!home.hidden && new URLSearchParams(location.search).get('view') === 'clients') openRecords('clients');
+const requestedView=new URLSearchParams(location.search).get('view');if(!home.hidden&&requestedView==='clients')openRecords('clients');if(!home.hidden&&requestedView==='reports')location.replace('./reports.html');

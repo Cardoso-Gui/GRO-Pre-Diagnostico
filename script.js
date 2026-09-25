@@ -1250,12 +1250,12 @@ function validateReport() {
   return false;
 }
 
-function renderFinalReport() {
+async function renderFinalReport() {
   if (!validateReport()) return;
   const selections = getRiskSelections();
   finalReport.innerHTML = "";
-  finalReport.hidden = false;
-  printReportButton.hidden = false;
+  finalReport.hidden = true;
+  printReportButton.hidden = true;
 
   finalReport.appendChild(createReportCover());
   finalReport.appendChild(createCompanyReportBlock());
@@ -1266,6 +1266,10 @@ function renderFinalReport() {
   finalReport.appendChild(createEpiTrainingReportBlock(selections));
   finalReport.appendChild(createNrReportBlock(selections));
   finalReport.appendChild(createTechnicalPendingReportBlock(selections));
+  const serialize=node=>node.nodeType===3?{text:node.textContent}:{tag:node.tagName.toLowerCase(),className:node.className,children:Array.from(node.childNodes,serialize)};
+  const answers=getDraft();
+  answers.report_document={version:1,children:Array.from(finalReport.childNodes,serialize)};
+  if(globalThis.GRO_CLOUD?.complete)await globalThis.GRO_CLOUD.complete(answers);
 }
 
 function createCompanyReportBlock() {
