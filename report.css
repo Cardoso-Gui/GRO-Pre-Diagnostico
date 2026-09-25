@@ -95,3 +95,9 @@ body{margin:0;background:#f4f7f8;color:#203943;font-family:'Segoe UI',Arial,sans
   .report-page::before { content: "GRO  /  GESTÃO DE RISCOS OCUPACIONAIS"; display: block; color: #137b68; font-size: 10pt; font-weight: 700; letter-spacing: 1pt; border-bottom: 2px solid #137b68; padding-bottom: 3mm; margin-bottom: 6mm; }
   #report-content .report-block > h3 { background: #edf4f1; border-left: 3px solid #137b68; padding: 3mm; }
 }
+
+#report-content .report-cover .report-introduction{font-size:14px;line-height:1.75;color:#29454f;margin:22px 0;padding-top:18px;border-top:1px solid #dce7e3}
+.report-closing{background:white;border:1px solid #dce5e7;border-top:3px solid #137b68;border-radius:12px;padding:26px;line-height:1.7}
+.report-closing h3{margin:0 0 14px;color:#123542;font-size:19px}.report-closing p{margin:0;color:#49616a}
+.report-attribution{margin-top:24px;padding-top:16px;border-top:1px solid #dce7e3;display:grid;gap:3px}.report-attribution strong{color:#123542}.report-attribution span{font-size:12px;color:#627981}
+@media print{#report-content .report-cover .report-introduction{font-size:10pt;line-height:1.5;margin:4mm 0;padding-top:3mm}.report-closing{break-inside:avoid;border-radius:0;padding:5mm;margin-top:6mm}.report-closing h3{font-size:12pt}.report-closing p{font-size:10pt}.report-attribution{margin-top:5mm;padding-top:3mm}.report-attribution span{font-size:9pt}}
