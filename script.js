@@ -1833,11 +1833,13 @@ function saveDraft() {
     epiBySelection: Array.from(epiBySelection.entries()),
   };
 
+  if (globalThis.GRO_CLOUD) { globalThis.GRO_CLOUD.save(draft); return; }
   localStorage.setItem(draftStorageKey, JSON.stringify(draft));
   showMessage("Rascunho salvo neste navegador.");
 }
 
 function loadDraft() {
+  if (globalThis.GRO_CLOUD) { globalThis.GRO_CLOUD.reload(); return; }
   const rawDraft = localStorage.getItem(draftStorageKey);
 
   if (!rawDraft) {
@@ -1869,6 +1871,7 @@ function restoreDraft(draft) {
   }
 
   clearCheckboxes(sectorOptions);
+  selectedSectorNames.clear();
   (draft.selectedSectors || []).forEach((sectorName) => addSectorOption(sectorName, true));
 
   jobsBySector.clear();
@@ -2085,3 +2088,7 @@ function setLoading(isLoading) {
   button.disabled = isLoading;
   button.textContent = isLoading ? "Consultando..." : "Consultar";
 }
+
+globalThis.GRO_FORM = { restore: restoreDraft };
+
+

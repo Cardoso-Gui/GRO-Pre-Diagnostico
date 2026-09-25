@@ -15,14 +15,21 @@
     <section id="session-check" class="session-check" aria-live="polite"><p>Verificando seu acesso…</p><a href="index.html">Voltar ao login</a></section>
     <div id="protected-workspace" hidden>
     <header class="session-bar"><a class="session-home" href="./inicio.html" aria-label="Voltar à página inicial">← <span class="session-brand">GRO</span> <span>Início</span></a><div class="session-person"><span id="session-name"></span><button id="sign-out" type="button">Sair da conta</button></div></header>
-    <p class="session-note">Pré-diagnóstico atual: os rascunhos desta tela são salvos neste navegador. O salvamento dos levantamentos na nuvem será integrado na próxima etapa.</p>
-    <main class="app-shell">
+    <p class="session-note">Cada novo levantamento mantém um registro separado no histórico do cliente. Salve o rascunho antes de sair.</p>
+    <p id="cloud-status" class="session-note" role="status"></p>
+<section id="assessment-picker" class="assessment-picker" hidden>
+ <h1>Levantamentos por cliente</h1><p>Selecione uma empresa para iniciar outro levantamento ou continuar um rascunho.</p>
+ <form id="client-search-form"><label for="client-filter">Buscar cliente por nome ou CNPJ</label><div class="picker-search"><input id="client-filter" type="search" maxlength="240"><button>Buscar</button></div></form>
+ <a href="./client.html">Cadastrar cliente</a><div id="client-options"></div><button id="more-clients" hidden>Carregar mais clientes</button>
+ <section id="client-history" hidden><h2 id="selected-client"></h2><form id="create-assessment"><label for="assessment-title">Título do novo levantamento</label><input id="assessment-title" required maxlength="240"><button id="start-assessment">Iniciar novo levantamento</button></form><h3>Histórico do cliente</h3><p id="history-status" role="status"></p><div id="draft-list"></div><button id="more-drafts" hidden>Carregar mais levantamentos</button></section>
+</section>
+<main id="questionnaire" class="app-shell" hidden>
       <section class="cnpj-panel" aria-labelledby="page-title">
         <div class="panel-heading">
           <p class="eyebrow">Etapa 01</p>
           <h1 id="page-title">Consulta por CNPJ</h1>
           <p class="intro">
-            Encontre os dados iniciais da empresa para montar o relatório.
+            Preencha o levantamento da empresa selecionada. Seus rascunhos ficam disponíveis no sistema.
           </p>
         </div>
 
@@ -281,4 +288,5 @@
     </div>
   </body>
 </html>
+
 

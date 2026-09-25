@@ -1,0 +1,9 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {companyFromClient,saveAssessment} from '../assessment-data.js';
+function fixture(result){const calls=[];const q={update(value){calls.push(['answers',value]);return this;},eq(k,v){calls.push([k,v]);return this;},select(){return this;},async maybeSingle(){return result;}};return {client:{from:()=>q},calls};}
+test('saving targets only the selected draft and its original revision',async()=>{const f=fixture({data:{id:'a',revision:3}});const result=await saveAssessment(f.client,{id:'a',revision:2},{employees:'20'});assert.equal(result.revision,3);assert.deepEqual(f.calls.slice(1),[['id','a'],['revision',2],['status','draft']]);});
+test('stale revision never reports successful save',async()=>{const f=fixture({data:null});await assert.rejects(saveAssessment(f.client,{id:'a',revision:2},{}),/outra pessoa/);});
+test('network error preserves original draft object',async()=>{const row={id:'a',revision:2,answers:{employees:'10'}};const f=fixture({error:{message:'network'}});await assert.rejects(saveAssessment(f.client,row,{employees:'20'}),/confirmar/);assert.equal(row.answers.employees,'10');assert.equal(row.revision,2);});
+test('client company snapshot maps stored fields without external lookup',()=>{const company=companyFromClient({legal_name:'Empresa',cnpj:'123',cnae:'1234567',address:{street:'Rua',city:'Cidade'},contact_phone:'11999999999'});assert.equal(company.razao_social,'Empresa');assert.equal(company.municipio,'Cidade');assert.equal(company.ddd_telefone_1,'11999999999');});
+
