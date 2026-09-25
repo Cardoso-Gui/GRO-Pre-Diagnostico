@@ -70,10 +70,21 @@ async function load(){
    summaryGrid.replaceChildren(...[cnaeCard,riskCard,revisionCard].filter(Boolean));
  }
  const sizingBlock=Array.from(content.querySelectorAll('.report-block')).find(block=>block.querySelector('h3')?.textContent.trim()==='Dimensionamento CIPA/SESMT');
- if(sizingBlock)sizingBlock.classList.add('report-dimensioning');
  const introduction=document.createElement('p');introduction.className='report-introduction';
  introduction.textContent=`Em visita realizada em ${date}${responsible?', por '+responsible:''}, à empresa ${identity}${cnpj?', inscrita no CNPJ sob o nº '+cnpj:''}${fullAddress?', localizada em '+fullAddress:''}, foram levantadas informações sobre os setores, as atividades e as condições de trabalho. Este relatório apresenta os riscos identificados, as medidas de prevenção informadas e as necessidades de avaliação complementar, conforme as condições observadas na ocasião.`;
  const cover=content.querySelector('.report-cover');
+ if(cover&&sizingBlock){
+   const grid=document.createElement('div');grid.className='report-dimension-grid';
+   const lines=Array.from(sizingBlock.querySelectorAll('li')).map(item=>item.textContent.trim());
+   for(const label of ['CIPA','SESMT']){
+     const card=document.createElement('section');card.className='report-dimension-card';
+     const title=document.createElement('h4');title.textContent=label;card.append(title);
+     const details=lines.filter(line=>line.startsWith(label+':')).map(line=>line.slice(label.length+1).trim());
+     for(const detail of details.length?details:['Não informado']){const p=document.createElement('p');p.textContent=detail;card.append(p);}
+     grid.append(card);
+   }
+   cover.append(grid);sizingBlock.remove();
+ }
  if(cover){const summary=cover.querySelector('.report-summary-grid');if(summary)summary.before(introduction);else cover.append(introduction);}
  const objective=document.createElement('p');objective.className='report-objective';objective.textContent='O levantamento tem como objetivo apoiar a identificação dos perigos e o planejamento das ações de prevenção, considerando as atividades desenvolvidas e as informações fornecidas pela empresa.';
  introduction.after(objective);
