@@ -1,6 +1,6 @@
 import {authClient,getTeamMember} from './auth-client.js';
 import {updateHeader} from './app-header.js?v=20260925-header2';
-import {organizeReport} from './report-layout.js?v=20260925-layout1';
+import {organizeReport} from './report-layout.js?v=20260925-layout3';
 const message=document.querySelector('#report-status'),content=document.querySelector('#report-content'),print=document.querySelector('#report-print');
 const tags=new Set(['section','div','article','h2','h3','h4','p','span','strong','small','ul','li']);
 function renderNode(node,depth=0){
