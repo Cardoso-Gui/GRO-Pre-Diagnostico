@@ -38,3 +38,4 @@ const NR_REPORT_RULES = [
   { nr: "NR-37", title: "Plataformas de petróleo", mode: "risk", keywords: ["plataforma", "petroleo", "offshore"], cnaePrefixes: ["06", "09"] },
   { nr: "NR-38", title: "Limpeza urbana e manejo de resíduos sólidos", mode: "risk", keywords: ["limpeza urbana", "coleta de residuos", "varricao", "poda", "residuo solido", "lixo"], cnaePrefixes: ["381", "382", "383", "812"] },
 ];
+

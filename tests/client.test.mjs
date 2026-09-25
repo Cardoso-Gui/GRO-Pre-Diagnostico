@@ -33,4 +33,3 @@ test('CNPJ input removes letters and punctuation and limits length',async()=>{co
 test('pasting formatted CNPJ preserves all fourteen digits',async()=>{const f=await fixture();f.el('cnpj').value='';f.el('cnpj').selectionStart=0;f.el('cnpj').selectionEnd=0;f.el('cnpj').handlers.paste({preventDefault(){},clipboardData:{getData:()=> '19.131.243/0001-97'}});assert.equal(f.el('cnpj').value,'19131243000197');});
 
 test('every client field except trade name and complement is required',async()=>{for(const key of ['legal_name','cnpj','cnae','postal_code','state','street','number','district','city','contact_name','contact_phone','contact_email']){const f=await fixture();f.el('legal_name').value='Empresa';f.el(key).value='   ';await f.submit();assert.equal(f.writes.length,0,key);}const f=await fixture();f.el('legal_name').value='Empresa';f.el('trade_name').value='';f.el('complement').value='';await f.submit();assert.equal(f.writes.length,1);});
-

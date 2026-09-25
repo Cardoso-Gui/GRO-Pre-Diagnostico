@@ -10,19 +10,26 @@
     <meta name="referrer" content="no-referrer" />
     <script src="vendor/supabase-2.117.2.js" defer></script>
     <script type="module" src="workspace.js"></script>
-  </head>
+  <link rel="stylesheet" href="dimension.css"></head>
   <body>
     <section id="session-check" class="session-check" aria-live="polite"><p>Verificando seu acesso…</p><a href="index.html">Voltar ao login</a></section>
     <div id="protected-workspace" hidden>
     <header class="session-bar"><a class="session-home" href="./inicio.html" aria-label="Voltar à página inicial">← <span class="session-brand">GRO</span> <span>Início</span></a><div class="session-person"><span id="session-name"></span><button id="sign-out" type="button">Sair da conta</button></div></header>
-    <p class="session-note">Pré-diagnóstico atual: os rascunhos desta tela são salvos neste navegador. O salvamento dos levantamentos na nuvem será integrado na próxima etapa.</p>
-    <main class="app-shell">
+    <p class="session-note">Cada novo levantamento mantém um registro separado no histórico do cliente. Salve o rascunho antes de sair.</p>
+    <p id="cloud-status" class="session-note" role="status"></p>
+<section id="assessment-picker" class="assessment-picker" hidden>
+ <h1>Levantamentos por cliente</h1><p>Selecione uma empresa para iniciar outro levantamento ou continuar um rascunho.</p>
+<label for="client-select">Empresa cadastrada</label><select id="client-select" disabled><option value="">Carregando empresas…</option></select><button id="retry-clients" type="button" hidden>Tentar novamente</button>
+ <a href="./client.html">Cadastrar cliente</a>
+ <section id="client-history" hidden><h2 id="selected-client"></h2><form id="create-assessment"><label for="assessment-title">Título do novo levantamento</label><input id="assessment-title" required maxlength="240"><button id="start-assessment">Iniciar novo levantamento</button></form><h3>Histórico do cliente</h3><p id="history-status" role="status"></p><div id="draft-list"></div><button id="more-drafts" hidden>Carregar mais levantamentos</button></section>
+</section>
+<main id="questionnaire" class="app-shell" hidden>
       <section class="cnpj-panel" aria-labelledby="page-title">
         <div class="panel-heading">
           <p class="eyebrow">Etapa 01</p>
           <h1 id="page-title">Consulta por CNPJ</h1>
           <p class="intro">
-            Encontre os dados iniciais da empresa para montar o relatório.
+            Preencha o levantamento da empresa selecionada. Seus rascunhos ficam disponíveis no sistema.
           </p>
         </div>
 
@@ -53,8 +60,9 @@
         <section class="company-card" id="company-card" hidden>
           <div class="company-header">
             <div>
-              <p class="result-label">Empresa encontrada</p>
+              <p class="result-label">Dados da empresa</p>
               <h2 id="company-name">-</h2>
+              <p id="company-cnpj" class="company-cnpj"></p>
             </div>
             <span class="status-badge" id="company-status">-</span>
           </div>
@@ -65,7 +73,7 @@
               <strong id="legal-name">-</strong>
             </article>
 
-            <article class="detail-item">
+            <article class="detail-item" hidden>
               <span>Nome fantasia</span>
               <strong id="trade-name">-</strong>
             </article>
@@ -89,12 +97,12 @@
           <form class="dimension-form" id="dimension-form">
             <div class="dimension-heading">
               <p class="eyebrow">Etapa 02</p>
-              <h2>Dimensionamento</h2>
+              <h2>Dimensionamento</h2><p class="dimension-intro">Informe o tamanho da equipe para consultar a composição de CIPA e SESMT.</p><span class="dimension-preview-tag">Consulta às tabelas de dimensionamento</span>
             </div>
 
             <div class="dimension-controls">
               <label>
-                Quantidade de funcionários
+                Funcionários do estabelecimento
                 <input
                   id="employee-count"
                   type="number"
@@ -109,49 +117,52 @@
                 Grau de risco
                 <output class="risk-output" id="risk-grade-output">
                   Aguardando CNAE
-                </output>
+                </output><small class="risk-origin">Identificado pelo CNAE principal</small>
               </label>
 
-              <button type="submit">Dimensionar</button>
+              <details class="dimension-options"><summary>Conferir critérios do SESMT</summary><label>Grau da atividade com mais trabalhadores<select id="preponderant-risk"><option value="">Mesmo grau do CNAE principal</option><option value="1">Grau 1</option><option value="2">Grau 2</option><option value="3">Grau 3</option><option value="4">Grau 4</option></select></label><label class="health-choice"><input id="health-establishment" type="checkbox"> Hospital, ambulatório, clínica, maternidade, casa de saúde ou repouso e similares</label><p>O SESMT considera o maior grau entre a atividade principal e a preponderante. Confira também trabalhadores de outras unidades e de contratadas conforme a NR-4.</p></details><button type="submit" class="preview-calculate">Calcular dimensionamento <span aria-hidden="true">→</span></button>
             </div>
+            <p id="dimension-feedback" role="status"></p>
           </form>
 
-          <section class="dimension-results" id="dimension-results" hidden>
+          <section class="dimension-results" id="dimension-results" aria-live="polite" hidden><p id="dimension-basis" class="dimension-basis"></p>
             <article class="result-card">
-              <span>CIPA</span>
-              <strong id="cipa-summary">-</strong>
-              <p id="cipa-note">-</p>
+              <div class="result-top"><span class="result-symbol" aria-hidden="true">◎</span><span class="result-wait">Aguardando cálculo</span></div><h3>CIPA</h3><p class="result-description">Representação e prevenção no trabalho</p>
+              <strong id="cipa-summary">Composição da CIPA</strong>
+              <p id="cipa-note">Aqui aparecerão a composição indicada e os detalhes do dimensionamento.</p><footer>Referência utilizada <span><a href="https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadora/normas-regulamentadoras-vigentes/NR05atualizada2023.pdf" target="_blank" rel="noopener">NR-5 · Quadro I e item 5.4.13</a></span></footer>
             </article>
 
             <article class="result-card">
-              <span>SESMT</span>
-              <strong id="sesmt-summary">-</strong>
-              <ul id="sesmt-list"></ul>
+              <div class="result-top"><span class="result-symbol" aria-hidden="true">＋</span><span class="result-wait">Aguardando cálculo</span></div><h3>SESMT</h3><p class="result-description">Equipe de segurança e saúde no trabalho</p>
+              <strong id="sesmt-summary">Profissionais necessários</strong>
+              <ul id="sesmt-list"></ul><p>* Tempo parcial (mínimo de 15 h/semana, item 4.3.7). *** Permite substituir o auxiliar/técnico por enfermeiro em tempo parcial.</p><footer>Referência utilizada <span><a href="https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadora/normas-regulamentadoras-vigentes/nr-04-atualizada-2023.pdf" target="_blank" rel="noopener">NR-4 · Anexo II e item 4.3.7</a></span></footer>
             </article>
-          </section>
+          <p class="dimension-scope">Resultado pelas tabelas gerais. Modalidades de SESMT, setores com regras específicas e condições de atendimento devem ser conferidos pelo responsável técnico.</p></section>
 
           <section class="sectors-section" aria-labelledby="sectors-title">
             <div class="dimension-heading">
               <p class="eyebrow">Etapa 03</p>
-              <h2 id="sectors-title">Setores</h2>
+              <h2 id="sectors-title">Setores e cargos</h2><p class="dimension-intro">Digite os setores da empresa e descreva o que cada função faz no dia a dia.</p><p id="distribution-count" role="status"></p>
             </div>
 
-            <div class="sector-options" id="sector-options"></div>
+            <div class="sector-picker"><div class="sector-options" id="sector-options" hidden></div>
 
             <form class="custom-sector-form" id="custom-sector-form">
-              <label for="custom-sector-input">Adicionar outro setor</label>
+              <label for="custom-sector-input">Nome do setor</label>
               <div class="search-row">
                 <input
-                  id="custom-sector-input"
+                  id="custom-sector-input" list="sector-suggestions" maxlength="80" required
                   type="text"
                   placeholder="Ex.: Expedição"
                   autocomplete="off"
                 />
-                <button type="submit">Adicionar</button>
+                <button type="submit">Adicionar setor</button>
               </div>
+              <datalist id="sector-suggestions"></datalist>
+              <p class="sector-help">Digite qualquer nome ou use uma sugestão.</p>
             </form>
 
-            <div class="selected-sectors" id="selected-sectors" hidden>
+            </div><div class="selected-sectors" id="selected-sectors" hidden>
               <p class="result-label">Setores selecionados</p>
               <div class="selected-sector-list" id="selected-sector-list"></div>
             </div>
@@ -169,7 +180,7 @@
           <section class="risk-mode-section" id="risk-mode-section" hidden>
             <div class="dimension-heading">
               <p class="eyebrow">Etapa 05</p>
-              <h2>Organização dos riscos</h2>
+              <h2>Organização dos riscos</h2><p class="dimension-intro">Escolha uma única forma para todo este levantamento: por GHE ou por cargo. Os dois modelos não são combinados.</p>
             </div>
 
             <form class="risk-mode-form" id="risk-mode-form">
@@ -184,16 +195,8 @@
               <label class="mode-option">
                 <input type="radio" name="risk-mode" value="job" />
                 <span>
-                  <strong>Por cargo</strong>
-                  <small>Mais direto quando cada cargo tem riscos próprios.</small>
-                </span>
-              </label>
-
-              <label class="mode-option">
-                <input type="radio" name="risk-mode" value="sector" />
-                <span>
-                  <strong>Por setor</strong>
-                  <small>Define riscos do setor e permite exceções por cargo.</small>
+                  <strong>Por cargo (avulso)</strong>
+                  <small>Registre os riscos de cada cargo, sem criar GHEs.</small>
                 </span>
               </label>
             </form>
@@ -208,7 +211,7 @@
           <section class="risk-selection-section" id="risk-selection-section" hidden>
             <div class="dimension-heading">
               <p class="eyebrow">Etapa 06</p>
-              <h2>Riscos ocupacionais</h2>
+              <h2>Riscos ocupacionais</h2><p class="dimension-intro">Tabela 24 do eSocial e riscos complementares do GRO. Os complementares usam identificadores internos, sem código eSocial. A ausência da Tabela 24 pode coexistir com riscos complementares; não significa ausência de todos os riscos. O item de contaminação dos alimentos, em Biológicos, trata de controle sanitário e não gera indicação automática de exames.</p>
             </div>
 
             <form class="ghe-form" id="ghe-form" hidden>
@@ -235,7 +238,7 @@
           <section class="risk-source-section" id="risk-source-section" hidden>
             <div class="dimension-heading">
               <p class="eyebrow">Etapa 07</p>
-              <h2>Fontes dos riscos</h2>
+              <h2>Detalhamento dos riscos</h2>
             </div>
 
             <div class="risk-source-grid" id="risk-source-grid"></div>
@@ -250,19 +253,10 @@
             <div class="epi-grid" id="epi-grid"></div>
           </section>
 
-          <section class="training-section" id="training-section" hidden>
+<section class="final-report-section" id="final-report-section" hidden>
             <div class="dimension-heading">
-              <p class="eyebrow">Etapa 09</p>
-              <h2>Treinamentos sugeridos</h2>
-            </div>
-
-            <div class="training-grid" id="training-grid"></div>
-          </section>
-
-          <section class="final-report-section" id="final-report-section" hidden>
-            <div class="dimension-heading">
-              <p class="eyebrow">Etapa 10</p>
-              <h2>Relatório final</h2>
+              <p class="eyebrow">Etapa 08</p>
+              <h2>Relatório final</h2><p>Os treinamentos sugeridos serão incluídos automaticamente conforme os dados do levantamento.</p>
             </div>
 
             <button type="button" id="generate-report-button">
@@ -279,6 +273,9 @@
     </main>
 
     </div>
+    <dialog id="leave-dialog" aria-labelledby="leave-title"><h2 id="leave-title">Alterações não salvas</h2><p>Você pode continuar preenchendo e salvar o rascunho, ou voltar ao início sem guardar estas alterações.</p><div><button id="keep-editing" type="button">Continuar preenchendo</button><button id="leave-without-saving" type="button">Voltar sem salvar</button></div></dialog>
+    <dialog id="delete-dialog" aria-labelledby="delete-title"><h2 id="delete-title">Excluir rascunho?</h2><p id="delete-name"></p><p>As respostas deste rascunho serão excluídas permanentemente. O cliente e os outros levantamentos serão mantidos.</p><p id="delete-status" role="status"></p><div><button id="cancel-delete" type="button">Cancelar</button><button id="confirm-delete" type="button">Excluir rascunho</button></div></dialog>
   </body>
 </html>
+
 

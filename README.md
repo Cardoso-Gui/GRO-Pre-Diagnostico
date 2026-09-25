@@ -14,7 +14,7 @@ Site estático compatível com GitHub Pages. `index.html` oferece login com usu�
 
 ## Limite desta etapa
 
-A tela de login está ligada ao projeto Supabase. O formulário antigo é preservado e continua com rascunhos locais, agora separados por usuário. Salvamento dos levantamentos no banco, cadastro de clientes e painel de administração serão etapas posteriores. Nenhuma regra técnica das tabelas antigas foi revalidada nesta mudança.
+Login e cadastro de clientes usam o Supabase. Novo levantamento permite selecionar um cliente, criar um registro independente e continuar rascunhos do responsável ou do administrador. Salvar rascunho guarda as respostas no banco com controle de revisão; o salvamento é manual. Os antigos rascunhos locais não são importados automaticamente. Conclusão formal, relatórios arquivados e painel de administração serão etapas posteriores. Nenhuma regra técnica das tabelas antigas foi revalidada nesta mudança.
 
 ## Publicação
 

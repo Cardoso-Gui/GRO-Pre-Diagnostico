@@ -63,4 +63,3 @@ try {
   else if (session) await enterWorkspace();
 } catch (error) { showMessage(friendlyAuthError(error, navigator.onLine)); }
 finally { setBusy(false); }
-

@@ -31,8 +31,8 @@ const riskSourceSection = document.querySelector("#risk-source-section");
 const riskSourceGrid = document.querySelector("#risk-source-grid");
 const epiSection = document.querySelector("#epi-section");
 const epiGrid = document.querySelector("#epi-grid");
-const trainingSection = document.querySelector("#training-section");
-const trainingGrid = document.querySelector("#training-grid");
+
+
 const finalReportSection = document.querySelector("#final-report-section");
 const generateReportButton = document.querySelector("#generate-report-button");
 const printReportButton = document.querySelector("#print-report-button");
@@ -91,36 +91,20 @@ const riskModeDescriptions = {
   ghe: {
     title: "Criar GHEs",
     description:
-      "Você vai montar grupos de exposição homogênea e selecionar riscos ocupacionais, incluindo agentes da Tabela 24 do eSocial, ergonômicos e acidentes.",
+      "Você vai montar grupos de exposição homogênea e selecionar riscos ocupacionais, conforme a Tabela 24 do eSocial.",
   },
   job: {
     title: "Riscos por cargo",
     description:
       "Você vai selecionar, para cada cargo cadastrado, os riscos ocupacionais aplicáveis.",
   },
-  sector: {
-    title: "Riscos por setor com exceções",
-    description:
-      "Você vai selecionar riscos ocupacionais por setor e poderá criar exceções para cargos específicos.",
-  },
+
 };
 
 const occupationalRiskSource = [
-  ...ESOCIAL_RISK_TABLE_24.map((risk) => ({
-    ...risk,
-    source: "eSocial - Tabela 24",
-  })),
-  ...OCCUPATIONAL_RISK_TABLE.map((risk) => ({
-    ...risk,
-    source: "Risco ocupacional",
-  })),
+  ...ESOCIAL_RISK_TABLE_24.map(risk => ({...risk, source: "eSocial - Tabela 24"})),
+  ...OCCUPATIONAL_RISK_TABLE.map(risk => ({...risk, source: risk.code === "SAN.001" ? "Controle sanitário · não é agente ocupacional ou código eSocial" : "GRO complementar · identificador interno"})),
 ];
-
-const hiddenRiskGroups = new Set([
-  "Associação de agentes nocivos físicos, químicos e biológicos",
-  "Outros agentes nocivos",
-  "Ausência de agentes nocivos ou atividades especiais",
-]);
 
 const fields = {
   companyName: document.querySelector("#company-name"),
@@ -139,110 +123,7 @@ const dimensionFields = {
   sesmtList: document.querySelector("#sesmt-list"),
 };
 
-const cipaRanges = [
-  [0, 19],
-  [20, 29],
-  [30, 50],
-  [51, 80],
-  [81, 100],
-  [101, 120],
-  [121, 140],
-  [141, 300],
-  [301, 500],
-  [501, 1000],
-  [1001, 2500],
-  [2501, 5000],
-  [5001, 10000],
-];
-
-const cipaTable = {
-  1: {
-    effective: [0, 0, 0, 0, 1, 1, 1, 1, 2, 4, 5, 6, 8],
-    substitutes: [0, 0, 0, 0, 1, 1, 1, 1, 2, 3, 4, 5, 6],
-    extra: { effective: 1, substitutes: 1 },
-  },
-  2: {
-    effective: [0, 0, 0, 1, 1, 2, 2, 3, 4, 5, 6, 8, 10],
-    substitutes: [0, 0, 0, 1, 1, 1, 1, 2, 3, 4, 5, 6, 8],
-    extra: { effective: 1, substitutes: 1 },
-  },
-  3: {
-    effective: [0, 1, 1, 2, 2, 2, 3, 4, 5, 6, 8, 10, 12],
-    substitutes: [0, 1, 1, 1, 1, 1, 2, 2, 4, 4, 6, 8, 8],
-    extra: { effective: 2, substitutes: 2 },
-  },
-  4: {
-    effective: [0, 1, 2, 3, 3, 4, 4, 4, 5, 6, 9, 11, 13],
-    substitutes: [0, 1, 1, 2, 2, 2, 2, 3, 4, 5, 7, 8, 10],
-    extra: { effective: 2, substitutes: 2 },
-  },
-};
-
-const sesmtRanges = [
-  [50, 100],
-  [101, 250],
-  [251, 500],
-  [501, 1000],
-  [1001, 2000],
-  [2001, 3500],
-  [3501, 5000],
-];
-
-const sesmtTable = {
-  1: {
-    "Técnico em segurança do trabalho": ["", "", "", "", "1", "1", "2"],
-    "Engenheiro de segurança do trabalho": ["", "", "", "", "", "1*", "1"],
-    "Auxiliar/Técnico de enfermagem do trabalho": ["", "", "", "1", "", "1***", "1"],
-    "Enfermeiro do trabalho": ["", "", "", "", "", "", "1*"],
-    "Médico do trabalho": ["", "", "", "", "1*", "1*", "1"],
-    extra: {
-      "Técnico em segurança do trabalho": "1",
-      "Engenheiro de segurança do trabalho": "1*",
-      "Auxiliar/Técnico de enfermagem do trabalho": "1",
-      "Médico do trabalho": "1*",
-    },
-  },
-  2: {
-    "Técnico em segurança do trabalho": ["", "", "", "", "1", "2", "5"],
-    "Engenheiro de segurança do trabalho": ["", "", "", "", "1*", "1", "1"],
-    "Auxiliar/Técnico de enfermagem do trabalho": ["", "", "", "1", "1***", "1***", "1"],
-    "Enfermeiro do trabalho": ["", "", "", "", "", "", "1"],
-    "Médico do trabalho": ["", "", "", "", "1*", "1", "1"],
-    extra: {
-      "Técnico em segurança do trabalho": "1",
-      "Engenheiro de segurança do trabalho": "1*",
-      "Auxiliar/Técnico de enfermagem do trabalho": "1",
-      "Médico do trabalho": "1",
-    },
-  },
-  3: {
-    "Técnico em segurança do trabalho": ["", "", "", "3", "4", "6", "8"],
-    "Engenheiro de segurança do trabalho": ["", "", "", "1*", "1", "1", "2"],
-    "Auxiliar/Técnico de enfermagem do trabalho": ["", "1", "2", "", "1***", "1", "1"],
-    "Enfermeiro do trabalho": ["", "", "", "", "", "1", "1"],
-    "Médico do trabalho": ["", "", "", "1*", "1", "1", "2"],
-    extra: {
-      "Técnico em segurança do trabalho": "3",
-      "Engenheiro de segurança do trabalho": "1",
-      "Auxiliar/Técnico de enfermagem do trabalho": "1",
-      "Médico do trabalho": "1",
-    },
-  },
-  4: {
-    "Técnico em segurança do trabalho": ["", "2", "3", "4", "5", "8", "10"],
-    "Engenheiro de segurança do trabalho": ["1", "1*", "1*", "1", "1", "2", "3"],
-    "Auxiliar/Técnico de enfermagem do trabalho": ["", "", "", "1***", "1***", "1", "1"],
-    "Enfermeiro do trabalho": ["", "", "", "", "", "1", "1"],
-    "Médico do trabalho": ["1*", "1*", "1", "1", "", "2", "3"],
-    extra: {
-      "Técnico em segurança do trabalho": "3",
-      "Engenheiro de segurança do trabalho": "1",
-      "Auxiliar/Técnico de enfermagem do trabalho": "1",
-      "Médico do trabalho": "1",
-    },
-  },
-};
-
+const { calculateCipa, calculateSesmt } = globalThis.GRO_DIMENSION;
 input.addEventListener("input", () => {
   input.value = formatCnpj(input.value);
   clearMessage();
@@ -259,6 +140,7 @@ customSectorForm.addEventListener("submit", (event) => {
 
   addSectorOption(sectorName, true);
   customSectorInput.value = "";
+  customSectorInput.focus();
 });
 
 saveDraftButton.addEventListener("click", () => {
@@ -278,7 +160,18 @@ riskModeForm.addEventListener("change", (event) => {
     return;
   }
 
-  selectedRiskMode = event.target.value;
+  const nextMode = event.target.value;
+  if (!["ghe", "job"].includes(nextMode) || nextMode === selectedRiskMode) return;
+  const hasExistingData = gheList.length > 0 || Array.from(selectedRisksByTarget.values()).some(codes => codes.size > 0) || riskSourcesBySelection.size > 0 || epiBySelection.size > 0;
+  if (hasExistingData && !confirm("Trocar a organização dos riscos? Os GHEs, riscos, fontes e EPIs deste modelo serão removidos do preenchimento. Setores e cargos serão mantidos. A mudança só será gravada ao salvar o rascunho.")) {
+    setRiskModeInput(selectedRiskMode);
+    return;
+  }
+  gheList.length = 0;
+  selectedRisksByTarget.clear();
+  riskSourcesBySelection.clear();
+  epiBySelection.clear();
+  selectedRiskMode = nextMode;
   renderRiskModeSummary();
   renderRiskSelection();
 });
@@ -314,6 +207,7 @@ generateReportButton.addEventListener("click", () => {
 });
 
 printReportButton.addEventListener("click", () => {
+  if (!validateReport()) return;
   document.body.classList.add("printing-report");
   window.print();
   setTimeout(cleanupPrintMode, 1000);
@@ -321,20 +215,32 @@ printReportButton.addEventListener("click", () => {
 
 window.addEventListener?.("afterprint", cleanupPrintMode);
 
+dimensionForm.addEventListener("input", () => {
+  updateDistribution();
+  dimensionResults.hidden = true;
+  dimensionFields.cipaSummary.textContent = "Cálculo pendente";
+  dimensionFields.cipaNote.textContent = "Recalcule após alterar os dados.";
+  dimensionFields.sesmtSummary.textContent = "Cálculo pendente";
+  dimensionFields.sesmtList.replaceChildren();
+  document.querySelector("#dimension-feedback").textContent = "Clique em Calcular dimensionamento para atualizar os resultados.";
+});
+
 dimensionForm.addEventListener("submit", (event) => {
   event.preventDefault();
 
   const employees = Number(employeeCountInput.value);
 
-  if (!Number.isInteger(employees) || employees < 1) {
+  if (!Number.isSafeInteger(employees) || employees < 1) {
     return;
   }
 
   if (!currentRiskGrade) {
+    document.querySelector("#dimension-feedback").textContent = "Grau de risco não identificado. Confira o CNAE cadastrado.";
     showMessage("Não foi possível identificar o grau de risco pelo CNAE principal.", true);
     return;
   }
 
+  document.querySelector("#dimension-feedback").textContent = "";
   renderDimension(employees, currentRiskGrade);
 });
 
@@ -395,6 +301,12 @@ function renderCompany(company) {
   fields.mainCnae.textContent = formatCnae(company);
   fields.address.textContent = formatAddress(company);
   fields.contact.textContent = formatContact(company);
+  document.querySelector('#company-cnpj').textContent = company.cnpj ? `CNPJ ${String(company.cnpj).replace(/\D/g, '').replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')}` : 'CNPJ não informado';
+  fields.address.textContent = [
+    [[company.descricao_tipo_de_logradouro, company.logradouro].filter(Boolean).join(' '), company.numero, company.complemento].filter(Boolean).join(', '),
+    [company.bairro, [company.municipio, company.uf].filter(Boolean).join('/'), company.cep ? `CEP ${String(company.cep).replace(/^(\d{5})(\d{3})$/, '$1-$2')}` : ''].filter(Boolean).join(' · ')
+  ].filter(Boolean).join('\n') || 'Endereço não informado';
+  fields.contact.textContent = [company.contact_name, company.ddd_telefone_1, company.email].filter(Boolean).join('\n') || 'Contato não informado';
   riskGradeOutput.textContent = currentRiskGrade
     ? `Grau ${currentRiskGrade}`
     : "Não encontrado";
@@ -404,115 +316,48 @@ function renderCompany(company) {
 
 function renderDimension(employees, riskGrade) {
   const cipa = calculateCipa(employees, riskGrade);
-  const sesmt = calculateSesmt(employees, riskGrade);
+  const sesmtRisk = Math.max(riskGrade, Number(document.querySelector("#preponderant-risk").value) || riskGrade);
+  const sesmt = calculateSesmt(employees, sesmtRisk);
+  if (document.querySelector("#health-establishment").checked && employees > 500) {
+    const nurse = sesmt.find(item => item.role === "Enfermeiro do trabalho");
+    if (nurse) nurse.quantity = "1";
+    else sesmt.push({role:"Enfermeiro do trabalho",quantity:"1"});
+  }
   const hasSesmt = sesmt.length > 0;
 
-  if (cipa.effective === 0 && cipa.substitutes === 0) {
+  if (cipa.effective === null) {
+    dimensionFields.cipaSummary.textContent = "Revisão técnica necessária";
+    dimensionFields.cipaNote.textContent = "Acima de 10.000 empregados, confira os acréscimos do Quadro I com o responsável técnico.";
+  } else if (cipa.effective === 0 && cipa.substitutes === 0) {
     if (hasSesmt) {
-      dimensionFields.cipaSummary.textContent = "Atendido pelo SESMT";
+      dimensionFields.cipaSummary.textContent = "Sem comissão nesta faixa";
       dimensionFields.cipaNote.textContent =
-        "Pelo Quadro I da NR-5 não há CIPA dimensionada. Como há SESMT, ele desempenha as atribuições da CIPA.";
+        "Se o estabelecimento for atendido pelo SESMT, este desempenha as atribuições da CIPA (NR-5, 5.4.13.1).";
     } else {
-      dimensionFields.cipaSummary.textContent = "Representante nomeado da NR-05";
+      dimensionFields.cipaSummary.textContent = "Sem comissão nesta faixa";
       dimensionFields.cipaNote.textContent =
-        "Pelo Quadro I da NR-5 não há CIPA por votação. Como não há SESMT dimensionado, a organização deve nomear um representante entre seus empregados.";
+        "Sem atendimento pelo SESMT, nomear um representante entre os empregados. MEI é dispensado dessa nomeação (NR-5, 5.4.13).";
     }
   } else {
     dimensionFields.cipaSummary.textContent =
-      `${cipa.effective} efetivo(s) e ${cipa.substitutes} suplente(s)`;
+      `${cipa.effective} efetivo(s) e ${cipa.substitutes} suplente(s) por representação`;
     dimensionFields.cipaNote.textContent =
-      `Constituir CIPA: representantes dos empregados eleitos e representantes da organização designados, em composição paritária.`;
+      `Empregados: ${cipa.effective} efetivo(s) + ${cipa.substitutes} suplente(s). Organização: a mesma composição. Total: ${2*(cipa.effective+cipa.substitutes)} integrantes.`;
   }
 
   dimensionFields.sesmtList.innerHTML = "";
 
   if (sesmt.length === 0) {
-    dimensionFields.sesmtSummary.textContent = "SESMT não dimensionado";
+    dimensionFields.sesmtSummary.textContent = "Sem equipe mínima nesta faixa";
     addSesmtItem("Pelo Anexo II da NR-4 não há profissionais mínimos para essa faixa.");
   } else {
     dimensionFields.sesmtSummary.textContent = `${sesmt.length} tipo(s) de profissional`;
     sesmt.forEach((item) => addSesmtItem(`${item.quantity} - ${item.role}`));
   }
 
+  document.querySelectorAll(".result-wait").forEach(el => el.textContent = "Calculado");
+  document.querySelector("#dimension-basis").textContent = `${employees} funcionários · CIPA: grau ${riskGrade} · SESMT: grau ${sesmtRisk}${document.querySelector("#health-establishment").checked ? " · Estabelecimento de saúde" : ""}`;
   dimensionResults.hidden = false;
-}
-
-function calculateCipa(employees, riskGrade) {
-  const table = cipaTable[riskGrade];
-
-  if (employees > 10000) {
-    const extraGroups = Math.ceil((employees - 10000) / 2500);
-
-    return {
-      effective: table.effective[12] + extraGroups * table.extra.effective,
-      substitutes: table.substitutes[12] + extraGroups * table.extra.substitutes,
-    };
-  }
-
-  const rangeIndex = cipaRanges.findIndex(([min, max]) => employees >= min && employees <= max);
-
-  return {
-    effective: table.effective[rangeIndex],
-    substitutes: table.substitutes[rangeIndex],
-  };
-}
-
-function calculateSesmt(employees, riskGrade) {
-  if (employees < 50) {
-    return [];
-  }
-
-  const table = sesmtTable[riskGrade];
-  const entries = Object.entries(table).filter(([role]) => role !== "extra");
-  const rangeIndex = sesmtRanges.findIndex(([min, max]) => employees >= min && employees <= max);
-
-  if (rangeIndex >= 0) {
-    return entries
-      .map(([role, quantities]) => ({ role, quantity: quantities[rangeIndex] }))
-      .filter((item) => item.quantity);
-  }
-
-  const extraGroups = calculateSesmtExtraGroups(employees);
-
-  return entries
-    .map(([role, quantities]) => {
-      const base = quantities[6];
-      const extra = table.extra[role];
-
-      return {
-        role,
-        quantity: sumQuantities(base, extra, extraGroups),
-      };
-    })
-    .filter((item) => item.quantity);
-}
-
-function calculateSesmtExtraGroups(employees) {
-  const extraWorkers = employees - 5000;
-  const fullGroups = Math.floor(extraWorkers / 4000);
-  const remainder = extraWorkers % 4000;
-
-  return fullGroups + (remainder > 2000 ? 1 : 0);
-}
-
-function sumQuantities(base, extra, multiplier) {
-  const baseValue = parseQuantity(base);
-  const extraValue = parseQuantity(extra) * multiplier;
-  const total = baseValue + extraValue;
-
-  if (total === 0) {
-    return "";
-  }
-
-  return `${total}${baseHasPartialMark(base, extra) ? "*" : ""}`;
-}
-
-function parseQuantity(value) {
-  return Number(String(value || "").replace(/\D/g, "")) || 0;
-}
-
-function baseHasPartialMark(...values) {
-  return values.some((value) => String(value || "").includes("*"));
 }
 
 function addSesmtItem(text) {
@@ -547,6 +392,8 @@ function addSectorOption(name, shouldCheck = false) {
   label.appendChild(checkbox);
   label.appendChild(text);
   sectorOptions.appendChild(label);
+  const suggestionList = document.querySelector("#sector-suggestions");
+  if (suggestionList) { const option = document.createElement("option"); option.value = name; suggestionList.appendChild(option); }
   updateSelectedSectors();
 }
 
@@ -595,97 +442,43 @@ function renderJobSections() {
     jobsGrid.appendChild(createJobCard(sectorName));
   });
 
+  updateDistribution();
   renderRiskModeSection();
 }
 
+function updateDistribution() {
+  const expected = Number(employeeCountInput.value) || 0;
+  let total = 0;
+  selectedSectorNames.forEach(sector => { total += (jobsBySector.get(sector) || []).reduce((n,j)=>n+(Number(j.quantity)||0),0); });
+  const output=document.querySelector('#distribution-count');
+  if(output) output.textContent = expected ? total+' de '+expected+' funcionários distribuídos · '+(total===expected?'Equipe completa':total>expected?'Total excedido em '+(total-expected):'Faltam distribuir '+(expected-total)) : total+' funcionários distribuídos · Informe o total no dimensionamento';
+}
 function createJobCard(sectorName) {
-  const card = document.createElement("article");
-  const title = document.createElement("h3");
-  const suggestions = document.createElement("div");
-  const form = document.createElement("form");
-  const nameLabel = document.createElement("label");
-  const quantityLabel = document.createElement("label");
-  const nameInput = document.createElement("input");
-  const quantityInput = document.createElement("input");
-  const addButton = document.createElement("button");
-  const jobList = document.createElement("div");
-
-  card.className = "job-card";
-  title.textContent = sectorName;
-  suggestions.className = "job-suggestions";
-  form.className = "job-form";
-  jobList.className = "job-list";
-
-  nameLabel.textContent = "Cargo";
-  quantityLabel.textContent = "Funcionários";
-  nameInput.type = "text";
-  nameInput.placeholder = "Ex.: Auxiliar Administrativo";
-  quantityInput.type = "number";
-  quantityInput.min = "1";
-  quantityInput.step = "1";
-  quantityInput.placeholder = "Qtd.";
-  addButton.type = "submit";
-  addButton.textContent = "Adicionar";
-
-  nameLabel.appendChild(nameInput);
-  quantityLabel.appendChild(quantityInput);
-  form.appendChild(nameLabel);
-  form.appendChild(quantityLabel);
-  form.appendChild(addButton);
-
-  getJobSuggestions(sectorName).forEach((jobName) => {
-    const suggestionButton = document.createElement("button");
-    suggestionButton.type = "button";
-    suggestionButton.textContent = jobName;
-    suggestionButton.addEventListener("click", () => {
-      nameInput.value = jobName;
-      quantityInput.focus();
-    });
-    suggestions.appendChild(suggestionButton);
-  });
-
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    addJobToSector(sectorName, nameInput.value, Number(quantityInput.value));
-    renderJobSections();
-  });
-
-  card.appendChild(title);
-  card.appendChild(suggestions);
-  card.appendChild(form);
-  renderJobList(sectorName, jobList);
-  card.appendChild(jobList);
-
-  return card;
+  const card=document.createElement('article'); card.className='job-card';
+  const title=document.createElement('h3');title.textContent=sectorName;card.append(title);
+  const list=document.createElement('div');list.className='job-list';renderJobList(sectorName,list);card.append(list);
+  const add=document.createElement('button');add.type='button';add.textContent='＋ Adicionar cargo';add.className='add-job';
+  const form=document.createElement('form');form.className='job-form';form.hidden=true;
+  form.innerHTML='<label>Nome do cargo<input name="jobName" required maxlength="100" placeholder="Ex.: Técnico de segurança"></label><label>Funcionários<input name="quantity" type="number" min="1" step="1" required placeholder="0"></label><label class="job-activities">Atividades realizadas<textarea name="activities" required maxlength="2000" placeholder="O que essa função faz?"></textarea></label><button type="submit">Adicionar</button>';
+  add.onclick=()=>{form.hidden=!form.hidden;if(!form.hidden)form.elements.jobName.focus()};
+  form.onsubmit=e=>{e.preventDefault();if(!form.elements.jobName.value.trim()||!form.elements.activities.value.trim())return;addJobToSector(sectorName,form.elements.jobName.value,Number(form.elements.quantity.value),form.elements.activities.value);renderJobSections()};
+  card.append(add,form);return card;
 }
-
-function renderJobList(sectorName, container) {
-  const jobs = jobsBySector.get(sectorName) || [];
-
-  jobs.forEach((job) => {
-    const row = document.createElement("div");
-    const text = document.createElement("span");
-    const jobName = document.createElement("strong");
-    const removeButton = document.createElement("button");
-
-    row.className = "job-row";
-    jobName.textContent = job.name;
-    text.appendChild(jobName);
-    text.append(` - ${job.quantity} funcionário(s)`);
-    removeButton.type = "button";
-    removeButton.textContent = "Remover";
-    removeButton.addEventListener("click", () => {
-      removeJobFromSector(sectorName, job.name);
-      renderJobSections();
-    });
-
-    row.appendChild(text);
-    row.appendChild(removeButton);
-    container.appendChild(row);
+function renderJobList(sectorName,container) {
+  (jobsBySector.get(sectorName)||[]).forEach(job=>{
+    const row=document.createElement('div');row.className='job-edit-row';
+    const name=document.createElement('strong');name.textContent=job.name;
+    const quantityLabel=document.createElement('label');quantityLabel.textContent='Funcionários';
+    const qty=document.createElement('input');qty.type='number';qty.min='1';qty.step='1';qty.required=true;qty.value=job.quantity;
+    qty.oninput=()=>{const n=Number(qty.value);if(Number.isSafeInteger(n)&&n>0){job.quantity=n;qty.setCustomValidity('');updateDistribution()}else qty.setCustomValidity('Informe um número inteiro maior que zero.')};quantityLabel.append(qty);
+    const activityLabel=document.createElement('label');activityLabel.className='job-activities';activityLabel.textContent='Atividades realizadas';
+    const activity=document.createElement('textarea');activity.placeholder='O que essa função faz?';activity.maxLength=2000;activity.value=job.activities||'';activity.oninput=()=>job.activities=activity.value;activityLabel.append(activity);
+    const remove=document.createElement('button');remove.type='button';remove.className='remove-job';remove.textContent='Remover cargo';remove.onclick=()=>{removeJobFromSector(sectorName,job.name);renderJobSections()};
+    row.append(name,quantityLabel,activityLabel,remove);container.append(row);
   });
 }
 
-function addJobToSector(sectorName, jobName, quantity) {
+function addJobToSector(sectorName, jobName, quantity, activities = "", foodHandling = false) {
   const cleanName = jobName.trim();
 
   if (!cleanName || !Number.isInteger(quantity) || quantity < 1) {
@@ -698,8 +491,10 @@ function addJobToSector(sectorName, jobName, quantity) {
 
   if (existingJob) {
     existingJob.quantity = quantity;
+    existingJob.activities = activities.trim();
+    if (arguments.length >= 5) existingJob.foodHandling = foodHandling === true;
   } else {
-    jobs.push({ name: cleanName, quantity });
+    jobs.push({ name: cleanName, quantity, activities: activities.trim(), foodHandling: foodHandling === true });
   }
 
   jobsBySector.set(sectorName, jobs);
@@ -729,7 +524,7 @@ function renderRiskModeSection() {
     riskSelectionSection.hidden = true;
     riskSourceSection.hidden = true;
     epiSection.hidden = true;
-    trainingSection.hidden = true;
+
     finalReportSection.hidden = true;
     riskModeForm.reset();
   } else if (selectedRiskMode) {
@@ -792,7 +587,7 @@ function getRiskTargets() {
   }
 
   if (selectedRiskMode === "job") {
-    return Array.from(jobsBySector.entries()).flatMap(([sectorName, jobs]) =>
+    return Array.from(jobsBySector.entries()).filter(([sectorName]) => selectedSectorNames.has(sectorName)).flatMap(([sectorName, jobs]) =>
       jobs.map((job) => ({
         id: createTargetId("job", sectorName, job.name),
         title: `${job.name} - ${sectorName}`,
@@ -802,14 +597,6 @@ function getRiskTargets() {
     );
   }
 
-  if (selectedRiskMode === "sector") {
-    return Array.from(selectedSectorNames).map((sectorName) => ({
-      id: createTargetId("sector", sectorName),
-      title: sectorName,
-      note: "Selecione os riscos padrão do setor. Exceções por cargo serão tratadas na próxima etapa.",
-      context: `Setor: ${sectorName}`,
-    }));
-  }
 
   return [];
 }
@@ -895,12 +682,14 @@ function renderRiskOptions(targetId, container, selectedList, searchTerm, group)
 
     label.className = "risk-option";
     checkbox.type = "checkbox";
+    checkbox.value = risk.code;
     checkbox.checked = selectedCodes.has(risk.code);
     name.textContent = risk.name;
     meta.textContent = `${risk.code} - ${risk.group} - ${risk.source}`;
 
     checkbox.addEventListener("change", () => {
       toggleRiskSelection(targetId, risk.code, checkbox.checked);
+      container.querySelectorAll("input[type=checkbox]").forEach(input => { input.checked = getSelectedRiskCodes(targetId).has(input.value); });
       renderSelectedRisks(targetId, selectedList);
       renderRiskSourceSection();
     });
@@ -939,7 +728,11 @@ function renderSelectedRisks(targetId, container) {
 function toggleRiskSelection(targetId, riskCode, checked) {
   const selectedCodes = getSelectedRiskCodes(targetId);
 
+  if (!occupationalRiskSource.some(risk => risk.code === riskCode)) return;
   if (checked) {
+    if (riskCode === "09.01.001") {
+      for (const code of selectedCodes) if (ESOCIAL_RISK_TABLE_24.some(risk => risk.code === code)) selectedCodes.delete(code);
+    } else if (ESOCIAL_RISK_TABLE_24.some(risk => risk.code === riskCode)) selectedCodes.delete("09.01.001");
     selectedCodes.add(riskCode);
   } else {
     selectedCodes.delete(riskCode);
@@ -953,7 +746,9 @@ function getSelectedRiskCodes(targetId) {
     selectedRisksByTarget.set(targetId, new Set());
   }
 
-  return selectedRisksByTarget.get(targetId);
+  const codes = selectedRisksByTarget.get(targetId);
+  if (codes.has("09.01.001") && [...codes].some(code => code !== "09.01.001" && ESOCIAL_RISK_TABLE_24.some(risk => risk.code === code))) codes.delete("09.01.001");
+  return codes;
 }
 
 function createTargetId(...parts) {
@@ -961,18 +756,19 @@ function createTargetId(...parts) {
 }
 
 function getSelectableRisks() {
-  return occupationalRiskSource.filter((risk) => !hiddenRiskGroups.has(risk.group));
+  return occupationalRiskSource;
 }
 
 function renderRiskSourceSection() {
-  const selections = getRiskSelections();
-  riskSourceGrid.innerHTML = "";
-  riskSourceSection.hidden = selections.length === 0;
+  const selections = getRiskSelections().filter(item => item.risk.code !== "09.01.001");
+  riskSourceGrid.replaceChildren();riskSourceSection.hidden = selections.length === 0;
+  if(selections.length){
+    const note=document.createElement('p');note.textContent='Preencha exposição, danos, medidas existentes e melhorias em uma página dedicada.';
+    const button=document.createElement('button');button.type='button';button.id='open-risk-details';button.textContent='Preencher detalhes dos riscos';
+    button.onclick=async()=>{if(!globalThis.GRO_CLOUD)return;button.disabled=true;try{const saved=await globalThis.GRO_CLOUD.save(getDraft());if(saved)location.assign('./risk-detail.html?id='+encodeURIComponent(saved.id)+'&target='+encodeURIComponent(button.dataset.target||'')+'&risk='+encodeURIComponent(button.dataset.risk||''));}finally{button.disabled=false}};
+    riskSourceGrid.append(note,button);
+  }
   renderEpiSection();
-
-  groupSelectionsByTarget(selections).forEach((group) => {
-    riskSourceGrid.appendChild(createRiskSourceGroup(group, createRiskSourceCard));
-  });
 }
 
 function getRiskSelections() {
@@ -1150,14 +946,9 @@ function formatGheLinks(linkedJobs) {
 }
 
 function renderEpiSection() {
-  const selections = getRiskSelections();
-  epiGrid.innerHTML = "";
-  epiSection.hidden = selections.length === 0;
-  renderTrainingSection();
-
-  groupSelectionsByTarget(selections).forEach((group) => {
-    epiGrid.appendChild(createRiskSourceGroup(group, createEpiCard, "epi-group"));
-  });
+  epiGrid.replaceChildren();
+  epiSection.hidden = true;
+  updateReportAvailability();
 }
 
 function createEpiCard(selection) {
@@ -1232,7 +1023,7 @@ function createEpiApplicabilityOption(selection, value, epiData, form, list) {
       renderEpiList(epiData, list);
     }
 
-    renderTrainingSection();
+    updateReportAvailability();
   });
   text.textContent = value;
 
@@ -1256,7 +1047,7 @@ function renderEpiList(epiData, container) {
     removeButton.addEventListener("click", () => {
       epiData.items = epiData.items.filter((item) => item !== epi);
       renderEpiList(epiData, container);
-      renderTrainingSection();
+      updateReportAvailability();
     });
 
     pill.appendChild(removeButton);
@@ -1278,7 +1069,7 @@ function addEpi(targetId, riskCode, epiName) {
     epiData.items.push(cleanName);
   }
 
-  renderTrainingSection();
+  updateReportAvailability();
 }
 
 function getEpiData(targetId, riskCode) {
@@ -1294,60 +1085,12 @@ function getEpiData(targetId, riskCode) {
   return epiBySelection.get(key);
 }
 
-function renderTrainingSection() {
-  const selections = getRiskSelections();
-  trainingGrid.innerHTML = "";
-  trainingSection.hidden = selections.length === 0;
-  finalReportSection.hidden = selections.length === 0;
-
-  groupSelectionsByTarget(selections).forEach((group) => {
-    trainingGrid.appendChild(createTrainingGroup(group));
-  });
-}
-
-function createTrainingGroup(group) {
-  const wrapper = document.createElement("section");
-  const title = document.createElement("h3");
-  const suggestions = getTrainingSuggestions(group.selections);
-
-  wrapper.className = "training-group";
-  title.textContent = group.title;
-  wrapper.appendChild(title);
-
-  if (suggestions.length === 0) {
-    const empty = document.createElement("p");
-    empty.className = "training-empty";
-    empty.textContent = "Nenhum treinamento pré-cadastrado foi sugerido para os riscos informados.";
-    wrapper.appendChild(empty);
-    return wrapper;
-  }
-
-  suggestions.forEach((training) => {
-    wrapper.appendChild(createTrainingCard(training));
-  });
-
-  return wrapper;
-}
-
-function createTrainingCard(training) {
-  const card = document.createElement("article");
-  const title = document.createElement("strong");
-  const reason = document.createElement("p");
-  const source = document.createElement("small");
-
-  card.className = "training-card";
-  title.textContent = training.title;
-  reason.textContent = training.reason;
-  source.textContent = `Sugerido por: ${training.matches.join(", ")}`;
-
-  card.appendChild(title);
-  card.appendChild(reason);
-  card.appendChild(source);
-
-  return card;
+function updateReportAvailability() {
+  finalReportSection.hidden = getRiskSelections().length === 0;
 }
 
 function getTrainingSuggestions(selections) {
+  selections = selections.filter(item => item.risk.code !== "SAN.001" && item.risk.code !== "09.01.001");
   const suggestions = new Map();
 
   TRAINING_RULES.forEach((rule) => {
@@ -1415,7 +1158,100 @@ function getCurrentCnaeText() {
   };
 }
 
+function getReportMissingFields(detailed = false) {
+  const missing = [];
+  let section = "Dados da empresa", destination = "#company-card", riskTarget = "", riskCode = "";
+  const add = text => missing.push({text, section, destination, riskTarget, riskCode});
+  const filled = value => String(value ?? "").trim().length > 0;
+  const employees = Number(employeeCountInput.value);
+  if (!currentCompany) add("Selecione a empresa.");
+  section = "Dimensionamento"; destination = "#employee-count";
+  if (!Number.isInteger(employees) || employees < 1) add("Informe o número de funcionários.");
+  section = "Setores e cargos"; destination = "#sectors-title";
+  if (!selectedSectorNames.size) add("Adicione os setores e cargos.");
+  let total = 0;
+  selectedSectorNames.forEach(sector => {
+    const jobs = jobsBySector.get(sector) || [];
+    if (!jobs.length) add(`${sector}: adicione pelo menos um cargo.`);
+    jobs.forEach(job => {
+      total += Number(job.quantity) || 0;
+      if (!filled(job.name) || !Number.isInteger(Number(job.quantity)) || Number(job.quantity) < 1) add(`${sector}: confira nome e quantidade do cargo.`);
+      if (!filled(job.activities)) add(`${sector} / ${job.name}: descreva as atividades.`);
+      if (selectedRiskMode === "ghe" && !gheList.some(g => g.linkedJobs?.some(j => j.sectorName === sector && j.jobName === job.name))) add(`${sector} / ${job.name}: vincule o cargo a um GHE.`);
+    });
+  });
+  if (total !== employees) add("A quantidade distribuída nos cargos deve corresponder ao total de funcionários.");
+  section = "Organização dos riscos"; destination = "#risk-mode-section";
+  if (!["ghe", "job"].includes(selectedRiskMode)) add("Escolha a organização por cargo ou GHE.");
+  const targets = getRiskTargets();
+  if (!targets.length) add("Cadastre os cargos ou GHEs para organizar os riscos.");
+  section = "Riscos ocupacionais"; destination = "#risk-selection-section";
+  targets.forEach(target => {
+    if (!getSelectedRiskCodes(target.id).size) add(`${target.title}: selecione os riscos ou a opção de ausência aplicável.`);
+  });
+  section = "Dimensionamento"; destination = "#employee-count";
+  if (/pendente|necessária/i.test(dimensionFields.cipaSummary.textContent) || /pendente/i.test(dimensionFields.sesmtSummary.textContent)) add("Calcule ou revise o dimensionamento.");
+  getRiskSelections().filter(s => s.risk.code !== "09.01.001").forEach(selection => {
+    section = "Detalhamento dos riscos"; destination = "#open-risk-details"; riskTarget = selection.targetId; riskCode = selection.risk.code;
+    const data = getRiskSourceData(selection.targetId, selection.risk.code);
+    const prefix = `${selection.targetTitle} / ${selection.risk.name}`;
+    const fields = {source:"fonte ou situação de exposição", frequency:"frequência", duration:"tempo ou circunstância", damage:"possíveis danos ou consequências", measures:"medidas existentes (informe se não houver)"};
+    Object.entries(fields).forEach(([key, label]) => { if (!filled(data[key])) add(`${prefix}: ${label}.`); });
+    if (!["Sim", "Não"].includes(data.measure)) add(`${prefix}: responda se precisa medir/avaliar.`);
+    if (selection.risk.code !== "SAN.001") {
+      const epi = getEpiData(selection.targetId, selection.risk.code);
+      if (!["Sim", "Não"].includes(epi.applicable)) add(`${prefix}: informe se EPI é aplicável.`);
+      if (epi.applicable === "Sim" && !epi.items?.some(filled)) add(`${prefix}: informe quais EPIs.`);
+    }
+  });
+  return detailed ? missing : missing.map(item => item.text);
+}
+
+function validateReport() {
+  let notice = document.querySelector("#report-validation");
+  if (!notice) {
+    notice = document.createElement("div");
+    notice.id = "report-validation";
+    notice.setAttribute("role", "alert");
+    notice.tabIndex = -1;
+    generateReportButton.before(notice);
+  }
+  notice.replaceChildren();
+  const missing = getReportMissingFields(true);
+  notice.hidden = missing.length === 0;
+  if (!missing.length) return true;
+  finalReport.hidden = true;
+  finalReport.replaceChildren();
+  printReportButton.hidden = true;
+  const title = document.createElement("h3");
+  title.textContent = "Preencha os campos obrigatórios para gerar o relatório";
+  const list = document.createElement("ul");
+  missing.forEach(({text, section, destination, riskTarget, riskCode}) => {
+    const item = document.createElement("li");
+    const description = document.createElement("span"); description.textContent = text;
+    const action = document.createElement("button"); action.type = "button";
+    action.textContent = section === "Detalhamento dos riscos" ? "Abrir detalhes dos riscos" : "Ir para " + section.toLowerCase();
+    if (section === "Detalhamento dos riscos") {
+      action.replaceChildren(document.createTextNode("Abrir detalhes"), document.createElement("br"), document.createTextNode("dos riscos"));
+    }
+    action.onclick = () => {
+      const target = document.querySelector(destination);
+      if (!target) return;
+      if (destination === "#open-risk-details") { target.dataset.target = riskTarget; target.dataset.risk = riskCode; target.click(); return; }
+      target.scrollIntoView({block:"center",behavior:"smooth"});
+      if (!target.matches("input,select,button,a,textarea")) target.tabIndex = -1;
+      target.focus({preventScroll:true});
+    };
+    item.append(action, description); list.appendChild(item);
+  });
+  notice.append(title, list);
+  notice.focus();
+  notice.scrollIntoView({block:"center", behavior:"smooth"});
+  return false;
+}
+
 function renderFinalReport() {
+  if (!validateReport()) return;
   const selections = getRiskSelections();
   finalReport.innerHTML = "";
   finalReport.hidden = false;
@@ -1492,8 +1328,8 @@ function createReportSummaryItem(label, value) {
 function getRiskModeLabel() {
   const labels = {
     ghe: "Por GHE",
-    job: "Por cargo",
-    sector: "Por setor",
+    job: "Por cargo (avulso)",
+
   };
 
   return labels[selectedRiskMode] || "";
@@ -1527,7 +1363,7 @@ function createSectorJobReportBlock() {
     const card = createReportMiniCard(
       sectorName,
       jobs.length ? `${jobs.length} cargo(s) cadastrado(s)` : "Nenhum cargo cadastrado",
-      jobs.map((job) => `${job.name} - ${job.quantity} funcionário(s)`)
+      jobs.map((job) => `${job.name} - ${job.quantity} funcionário(s)${job.activities ? " — Atividades: " + job.activities : ""}${job.foodHandling === true ? " — Condição da atividade: Manipulação de alimentos — controle sanitário" : ""}`)
     );
     container.appendChild(card);
   });
@@ -1578,6 +1414,12 @@ function createRiskSourceReportBlock(selections) {
         [
           `Fonte/situação: ${sourceData.source || "-"}`,
           `Observação: ${sourceData.note || "-"}`,
+          `Frequência: ${sourceData.frequency || "-"}`,
+          `Tempo/circunstância: ${sourceData.duration || "-"}`,
+          `Possíveis danos/consequências: ${sourceData.damage || "-"}`,
+          `Medidas existentes: ${sourceData.measures || "-"}`,
+          `Tipos de proteção: ${["Proteção coletiva", "Procedimentos e organização", "EPI"].filter((_, index) => sourceData.controls?.[index]).join(", ") || "Não informados"}`,
+          `Melhorias propostas: ${sourceData.improve || "-"}`,
           `Precisa medir/avaliar: ${sourceData.measure || "-"}`,
         ]
       );
@@ -1659,12 +1501,15 @@ function getEpiReportLines(selections) {
 }
 
 function createNrReportBlock(selections) {
-  const block = createReportBlock("Matriz preliminar de NRs");
+  const block = createReportBlock("NRs identificadas no levantamento");
+  const note = document.createElement("p");
+  note.textContent = "Normas gerais e normas com critérios identificados nos dados informados. Confirme o enquadramento e os requisitos com o responsável técnico; a ausência nesta lista não representa dispensa.";
+  block.appendChild(note);
   const container = document.createElement("div");
 
   container.className = "report-card-list";
   getNrReportItems(selections)
-    .filter((item) => item.status !== "Não identificado" && item.status !== "Revogada")
+    .filter((item) => ["Aplicável geral", "Aplicável", "Critério identificado"].includes(item.status))
     .forEach((item) => {
       const card = createReportMiniCard(`${item.nr} - ${item.title}`, item.reason, []);
       const status = document.createElement("span");
@@ -1731,7 +1576,7 @@ function evaluateNrRule(rule, selections) {
   const matches = getGenericRuleMatches(rule, selections);
 
   if (matches.length > 0) {
-    return { ...rule, status: rule.mode === "verify" ? "Verificar" : "Aplicável provável", reason: `Critérios encontrados: ${matches.join(", ")}` };
+    return { ...rule, status: rule.mode === "verify" ? "Verificar" : "Critério identificado", reason: `Critérios encontrados: ${matches.join(", ")}${rule.nr === "NR-35" ? ". Confirmar atividade com diferença de nível acima de 2 m e risco de queda." : ""}` };
   }
 
   return { ...rule, status: "Não identificado", reason: "Não houve indício no levantamento inicial." };
@@ -1747,17 +1592,7 @@ function getGenericRuleMatches(rule, selections) {
 
   selections.forEach((selection) => {
     const risk = selection.risk;
-    const sourceData = getRiskSourceData(selection.targetId, risk.code);
-    const searchableText = normalizeSectorName([
-      risk.code,
-      risk.group,
-      risk.name,
-      selection.targetTitle,
-      selection.targetContext,
-      sourceData.source,
-      sourceData.note,
-      cnaeText.description,
-    ].join(" "));
+    if (["09.01.001", "SAN.001"].includes(risk.code)) return;
 
     if (rule.riskCodes?.includes(risk.code)) {
       matches.push(risk.name);
@@ -1767,9 +1602,6 @@ function getGenericRuleMatches(rule, selections) {
       matches.push(risk.group);
     }
 
-    if (rule.keywords?.some((keyword) => searchableText.includes(normalizeSectorName(keyword)))) {
-      matches.push(risk.name);
-    }
   });
 
   return [...new Set(matches)];
@@ -1819,11 +1651,12 @@ function cleanupPrintMode() {
   document.body.classList.remove("printing-report");
 }
 
-function saveDraft() {
+function getDraft() {
   const draft = {
     cnpj: input.value,
     currentCompany,
     employees: employeeCountInput.value,
+    dimensionOptions: {preponderantRisk: document.querySelector("#preponderant-risk").value, health: document.querySelector("#health-establishment").checked},
     selectedSectors: Array.from(selectedSectorNames),
     jobsBySector: Array.from(jobsBySector.entries()),
     selectedRiskMode,
@@ -1833,11 +1666,18 @@ function saveDraft() {
     epiBySelection: Array.from(epiBySelection.entries()),
   };
 
+  return draft;
+}
+
+function saveDraft() {
+  const draft = getDraft();
+  if (globalThis.GRO_CLOUD) { globalThis.GRO_CLOUD.save(draft); return; }
   localStorage.setItem(draftStorageKey, JSON.stringify(draft));
   showMessage("Rascunho salvo neste navegador.");
 }
 
 function loadDraft() {
+  if (globalThis.GRO_CLOUD) { globalThis.GRO_CLOUD.reload(); return; }
   const rawDraft = localStorage.getItem(draftStorageKey);
 
   if (!rawDraft) {
@@ -1869,6 +1709,7 @@ function restoreDraft(draft) {
   }
 
   clearCheckboxes(sectorOptions);
+  selectedSectorNames.clear();
   (draft.selectedSectors || []).forEach((sectorName) => addSectorOption(sectorName, true));
 
   jobsBySector.clear();
@@ -1892,7 +1733,11 @@ function restoreDraft(draft) {
     epiBySelection.set(key, value);
   });
 
-  selectedRiskMode = draft.selectedRiskMode || "";
+  selectedRiskMode = ["ghe", "job"].includes(draft.selectedRiskMode) ? draft.selectedRiskMode : "";
+  if (draft.selectedRiskMode === "sector") {
+    riskModeTitle.textContent = "Escolha GHE ou cargo";
+    riskModeDescription.textContent = "Este rascunho usa o modelo antigo por setor. Escolha uma das opções para reorganizar os riscos.";
+  }
   setRiskModeInput(selectedRiskMode);
 
   renderJobSections();
@@ -1902,7 +1747,9 @@ function restoreDraft(draft) {
     renderRiskSelection();
   }
 
-  if (employeeCountInput.value && currentRiskGrade) {
+  document.querySelector("#preponderant-risk").value = draft.dimensionOptions?.preponderantRisk || "";
+  document.querySelector("#health-establishment").checked = draft.dimensionOptions?.health ?? String(currentCompany?.cnae_fiscal || "").startsWith("86");
+  if (Number.isSafeInteger(Number(employeeCountInput.value)) && Number(employeeCountInput.value) > 0 && currentRiskGrade) {
     renderDimension(Number(employeeCountInput.value), currentRiskGrade);
   }
 }
@@ -2007,8 +1854,10 @@ function calculateCheckDigit(numbers, weights) {
 }
 
 function formatCnae(company) {
-  const code = company.cnae_fiscal;
-  const description = company.cnae_fiscal_descricao;
+  const raw = String(company.cnae_fiscal || '').replace(/\D/g, '');
+  const digits = raw ? raw.padStart(7, '0') : '';
+  const code = digits.length === 7 ? digits.replace(/^(\d{4})(\d)(\d{2})$/, '$1-$2/$3') : company.cnae_fiscal;
+  const description = company.cnae_fiscal_descricao || globalThis.GRO_CNAE_DESCRIPTIONS?.[digits];
 
   if (!code && !description) {
     return "-";
@@ -2085,3 +1934,6 @@ function setLoading(isLoading) {
   button.disabled = isLoading;
   button.textContent = isLoading ? "Consultando..." : "Consultar";
 }
+
+globalThis.GRO_FORM = { restore: restoreDraft, snapshot: getDraft };
+

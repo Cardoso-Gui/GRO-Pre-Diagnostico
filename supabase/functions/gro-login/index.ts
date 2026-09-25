@@ -37,4 +37,3 @@ Deno.serve(async(req)=>{
   return reply({access_token:data.session.access_token,refresh_token:data.session.refresh_token});
  } catch { return reply({code:"unavailable"},503); }
 });
-

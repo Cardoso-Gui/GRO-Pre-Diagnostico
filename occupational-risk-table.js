@@ -1,3 +1,4 @@
+// Identificadores internos do GRO; não são códigos da Tabela 24 do eSocial.
 const OCCUPATIONAL_RISK_TABLE = [
   { code: "ERG.001", group: "Ergonômicos", name: "Postura inadequada" },
   { code: "ERG.002", group: "Ergonômicos", name: "Trabalho sentado por longos períodos" },
@@ -27,4 +28,15 @@ const OCCUPATIONAL_RISK_TABLE = [
   { code: "ACI.014", group: "Acidentes", name: "Circulação de veículos e equipamentos móveis" },
   { code: "ACI.015", group: "Acidentes", name: "Trabalho em espaço confinado" },
   { code: "ACI.016", group: "Acidentes", name: "Ataque de animais peçonhentos" },
+  {"code":"FIS.001","group":"Físicos","name":"Exposição ao frio"},
+  {"code":"FIS.002","group":"Físicos","name":"Exposição à umidade"},
+  {"code":"FIS.003","group":"Físicos","name":"Radiações não ionizantes"},
+  {"code":"PSI.001","group":"Psicossociais relacionados ao trabalho","name":"Sobrecarga de trabalho"},
+  {"code":"PSI.002","group":"Psicossociais relacionados ao trabalho","name":"Assédio moral ou sexual no trabalho"},
+  {"code":"PSI.003","group":"Psicossociais relacionados ao trabalho","name":"Falta de apoio de gestores ou colegas"},
+  {"code":"PSI.004","group":"Psicossociais relacionados ao trabalho","name":"Baixa autonomia na realização do trabalho"},
+  {"code":"PSI.005","group":"Psicossociais relacionados ao trabalho","name":"Metas ou exigências de trabalho incompatíveis com os recursos disponíveis"},
+  {"code":"PSI.006","group":"Psicossociais relacionados ao trabalho","name":"Conflitos ou falta de clareza de papéis e responsabilidades"},
+  { code: "SAN.001", group: "Biológicos", name: "Contaminação microbiológica dos alimentos pelo manipulador" },
 ];
+

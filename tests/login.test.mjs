@@ -70,4 +70,3 @@ test('network and rate limit errors have actionable messages', () => {
   assert.match(friendlyAuthError({ status: 429 }), /Aguarde/);
   assert.match(friendlyAuthError({}, false), /internet/);
 });
-

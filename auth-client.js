@@ -22,4 +22,3 @@ export async function signInWithUsername(username, password) {
   if (!response.ok) return { error: { code: data.code, status: response.status } };
   return authClient.auth.setSession({ access_token: data.access_token, refresh_token: data.refresh_token });
 }
-

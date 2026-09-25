@@ -24,4 +24,3 @@ Deno.serve(async req => {
   return reply(Object.fromEntries(keys.map(key=>[key,data[key] ?? null])));
  } catch { return reply({error:'unavailable'},502); }
 });
-

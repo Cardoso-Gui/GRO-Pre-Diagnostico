@@ -133,4 +133,3 @@ window.addEventListener('pageshow', event => { if (event.persisted) verifyAccess
 document.addEventListener('visibilitychange', () => { if (document.hidden) hideWorkspace(); else verifyAccess(); });
 await verifyAccess();
 if (!home.hidden && new URLSearchParams(location.search).get('view') === 'clients') openRecords('clients');
-
