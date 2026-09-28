@@ -16,11 +16,15 @@ export function addReuseButton(container,sourceId,authClient,getTeamMember,notif
   if(!confirm('Criar um novo rascunho com os dados deste levantamento? Revise as informações antes de concluir. O relatório original será preservado.'))return;
   busy=true;button.disabled=true;notify('Preparando novo rascunho…');creationId ||= crypto.randomUUID();
   try{
-   const access=await getTeamMember();if(!access.member)throw Error('Sua sessão expirou. Entre novamente.');
+   const access=await getTeamMember();
+   if(access.reason==='network')throw Error('Não foi possível verificar seu acesso. Confira a conexão e tente reutilizar novamente.');
+   if(!access.member)throw Error(access.reason==='session'?'Sua sessão expirou. Entre novamente para reutilizar o levantamento.':'Seu acesso não está disponível. Entre em contato com o administrador.');
    const source=await authClient.from('assessments').select('client_id,title,final_snapshot').eq('id',sourceId).eq('status','completed').maybeSingle();
-   if(source.error||!source.data?.final_snapshot?.answers)throw Error('Relatório indisponível para reutilização.');
+   if(source.error)throw Error('Não foi possível carregar o relatório. Confira a conexão e tente reutilizar novamente.');
+   if(!source.data?.final_snapshot?.answers)throw Error('Relatório indisponível para reutilização.');
    const client=await authClient.from('clients').select('*').eq('id',source.data.client_id).eq('archived',false).maybeSingle();
-   if(client.error||!client.data)throw Error('Cliente indisponível ou arquivado.');
+   if(client.error)throw Error('Não foi possível carregar os dados do cliente. Confira a conexão e tente reutilizar novamente.');
+   if(!client.data)throw Error('Cliente indisponível ou arquivado.');
    const row={id:creationId,client_id:client.data.id,responsible_id:access.member.user_id,title:('Revisão — '+source.data.title).slice(0,200),unsaved:true};
    const saved=await saveAssessment(authClient,row,reusedAnswers(source.data.final_snapshot.answers,client.data));
    location.assign('./levantamento.html?id='+encodeURIComponent(saved.id));

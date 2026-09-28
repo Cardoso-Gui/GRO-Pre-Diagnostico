@@ -1,7 +1,7 @@
 import {authClient,getTeamMember} from './auth-client.js';
 import {updateHeader} from './app-header.js?v=20260925-header2';
 import {clientOptionLabel} from './assessment-data.js';
-import {addReuseButton} from './reuse-report.js';
+import {addReuseButton} from './reuse-report.js?v=20260928-connection1';
 const select=document.querySelector('#report-client'),list=document.querySelector('#report-list'),status=document.querySelector('#list-status'),more=document.querySelector('#list-more');
 let sequence=0,offset=0,isAdmin=false;
 async function load(reset=true){
