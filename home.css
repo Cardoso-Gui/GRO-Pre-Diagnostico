@@ -25,3 +25,10 @@
 @media(max-width:1400px){.topbar-inner{flex-wrap:wrap;gap:12px;padding-top:12px;padding-bottom:8px}.topbar nav,.gro-header nav{order:3;width:100%;overflow-x:auto;min-height:38px;flex-shrink:0}.topbar nav a,.gro-header nav a{white-space:nowrap}.topbar,.gro-header{height:auto}}
 
 .topbar .brand,.gro-header .brand{flex-shrink:0}.topbar .brand small,.gro-header .brand small{white-space:nowrap;line-height:1.45}.topbar nav a,.gro-header nav a{white-space:nowrap;flex-shrink:0}
+@media(max-width:760px){
+ .topbar .brand,.gro-header .brand{flex:1;min-width:0;gap:8px}
+ .topbar .brand>span:last-child,.gro-header .brand>span:last-child{display:flex;align-items:center;gap:10px;min-width:0}
+ .topbar .brand small,.gro-header .brand small{display:block;white-space:normal;margin:0;padding-left:10px;border-left:1px solid #cbdcde;font-size:10px;letter-spacing:.25px;line-height:1.4;max-width:150px}
+ .topbar .brand strong,.gro-header .brand strong{flex-shrink:0}
+ .topbar .brand-mark,.gro-header .brand-mark{flex-shrink:0}
+}
