@@ -2,3 +2,5 @@
 
 #recovery-form[hidden]{display:none}
 .message-preview{display:none}
+
+#access-form{display:grid;gap:14px;text-align:left}#access-form[hidden]{display:none}#access-form label{font-size:13px;font-weight:600}#access-name{width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #cbdcde;border-radius:9px;font:inherit;background:#fafcfc}#access-form button{margin-top:8px}

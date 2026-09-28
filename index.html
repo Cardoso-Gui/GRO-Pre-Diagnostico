@@ -6,8 +6,8 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://vjtzragdciexixjzeann.supabase.co wss://vjtzragdciexixjzeann.supabase.co; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
 <title>Entrar · GRO</title><link rel="icon" href="./favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="./login.css?v=20260928-occ1">
 <script src="./vendor/supabase-2.117.2.js" defer></script><script type="module" src="./login.js?v=20260928-occ1"></script>
-<script type="module" src="./help-contact.js?v=20260928-recovery1"></script>
-<link rel="stylesheet" href="./recovery.css?v=20260928-recovery1"></head>
+<script type="module" src="./help-contact.js?v=20260928-access1"></script>
+<link rel="stylesheet" href="./recovery.css?v=20260928-access1"></head>
 <body>
 <a class="skip-link" href="#username">Ir para o login</a>
 <main class="login-layout">
@@ -27,7 +27,7 @@
 <button class="primary" id="submit-login" type="submit"><span>Entrar na minha conta</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
 <noscript><p class="message">Ative o JavaScript no navegador para entrar na sua conta.</p></noscript>
 </form>
-<div class="access-help"><span>Ainda não tem acesso?</span><button type="button" class="text-button" id="request-access" aria-haspopup="dialog" aria-controls="contact-dialog">Saiba como entrar</button></div>
+<div class="access-help"><span>Quer usar o GRO?</span><button type="button" class="text-button" id="request-access" aria-haspopup="dialog" aria-controls="contact-dialog">Solicite seu acesso</button></div>
 <p class="form-footer">Acesso exclusivo para pessoas autorizadas.<br>Ao terminar, saia da sua conta.</p>
 </div></section></main>
 <dialog id="contact-dialog" class="contact-dialog" aria-labelledby="contact-title" aria-describedby="contact-description">
@@ -36,7 +36,7 @@
  <p class="section-label">Conte com o administrador</p>
  <h2 id="contact-title">Vamos ajudar você.</h2>
  <p id="contact-description" class="contact-description"></p>
- <form id="recovery-form" hidden><label for="recovery-user">Usuário de acesso</label><input id="recovery-user" autocomplete="username" placeholder="Ex.: gui.cardoso" required pattern="[a-z0-9][a-z0-9._\-]{2,39}" maxlength="40"><p class="contact-note">Use o usuário que você informa para entrar no GRO.</p><div class="message-preview"><small>MENSAGEM PARA O ADMINISTRADOR</small><p id="recovery-message">Preencha os campos para visualizar sua mensagem.</p></div><button type="submit" class="primary" id="recovery-send" disabled>Solicitar ajuda pelo WhatsApp ↗</button></form><a id="contact-whatsapp" class="primary whatsapp-link" target="_blank" rel="noopener noreferrer" hidden>Falar pelo WhatsApp <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg><span class="screen-reader"> (abre em uma nova aba)</span></a>
+ <form id="recovery-form" hidden><label for="recovery-user">Usuário de acesso</label><input id="recovery-user" autocomplete="username" placeholder="Ex.: gui.cardoso" required pattern="[a-z0-9][a-z0-9._\-]{2,39}" maxlength="40"><p class="contact-note">Use o usuário que você informa para entrar no GRO.</p><div class="message-preview"><small>MENSAGEM PARA O ADMINISTRADOR</small><p id="recovery-message">Preencha os campos para visualizar sua mensagem.</p></div><button type="submit" class="primary" id="recovery-send" disabled>Solicitar ajuda pelo WhatsApp ↗</button></form><form id="access-form" hidden><label for="access-name">Qual é o seu nome?</label><input id="access-name" autocomplete="name" required maxlength="160" placeholder="Digite seu nome"><button id="access-send" type="submit" class="primary" disabled>Falar pelo WhatsApp ↗</button></form><a id="contact-whatsapp" class="primary whatsapp-link" target="_blank" rel="noopener noreferrer" hidden>Falar pelo WhatsApp <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg><span class="screen-reader"> (abre em uma nova aba)</span></a>
  <p class="contact-note">Não envie sua senha pelo WhatsApp.</p>
  <button id="contact-back" class="text-button" type="button">Voltar ao login</button>
 </dialog>
