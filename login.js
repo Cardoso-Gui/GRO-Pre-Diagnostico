@@ -1,4 +1,4 @@
-import { authClient, getTeamMember, signInWithUsername, loginStorage } from './auth-client.js?v=20260928-remember1';
+import { authClient, getTeamMember, signInWithUsername, loginStorage } from './auth-client.js?v=20260928-global1';
 import { normalizeUsername, friendlyAuthError } from './auth-utils.js';
 
 const form = document.querySelector('#login-form');

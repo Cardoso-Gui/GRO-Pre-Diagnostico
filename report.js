@@ -1,4 +1,4 @@
-import {authClient,getTeamMember} from './auth-client.js?v=20260928-remember1';
+import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {updateHeader} from './app-header.js?v=20260928-team1';
 import {organizeReport} from './report-layout.js?v=20260925-layout3';
 import {addReuseButton} from './reuse-report.js?v=20260928-admin1';

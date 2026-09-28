@@ -4,9 +4,9 @@ import fs from 'node:fs/promises';
 import vm from 'node:vm';
 import {stripTypeScriptTypes} from 'node:module';
 const source=stripTypeScriptTypes((await fs.readFile(new URL('../supabase/functions/gro-admin/index.ts',import.meta.url),'utf8')).replace(/^import .*;\s*/,''));
-function fixture({role='admin',global=false,active=true,authError=false,rpcError=null,committed=false}={}){
+function fixture({role='admin',global=false,active=true,globalTeam=false,authError=false,rpcError=null,committed=false}={}){
  let handler;const calls={created:[],deleted:[],rpc:[]};
- const actor={user_id:'actor',role,active:true,team_id:'team-a',is_super_admin:global,teams:{active}};
+ const actor={user_id:'actor',role,active:true,team_id:'team-a',is_super_admin:global,teams:{active,grants_global_access:globalTeam}};
  const db={auth:{getUser:async()=>({data:{user:authError?null:{id:'actor'}},error:authError}),admin:{createUser:async data=>{calls.created.push(data);return {data:{user:{id:'new-user'}}};},deleteUser:async id=>{calls.deleted.push(id);return {};}}},
  from(table){let column,value;return {select(){return this;},eq(k,v){column=k;value=v;return this;},single:async()=>({data:actor}),maybeSingle:async()=>({data:table==='teams'?{id:'team-a'}:column==='user_id'&&committed?{user_id:'new-user'}:null})};},
  rpc:async(name,payload)=>{calls.rpc.push(payload);return {data:rpcError?null:{user_id:'new-user'},error:rpcError};}};
@@ -20,3 +20,5 @@ test('account creation does not expose password to membership storage or output'
 test('failed membership removes only uncommitted newly created auth account',async()=>{let f=fixture({rpcError:{code:'23505'}});assert.equal((await f.request(user)).status,400);assert.deepEqual(f.calls.deleted,['new-user']);f=fixture({rpcError:{code:'network'},committed:true});assert.equal((await f.request(user)).status,200);assert.deepEqual(f.calls.deleted,[]);});
 
 test('password accepts six characters and rejects five',async()=>{for(const [password,status] of [['abc123',200],['abc12',400]]){const f=fixture();assert.equal((await f.request({...user,data:{...user.data,password}})).status,status);assert.equal(f.calls.created.length,status===200?1:0);}});
+
+test('active admin-team collaborator can manage teams; inactive team cannot',async()=>{const f=fixture({role:'editor',globalTeam:true});assert.equal((await f.request({action:'create_team',data:{name:'Test'}})).status,200);const blocked=fixture({role:'editor',globalTeam:true,active:false});assert.equal((await blocked.request({action:'create_team',data:{name:'Test'}})).status,403);});

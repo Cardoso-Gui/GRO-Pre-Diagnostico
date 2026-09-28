@@ -1,4 +1,4 @@
-import {authClient,getTeamMember} from './auth-client.js?v=20260928-remember1';
+import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {updateHeader} from './app-header.js?v=20260928-team1';
 const $=s=>document.querySelector(s), uf=$('#user-form'),tf=$('#team-form');
 let member,users=[],teams=[],busy=false;
@@ -19,7 +19,7 @@ function editTeam(team){tf.reset();field(tf,'id').value=team?.id||'';field(tf,'n
 function render(){
  const query=$('#user-search').value.trim().toLocaleLowerCase('pt-BR');$('#users-list').replaceChildren();
  for(const user of users.filter(u=>`${u.display_name} ${u.username}`.toLocaleLowerCase('pt-BR').includes(query))){
-  const row=el('article','','admin-row'),info=el('div','');info.append(el('strong',user.display_name),el('p',`${user.username} · ${teams.find(t=>t.id===user.team_id)?.name||'Equipe'}`),el('span',!user.active?'Inativo':user.is_super_admin?'Administrador geral':user.role==='admin'?'Administrador':'Colaborador',`admin-badge${user.active?'':' inactive'}`));
+  const row=el('article','','admin-row'),info=el('div','');info.append(el('strong',user.display_name),el('p',`${user.username} · ${teams.find(t=>t.id===user.team_id)?.name||'Equipe'}`),el('span',!user.active?'Inativo':(user.is_super_admin||teams.some(t=>t.id===user.team_id&&t.active&&t.grants_global_access))?'Administrador geral':user.role==='admin'?'Administrador':'Colaborador',`admin-badge${user.active?'':' inactive'}`));
   const button=el('button','Editar');button.type='button';button.disabled=busy||(!member.is_super_admin&&user.is_super_admin);button.addEventListener('click',()=>{editUser(user);uf.scrollIntoView({behavior:'smooth',block:'start'});field(uf,'display_name').focus({preventScroll:true});});row.append(info,button);$('#users-list').append(row);
  }
  if(!$('#users-list').children.length)$('#users-list').append(el('p','Nenhum usuário encontrado.'));
@@ -27,7 +27,7 @@ function render(){
 }
 async function load(){
  $('#reload-list').hidden=true;
- const [ur,tr]=await Promise.all([authClient.from('team_members').select('user_id,display_name,username,contact_email,role,active,team_id,is_super_admin').order('display_name'),authClient.from('teams').select('id,name,active').order('name')]);
+ const [ur,tr]=await Promise.all([authClient.from('team_members').select('user_id,display_name,username,contact_email,role,active,team_id,is_super_admin').order('display_name'),authClient.from('teams').select('id,name,active,grants_global_access').order('name')]);
  if(ur.error||tr.error){$('#reload-list').hidden=false;throw new Error('Não foi possível carregar a lista. Confira a conexão e tente novamente.');}
  users=ur.data;teams=tr.data;const selected=field(uf,'team_id').value;field(uf,'team_id').replaceChildren();for(const t of teams){const option=el('option',t.name+(t.active?'':' (inativa)'));option.value=t.id;option.disabled=!t.active;field(uf,'team_id').append(option);}field(uf,'team_id').value=selected||member.team_id;render();
 }
@@ -48,3 +48,5 @@ $('#reload-list').onclick=()=>load().then(()=>notice('Lista atualizada.')).catch
 $('#sign-out').onclick=async()=>{if(busy)return;await authClient.auth.signOut({scope:'local'});location.href='./index.html?reason=signedout';};
 async function init(){try{const result=await getTeamMember();if(result.error)throw result.error;member=result.member;if(!member){location.replace('./index.html?reason=expired');return;}if(member.role!=='admin'){$('#session-check p').textContent='Esta área é exclusiva dos administradores.';return;}updateHeader(member);$('#access-summary').textContent=member.is_super_admin?'Você gerencia todas as equipes. Os dados de cada equipe ficam separados.':'Gerencie os acessos da sua equipe.';$('#team-form').hidden=!member.is_super_admin;$('#admin-page').hidden=false;$('#session-check').hidden=true;await load();editUser(null);editTeam(null);}catch{$('#session-check p').textContent='Não foi possível verificar seu acesso. Confira a conexão e tente novamente.';$('#retry-session').hidden=false;if(member)notice('Não foi possível carregar os dados. Tente novamente.',true);}}
 $('#retry-session').onclick=init;init();
+
+field(uf,'team_id').addEventListener('change',()=>{if(teams.some(t=>t.id===field(uf,'team_id').value&&t.grants_global_access))#user-note.textContent='Esta equipe concede acesso geral a todos os clientes, relatórios, usuários e equipes.';else #user-note.textContent='O usuário terá acesso aos dados da equipe escolhida.';});

@@ -1,5 +1,5 @@
 import {updateHeader} from './app-header.js?v=20260928-team1';
-import { authClient, getTeamMember } from './auth-client.js?v=20260928-remember1';
+import { authClient, getTeamMember } from './auth-client.js?v=20260928-global1';
 
 const home = document.querySelector('#home');
 const check = document.querySelector('#session-check');

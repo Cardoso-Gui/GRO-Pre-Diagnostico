@@ -11,7 +11,8 @@ export const authClient = globalThis.supabase.createClient(SUPABASE_URL, SUPABAS
 export async function getTeamMember() {
   const { data: { user }, error } = await authClient.auth.getUser();
   if (error || !user) return { member: null, error, reason: error && (!error.status || error.status >= 500) ? 'network' : 'session' };
-  const result = await authClient.from('team_members').select('user_id,display_name,role,active,team_id,is_super_admin').eq('user_id', user.id).eq('active', true).maybeSingle();
+  const result = await authClient.from('team_members').select('user_id,display_name,role,active,team_id,is_super_admin,teams(active,grants_global_access)').eq('user_id', user.id).eq('active', true).maybeSingle();
+  if(result.data?.teams?.active && result.data.teams.grants_global_access){result.data.is_super_admin=true;result.data.role='admin';}
   return { member: result.data, error: result.error, reason: result.error ? 'network' : 'membership' };
 }
 

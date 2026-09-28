@@ -1,5 +1,5 @@
 import {updateHeader} from './app-header.js?v=20260928-team1';
-import { authClient, getTeamMember } from './auth-client.js?v=20260928-remember1';
+import { authClient, getTeamMember } from './auth-client.js?v=20260928-global1';
 import { lookupCompany } from './cnpj.js';
 const $ = selector => document.querySelector(selector);
 const form = $('#client-form');
@@ -53,6 +53,7 @@ for (const state of 'AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN
 }
 function message(text, error = false) { $('#feedback').textContent = text; $('#feedback').classList.toggle('error', error); }
 function mode(editing) {
+  input('team_id').disabled=!editing||!currentMember?.is_super_admin;
   fields.disabled = !editing; $('#save').hidden = !editing; $('#edit').hidden = editing;
   $('#cancel').hidden = !editing || !saved;
   $('#page-title').textContent = saved ? (editing ? 'Editar cliente' : saved.legal_name) : 'Novo cliente';
@@ -113,7 +114,7 @@ function validate() {
   if (cep && !/^\d{8}$/.test(cep)) input('postal_code').setCustomValidity('Informe os 8 números do CEP.');
   if (!form.reportValidity()) return null;
   const data = Object.fromEntries(basic.map(key => [key, input(key).value.trim() || null]));
-  if(!saved)data.team_id=input('team_id').value;
+  if(!saved||currentMember?.is_super_admin)data.team_id=input('team_id').value;
   data.cnpj = cnpj || null; data.cnae = cnae || null;
   data.address = { ...saved?.address, ...Object.fromEntries(addressFields.map(key => [key,input(key).value.trim()])) };
   data.address.postal_code = cep;
@@ -123,6 +124,7 @@ form.addEventListener('input', event => { dirty = true; if (event.target.setCust
 form.addEventListener('submit', async event => {
   event.preventDefault(); if (busy || consulting || fields.disabled) return;
   const payload = validate(); if (!payload) return;
+  if(saved && payload.team_id && payload.team_id!==saved.team_id && !confirm('Transferir este cliente para a equipe selecionada? Os levantamentos e relatórios também passarão a ser acessíveis pela nova equipe.'))return;
   busy = true; fields.disabled = true; $('#save').disabled = true; $('#cancel').disabled = true; message('Salvando…');
   try {
     await verify();
@@ -139,7 +141,7 @@ form.addEventListener('submit', async event => {
       : authClient.from('clients').insert({id, ...payload});
     const {data, error} = await query.select('*').maybeSingle();
     if (error) {
-      if (error.code === '23505') throw new Error('Já existe um cliente com este CNPJ. Consulte a lista de clientes antes de cadastrar novamente.');
+      if (error.code === '23505') throw new Error('Já existe um cliente com este CNPJ no sistema. Peça ao administrador para verificar o cadastro e a equipe responsável.');
       if (error.code === '42501') throw new Error('Seu acesso não permite salvar este cliente. Entre em contato com o administrador.');
       uncertain = true; throw new Error('Não foi possível confirmar o salvamento. Seus campos foram mantidos. Confira a conexão e tente salvar novamente.');
     }

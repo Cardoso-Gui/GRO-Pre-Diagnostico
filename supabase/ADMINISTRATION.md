@@ -18,3 +18,6 @@
 Backend aplicado em 28/09/2026. Frontend publicado no Pages junto com a tela Minha equipe.
 
 Aviso pré-existente do Supabase: proteção contra senhas vazadas desativada. Veja https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection . Tabelas privadas login_attempts/report_revision_counters têm RLS sem políticas de acesso público intencionalmente.
+
+## Atualização: equipe Administradores e transferência de clientes
+A equipe designada Administradores concede acesso geral a todos os membros ativos, inclusive colaboradores. A designação usa grants_global_access, não o nome editável. Sair da equipe ou desativar o usuário revoga o acesso derivado; a conta proprietária previamente protegida mantém seu acesso explícito. Somente administradores gerais podem transferir clientes entre equipes ativas. Todo o histórico acompanha a visibilidade do cliente, preservando o conteúdo dos relatórios concluídos. CNPJ é único globalmente, inclusive em cadastros arquivados. Testes transacionais com rollback confirmaram acesso global, revogação, transferência, edição de rascunhos transferidos e bloqueio de CNPJ duplicado entre equipes.

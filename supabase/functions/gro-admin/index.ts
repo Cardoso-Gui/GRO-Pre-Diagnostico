@@ -16,7 +16,8 @@ Deno.serve(async (req) => {
   const db=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,{auth:{persistSession:false,autoRefreshToken:false}});
   const {data:auth,error:authError}=await db.auth.getUser(token);
   if(authError || !auth.user) return reply(401,'Entre novamente para continuar.');
-  const {data:actor,error:actorError}=await db.from('team_members').select('user_id,role,active,team_id,is_super_admin,teams(active)').eq('user_id',auth.user.id).single();
+  const {data:actor,error:actorError}=await db.from('team_members').select('user_id,role,active,team_id,is_super_admin,teams(active,grants_global_access)').eq('user_id',auth.user.id).single();
+  if(actor?.active && (actor.teams as any)?.active && (actor.teams as any)?.grants_global_access){actor.is_super_admin=true;actor.role='admin';}
   if(actorError || !actor?.active || actor.role!=='admin' || (!actor.is_super_admin && !(actor.teams as any)?.active)) return reply(403,'Você não tem permissão para administrar usuários.');
   const raw=await req.text(); if(raw.length>12000) return reply(400,'Formulário muito grande.');
   const {action,data}=JSON.parse(raw);
