@@ -3,6 +3,7 @@ import {updateHeader} from './app-header.js?v=20260928-occ1';
 const $=s=>document.querySelector(s);
 let member,offset=0,busy=false,rows=[],more=false,teams=[];
 function node(tag,text,cls){const el=document.createElement(tag);el.textContent=text;if(cls)el.className=cls;return el;}
+function formatPhone(value){const d=String(value||'').replace(/\D/g,'').slice(0,11);if(d.length<3)return d;const split=d.length>10?7:6;return `(${d.slice(0,2)}) ${d.slice(2,split)}${d.length>split?'-'+d.slice(split):''}`;}
 function render(){
  const query=$('#member-search').value.trim().toLocaleLowerCase('pt-BR');
  const found=rows.filter(row=>`${row.display_name} ${row.username||''} ${teams.find(t=>t.id===row.team_id)?.name||''}`.toLocaleLowerCase('pt-BR').includes(query));
@@ -12,7 +13,7 @@ function render(){
   if(query&&!people.length&&!team.name.toLocaleLowerCase('pt-BR').includes(query))continue;
   const group=node('section','');
   if(member.is_super_admin)group.append(node('h3',team.name+(team.active?'':' · Inativa')));
-  for(const row of people){const article=node('article','','admin-row'),info=node('div','');info.append(node('strong',row.display_name+(row.user_id===member.user_id?' (você)':'')),node('p',row.username||''));article.append(info,node('span',!row.active?'Inativo':row.is_super_admin||(team.active&&team.grants_global_access)?'Administrador geral':row.role==='admin'?'Administrador':'Colaborador',`admin-badge${row.active?'':' inactive'}`));group.append(article);}
+  for(const row of people){const article=node('article','','admin-row'),info=node('div','');info.append(node('strong',row.display_name+(row.user_id===member.user_id?' (você)':'')),node('p',[row.username,formatPhone(row.contact_phone)].filter(Boolean).join(' · ')));article.append(info,node('span',!row.active?'Inativo':row.is_super_admin||(team.active&&team.grants_global_access)?'Administrador geral':row.role==='admin'?'Administrador':'Colaborador',`admin-badge${row.active?'':' inactive'}`));group.append(article);}
   if(!people.length)group.append(node('p',more?'Nenhum integrante desta equipe na lista carregada.':'Nenhum integrante encontrado.'));
   $('#member-list').append(group);
  }
@@ -27,7 +28,7 @@ async function load(reset=false){
   const changed=member?.team_id!==result.member.team_id||member?.is_super_admin!==result.member.is_super_admin;member=result.member;updateHeader(member);
   if(reset||changed){rows=[];offset=0;$('#member-list').replaceChildren();}
   let teamQuery=authClient.from('teams').select('id,name,active,grants_global_access').order('name');
-  let peopleQuery=authClient.from('team_members').select('user_id,display_name,username,role,active,is_super_admin,team_id').order('display_name').order('user_id').range(offset,offset+49);
+  let peopleQuery=authClient.from('team_members').select('user_id,display_name,username,contact_phone,role,active,is_super_admin,team_id').order('display_name').order('user_id').range(offset,offset+49);
   if(!member.is_super_admin){teamQuery=teamQuery.eq('id',member.team_id);peopleQuery=peopleQuery.eq('team_id',member.team_id);}
   const [team,members]=await Promise.all([teamQuery,peopleQuery]);
   if(team.error||members.error)throw team.error||members.error;
