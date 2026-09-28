@@ -29,3 +29,5 @@
 
 
 @media(max-width:1400px){.topbar-inner{flex-wrap:wrap;gap:12px;padding-top:12px;padding-bottom:8px}.gro-header nav,.topbar nav{order:3;width:100%;overflow-x:auto;min-height:38px;flex-shrink:0}.gro-header nav a,.topbar nav a{white-space:nowrap}.gro-header,.topbar{height:auto}}
+
+.topbar .brand,.gro-header .brand{flex-shrink:0}.topbar .brand small,.gro-header .brand small{white-space:nowrap;line-height:1.45}.topbar nav a,.gro-header nav a{white-space:nowrap;flex-shrink:0}

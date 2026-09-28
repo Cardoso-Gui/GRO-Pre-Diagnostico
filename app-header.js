@@ -1,4 +1,6 @@
 export function updateHeader(member){
+ const subtitle=document.querySelector('header .brand small');
+ if(subtitle)subtitle.innerHTML='Gestão de riscos<br>ocupacionais';
  const nav=document.querySelector('header nav');
  if(nav){nav.replaceChildren();for(const [label,file] of [['Início','inicio.html'],['Clientes','clients.html'],['Relatórios','reports.html'],['Ocorrências','occurrences.html']]){const a=document.createElement('a');a.href='./'+file;a.textContent=label;if(location.pathname.endsWith('/'+file)){a.className='nav-current';a.setAttribute('aria-current','page');}nav.append(a);}}
 
