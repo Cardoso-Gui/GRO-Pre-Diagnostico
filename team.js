@@ -21,7 +21,7 @@ function render(){
   if(!people.length)group.append(node('p',more?'Nenhum integrante desta equipe na lista carregada.':'Nenhum integrante encontrado.'));
   $('#member-list').append(group);
  }
- $('#team-status').textContent=found.length?`${found.length} integrante(s)${query?' encontrado(s)':''}${more?' nesta lista':''}.`:query?'Nenhum integrante encontrado na lista carregada.':'Nenhum integrante disponível.';
+ $('#team-status').textContent=found.length?'':query?'Nenhum integrante encontrado na lista carregada.':'Nenhum integrante disponível.';
  $('#more-members').hidden=!more;
 }
 async function load(reset=false){
