@@ -31,3 +31,9 @@ test('password reset works only on authorized user and never returns the passwor
  for(const opts of [{target:{user_id:'target',team_id:'team-a'}},{global:true,target:{user_id:'target',team_id:'team-b'}}]){const f=fixture(opts);const res=await f.request(reset);assert.equal(res.status,200);assert.equal(f.calls.passwords[0].id,'target');assert.equal(f.calls.rpc.length,0);assert.equal((await res.text()).includes(reset.data.password),false);}
 });
 test('password reset rejects invalid length and reports auth failure',async()=>{const f=fixture({target:{user_id:'target',team_id:'team-a'}});assert.equal((await f.request({...reset,data:{...reset.data,password:'123'}})).status,400);assert.equal(f.calls.passwords.length,0);const failed=fixture({target:{user_id:'target',team_id:'team-a'},passwordError:{message:'failed'}});assert.equal((await failed.request(reset)).status,400);});
+
+test('contact phone is normalized and malformed numbers are rejected before creation',async()=>{
+ const f=fixture();assert.equal((await f.request({...user,data:{...user.data,contact_phone:'(17) 99999-1234'}})).status,200);assert.equal(f.calls.rpc[0].p_data.contact_phone,'17999991234');
+ for(const phone of ['123','abc11999999999','119999999999']){const bad=fixture();assert.equal((await bad.request({...user,data:{...user.data,contact_phone:phone}})).status,400);assert.equal(bad.calls.created.length,0);}
+ const empty=fixture();assert.equal((await empty.request({...user,data:{...user.data,contact_phone:''}})).status,200);assert.equal(empty.calls.rpc[0].p_data.contact_phone,'');
+});

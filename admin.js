@@ -3,11 +3,14 @@ import {updateHeader} from './app-header.js?v=20260928-occ1';
 const $=s=>document.querySelector(s), uf=$('#user-form'),tf=$('#team-form');
 let member,users=[],teams=[],busy=false;
 const field=(form,name)=>form.elements.namedItem(name);
+function formatPhone(value){const d=String(value||'').replace(/\D/g,'').slice(0,11);if(d.length<3)return d;const split=d.length>10?7:6;return `(${d.slice(0,2)}) ${d.slice(2,split)}${d.length>split?'-'+d.slice(split):''}`;}
+field(uf,'contact_phone').addEventListener('input',e=>{e.target.value=formatPhone(e.target.value);});
 function notice(message,error=false){$('#admin-status').textContent=message;$('#admin-status').classList.toggle('error',error);}
 function el(tag,text,className){const node=document.createElement(tag);node.textContent=text;if(className)node.className=className;return node;}
 function editUser(user){
- uf.reset();for(const key of ['user_id','display_name','username','contact_email','team_id','role'])field(uf,key).value=user?.[key]|| (key==='team_id'?member.team_id:key==='role'?'editor':'');
+ uf.reset();for(const key of ['user_id','display_name','username','contact_phone','team_id','role'])field(uf,key).value=user?.[key]|| (key==='team_id'?member.team_id:key==='role'?'editor':'');
  const editing=!!user;
+ field(uf,'contact_phone').value=formatPhone(field(uf,'contact_phone').value);
  $('#reset-password-section').hidden=!editing||!!(user?.is_super_admin&&user.user_id!==member.user_id);
  $('#reset-password').value='';$('#reset-password-confirm').value='';$('#reset-password-status').textContent='';
 field(uf,'active').checked=user?.active!==false;
@@ -30,7 +33,7 @@ function render(){
 }
 async function load(){
  $('#reload-list').hidden=true;
- const [ur,tr]=await Promise.all([authClient.from('team_members').select('user_id,display_name,username,contact_email,role,active,team_id,is_super_admin').order('display_name'),authClient.from('teams').select('id,name,active,grants_global_access').order('name')]);
+ const [ur,tr]=await Promise.all([authClient.from('team_members').select('user_id,display_name,username,contact_phone,role,active,team_id,is_super_admin').order('display_name'),authClient.from('teams').select('id,name,active,grants_global_access').order('name')]);
  if(ur.error||tr.error){$('#reload-list').hidden=false;throw new Error('Não foi possível carregar a lista. Confira a conexão e tente novamente.');}
  users=ur.data;teams=tr.data;const selected=field(uf,'team_id').value;field(uf,'team_id').replaceChildren();for(const t of teams){const option=el('option',t.name+(t.active?'':' (inativa)'));option.value=t.id;option.disabled=!t.active;field(uf,'team_id').append(option);}field(uf,'team_id').value=selected||member.team_id;render();
 }
@@ -43,7 +46,7 @@ async function save(form,action,data){
   try{await load();}catch(e){notice('Salvo. '+e.message,true);}
  }catch(e){notice(e.message,true);}finally{busy=false;submit.disabled=false;render();}
 }
-uf.addEventListener('submit',e=>{e.preventDefault();const data={};for(const key of ['user_id','display_name','username','contact_email','team_id','role','password'])data[key]=field(uf,key).value;data.active=field(uf,'active').checked;save(uf,data.user_id?'update_user':'create_user',data);});
+uf.addEventListener('submit',e=>{e.preventDefault();const data={};for(const key of ['user_id','display_name','username','contact_phone','team_id','role','password'])data[key]=field(uf,key).value;data.active=field(uf,'active').checked;save(uf,data.user_id?'update_user':'create_user',data);});
 tf.addEventListener('submit',e=>{e.preventDefault();save(tf,field(tf,'id').value?'update_team':'create_team',{id:field(tf,'id').value,name:field(tf,'name').value,active:field(tf,'active').checked});});
 $('#cancel-user').onclick=()=>{if(!busy)editUser(null);};$('#cancel-team').onclick=()=>{if(!busy)editTeam(null);};$('#user-search').oninput=render;
 for(const tab of ['users','teams'])$('#tab-'+tab).onclick=()=>{for(const name of ['users','teams']){$('#tab-'+name).setAttribute('aria-selected',String(name===tab));$('#'+name+'-section').hidden=name!==tab;}};

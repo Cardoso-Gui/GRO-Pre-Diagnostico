@@ -44,15 +44,17 @@ Deno.serve(async (req) => {
    if(!actor.is_super_admin && data.team_id!==actor.team_id) return reply(403,'Equipe não autorizada.');
    const {data:team}=await db.from('teams').select('id').eq('id',data.team_id).eq('active',true).maybeSingle();
    if(!team) return reply(400,'Escolha uma equipe ativa.');
-   const email=String(data.contact_email||'').trim();
-   if(email.length>254 || (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) return reply(400,'Confira o e-mail de contato.');
+   const rawPhone=String(data.contact_phone||'').trim();
+   const phone=rawPhone.replace(/\D/g,'');
+   if(rawPhone && (!/^[\d\s()-]+$/.test(rawPhone)||!/^\d{10,11}$/.test(phone))) return reply(400,'Informe o telefone com DDD, com 10 ou 11 números.');
    if(!['admin','editor'].includes(data.role)) return reply(400,'Perfil inválido.');
-   Object.assign(clean,{display_name:data.display_name.trim(),username,contact_email:email,team_id:data.team_id,role:data.role,active:data.active===true,user_id:data.user_id});
+   Object.assign(clean,{display_name:data.display_name.trim(),username,team_id:data.team_id,role:data.role,active:data.active===true,user_id:data.user_id});
+   if(Object.hasOwn(data,'contact_phone')) clean.contact_phone=phone;
    if(action==='create_user') {
     if(typeof data.password!=='string' || data.password.length<6 || data.password.length>128) return reply(400,'A senha deve ter entre 6 e 128 caracteres.');
     const {data:existing}=await db.from('team_members').select('user_id').eq('username',username).maybeSingle();
     if(existing) return reply(409,'Esse nome de usuário já está em uso.');
-    // Internal Auth address: contact email is optional; login always uses username.
+    // Internal Auth address is independent of contact phone; login uses username.
     const {data:created,error}=await db.auth.admin.createUser({email:`${crypto.randomUUID()}@users.gro.invalid`,password:data.password,email_confirm:true});
     if(error || !created.user) return reply(400,'Não foi possível criar a conta. Confira a senha e tente novamente.');
     clean.user_id=created.user.id;
