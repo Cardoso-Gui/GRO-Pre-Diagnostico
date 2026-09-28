@@ -2,6 +2,7 @@ import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
 const $=s=>document.querySelector(s);
 let member,offset=0,busy=false,rows=[],more=false,teams=[];
+const collapsedTeams=new Set();
 function node(tag,text,cls){const el=document.createElement(tag);el.textContent=text;if(cls)el.className=cls;return el;}
 function formatPhone(value){const d=String(value||'').replace(/\D/g,'').slice(0,11);if(d.length<3)return d;const split=d.length>10?7:6;return `(${d.slice(0,2)}) ${d.slice(2,split)}${d.length>split?'-'+d.slice(split):''}`;}
 function render(){
@@ -11,9 +12,11 @@ function render(){
  for(const team of teams){
   const people=found.filter(row=>row.team_id===team.id);
   if(query&&!people.length&&!team.name.toLocaleLowerCase('pt-BR').includes(query))continue;
-  const group=node('section','',member.is_super_admin?'team-group':'');
+  const group=node(member.is_super_admin?'details':'section','',member.is_super_admin?'team-group':'');
   if(member.is_super_admin){
-   const heading=node('h3','');
+   group.open=!!query||!collapsedTeams.has(team.id);
+   group.addEventListener('toggle',()=>{if(!query){if(group.open)collapsedTeams.delete(team.id);else collapsedTeams.add(team.id);}});
+   const heading=node('summary','');
    heading.append(node('span',team.name+(team.active?'':' · Inativa')),node('span',`${people.length} ${people.length===1?'integrante':'integrantes'}${more?' nesta lista':''}`, 'team-count'));
    group.append(heading);
   }
