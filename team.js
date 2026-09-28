@@ -12,7 +12,11 @@ function render(){
   const people=found.filter(row=>row.team_id===team.id);
   if(query&&!people.length&&!team.name.toLocaleLowerCase('pt-BR').includes(query))continue;
   const group=node('section','',member.is_super_admin?'team-group':'');
-  if(member.is_super_admin)group.append(node('h3',team.name+(team.active?'':' · Inativa')));
+  if(member.is_super_admin){
+   const heading=node('h3','');
+   heading.append(node('span',team.name+(team.active?'':' · Inativa')),node('span',`${people.length} ${people.length===1?'integrante':'integrantes'}${more?' nesta lista':''}`, 'team-count'));
+   group.append(heading);
+  }
   for(const row of people){const article=node('article','','admin-row'),info=node('div','');info.append(node('strong',row.display_name+(row.user_id===member.user_id?' (você)':'')),node('p',[row.username,formatPhone(row.contact_phone)].filter(Boolean).join(' · ')));article.append(info,node('span',!row.active?'Inativo':row.is_super_admin||(team.active&&team.grants_global_access)?'Administrador geral':row.role==='admin'?'Administrador':'Colaborador',`admin-badge${row.active?'':' inactive'}`));group.append(article);}
   if(!people.length)group.append(node('p',more?'Nenhum integrante desta equipe na lista carregada.':'Nenhum integrante encontrado.'));
   $('#member-list').append(group);
