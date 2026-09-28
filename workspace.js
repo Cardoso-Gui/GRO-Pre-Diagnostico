@@ -1,5 +1,5 @@
-import {updateHeader} from './app-header.js?v=20260925-reports1';
-import {authClient,getTeamMember} from './auth-client.js';
+import {updateHeader} from './app-header.js?v=20260928-team1';
+import {authClient,getTeamMember} from './auth-client.js?v=20260928-admin1';
 import {companyFromClient,saveAssessment,clientOptionLabel,deleteDraft,completeAssessment} from './assessment-data.js?v=20260925-reports1';
 const $=s=>document.querySelector(s);
 const workspace=$('#protected-workspace'), notice=$('#session-check');

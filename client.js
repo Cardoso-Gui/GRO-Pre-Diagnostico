@@ -1,5 +1,5 @@
-import {updateHeader} from './app-header.js?v=20260925-header2';
-import { authClient, getTeamMember } from './auth-client.js';
+import {updateHeader} from './app-header.js?v=20260928-team1';
+import { authClient, getTeamMember } from './auth-client.js?v=20260928-admin1';
 import { lookupCompany } from './cnpj.js';
 const $ = selector => document.querySelector(selector);
 const form = $('#client-form');
@@ -19,6 +19,7 @@ const basic = ['legal_name','trade_name','cnpj','cnae','contact_name','contact_p
 const addressFields = ['postal_code','state','street','number','complement','district','city'];
 const requestedId = new URLSearchParams(location.search).get('id');
 const id = requestedId || crypto.randomUUID();
+let currentMember;
 let saved = null, dirty = false, busy = false, checking = false, initialized = false, uncertain = false;
 let consulting = false;
 $('#lookup-cnpj').addEventListener('click', async () => {
@@ -58,7 +59,7 @@ function mode(editing) {
   $('#page-description').textContent = saved ? 'Dados da empresa disponíveis para sua equipe.' : 'Cadastre a empresa para organizar os próximos levantamentos.';
 }
 function populate(row) {
-  saved = row;
+  saved = row; input('team_id').value=row.team_id; input('team_id').disabled=true;
   for (const key of basic) input(key).value = row[key] || '';
   for (const key of addressFields) input(key).value = row.address?.[key] || '';
   dirty = false; mode(false);
@@ -67,7 +68,7 @@ async function verify() {
   const result = await getTeamMember();
   if (result.error && result.reason === 'network') throw new Error('Não foi possível verificar seu acesso. Confira a conexão e tente novamente.');
   if (!result.member) { dirty = false; location.replace('./index.html?reason=expired'); throw new Error('Sua sessão terminou. Entre novamente.'); }
-  updateHeader(result.member);
+  currentMember=result.member; updateHeader(result.member);
 }
 async function readClient() {
   const { data, error } = await authClient.from('clients').select('*').eq('id', id).eq('archived', false).maybeSingle();
@@ -80,6 +81,12 @@ async function initialize() {
   try {
     await verify();
     if (!initialized) {
+      const teamsResult=await authClient.from('teams').select('id,name,active').order('name');
+      if(teamsResult.error)throw new Error('Não foi possível carregar as equipes. Tente novamente.');
+      input('team_id').replaceChildren();
+      for(const team of teamsResult.data){const option=document.createElement('option');option.value=team.id;option.textContent=team.name;option.disabled=!team.active;input('team_id').append(option);}
+      input('team_id').value=currentMember.team_id;
+      $('#client-team-section').hidden=!currentMember.is_super_admin;
       if (requestedId) {
         if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) throw new Error('Este endereço de cliente é inválido. Volte à lista de clientes.');
         const row = await readClient();
@@ -106,6 +113,7 @@ function validate() {
   if (cep && !/^\d{8}$/.test(cep)) input('postal_code').setCustomValidity('Informe os 8 números do CEP.');
   if (!form.reportValidity()) return null;
   const data = Object.fromEntries(basic.map(key => [key, input(key).value.trim() || null]));
+  if(!saved)data.team_id=input('team_id').value;
   data.cnpj = cnpj || null; data.cnae = cnae || null;
   data.address = { ...saved?.address, ...Object.fromEntries(addressFields.map(key => [key,input(key).value.trim()])) };
   data.address.postal_code = cep;

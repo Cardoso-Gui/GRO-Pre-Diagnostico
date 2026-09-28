@@ -1,4 +1,4 @@
-import { authClient, getTeamMember, signInWithUsername } from './auth-client.js';
+import { authClient, getTeamMember, signInWithUsername } from './auth-client.js?v=20260928-admin1';
 import { normalizeUsername, friendlyAuthError } from './auth-utils.js';
 
 const form = document.querySelector('#login-form');

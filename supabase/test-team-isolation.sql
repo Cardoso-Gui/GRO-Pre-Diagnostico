@@ -1,0 +1,45 @@
+begin;
+do $$ declare ta uuid;tb uuid;ua uuid=gen_random_uuid();ub uuid=gen_random_uuid();ca uuid;cb uuid;rootid uuid; begin
+ select user_id into rootid from public.team_members where is_super_admin limit 1;
+ perform set_config('test.root',rootid::text,true);
+ insert into public.teams(name) values('TESTE ISOLAMENTO A') returning id into ta;
+ insert into public.teams(name) values('TESTE ISOLAMENTO B') returning id into tb;
+ insert into auth.users(id) values(ua),(ub);
+ insert into public.team_members(user_id,display_name,username,role,team_id) values(ua,'Teste A','teste_a_'||left(ua::text,8),'admin',ta),(ub,'Teste B','teste_b_'||left(ub::text,8),'editor',tb);
+ perform set_config('request.jwt.claim.sub',ua::text,true);
+ insert into public.clients(legal_name,team_id) values('TESTE A',ta) returning id into ca;
+ insert into public.assessments(client_id,responsible_id) values(ca,ua);
+ perform set_config('request.jwt.claim.sub',ub::text,true);
+ insert into public.clients(legal_name,team_id) values('TESTE B',tb) returning id into cb;
+ insert into public.assessments(client_id,responsible_id) values(cb,ub);
+ perform set_config('test.ua',ua::text,true);perform set_config('test.ub',ub::text,true);
+ perform set_config('test.ta',ta::text,true);perform set_config('test.tb',tb::text,true);
+ perform set_config('test.cb',cb::text,true);
+end $$;
+set local role authenticated;
+select set_config('request.jwt.claim.sub',current_setting('test.ua'),true);
+do $$ begin
+ if (select count(*) from public.clients)<>1 or (select count(*) from public.assessments)<>1 or (select count(*) from public.team_members)<>1 or (select count(*) from public.teams)<>1 then raise exception 'FAIL: cross-team visibility';end if;
+ update public.clients set legal_name='SHOULD NOT CHANGE' where id=current_setting('test.cb')::uuid;
+ if found then raise exception 'FAIL: cross-team update';end if;
+ begin insert into public.clients(legal_name,team_id) values('DENIED',current_setting('test.tb')::uuid);raise exception 'FAIL: cross-team insert';exception when insufficient_privilege then null;end;
+ begin update public.team_members set is_super_admin=true;raise exception 'FAIL: self promotion';exception when insufficient_privilege then null;end;
+ begin perform public.manage_gro_admin(current_setting('test.root')::uuid,'create_team','{"name":"DENIED"}');raise exception 'FAIL: public privileged RPC';exception when insufficient_privilege then null;end;
+end $$;
+select set_config('request.jwt.claim.sub',current_setting('test.root'),true);
+do $$ begin if (select count(*) from public.teams)<3 then raise exception 'FAIL: global visibility';end if;end $$;
+reset role;
+set local role service_role;
+select set_config('request.jwt.claim.sub','',true);
+do $$ begin
+ begin perform public.manage_gro_admin(current_setting('test.ua')::uuid,'create_team','{"name":"DENIED"}');raise exception 'FAIL: team admin created team';exception when insufficient_privilege then null;end;
+ begin perform public.manage_gro_admin(current_setting('test.ua')::uuid,'update_user',jsonb_build_object('user_id',current_setting('test.ub'),'team_id',current_setting('test.ta'),'display_name','DENIED','role','admin','active',true));raise exception 'FAIL: cross-team administration';exception when insufficient_privilege then null;end;
+ perform public.manage_gro_admin(current_setting('test.root')::uuid,'update_team',jsonb_build_object('id',current_setting('test.tb'),'name','TESTE B','active',false));
+end $$;
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub',current_setting('test.ub'),true);
+do $$ begin if exists(select 1 from public.clients) or exists(select 1 from public.assessments) or exists(select 1 from public.team_members) then raise exception 'FAIL: inactive team access';end if;end $$;
+reset role;
+rollback;
+select 'PASS: tenant isolation, writes, self-promotion, administration scope, global access and inactive teams; all fixtures rolled back' as result;

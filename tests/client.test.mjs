@@ -7,16 +7,16 @@ const source = await fs.readFile(new URL('../client.js', import.meta.url), 'utf8
 async function fixture({existing = null, error = null, conflict = false, member = true, lookup = async()=>({})} = {}) {
  const elements = new Map(), writes = [], filters = [];
  function el(id) {
-  if (!elements.has(id)) elements.set(id,{value:'',hidden:false,disabled:false,textContent:'',handlers:{},validity:'',classList:{toggle(){}},append(){},focus(){},setCustomValidity(v){this.validity=v;},addEventListener(n,f){this.handlers[n]=f;}});
+  if (!elements.has(id)) elements.set(id,{value:'',hidden:false,disabled:false,textContent:'',handlers:{},validity:'',classList:{toggle(){}},append(){},replaceChildren(){},focus(){},setCustomValidity(v){this.validity=v;},addEventListener(n,f){this.handlers[n]=f;}});
   return elements.get(id);
  }
  el('client-form').elements={namedItem:el}; el('client-form').reportValidity=()=>[...elements.values()].every(e=>!e.validity);
  let row = existing, operation = null;
- const client={auth:{onAuthStateChange(){}},from(){operation=null;return {select(){return this;},eq(k,v){filters.push([k,v]);return this;},insert(data){operation=data;writes.push({type:'insert',data});return this;},update(data){operation=data;writes.push({type:'update',data});return this;},async maybeSingle(){if (!operation) return {data:row}; if(error)return {error}; if(conflict)return {data:null}; row={id:'11111111-1111-4111-8111-111111111111',updated_at:'new',...operation};return {data:row};}};}};
+ const client={auth:{onAuthStateChange(){}},from(table){if(table==='teams')return {select(){return this;},async order(){return {data:[{id:'team-a',name:'Equipe A',active:true}]};}};operation=null;return {select(){return this;},eq(k,v){filters.push([k,v]);return this;},insert(data){operation=data;writes.push({type:'insert',data});return this;},update(data){operation=data;writes.push({type:'update',data});return this;},async maybeSingle(){if (!operation) return {data:row}; if(error)return {error}; if(conflict)return {data:null}; row={id:'11111111-1111-4111-8111-111111111111',updated_at:'new',...operation};return {data:row};}};}};
  const redirects=[];
  const context=vm.createContext({URLSearchParams,crypto:{randomUUID:()=> '11111111-1111-4111-8111-111111111111'},document:{querySelector:s=>el(s.replace(/^#/,'')),createElement:()=>({}),addEventListener(){}},location:{search:existing?'?id=11111111-1111-4111-8111-111111111111':'',replace:u=>redirects.push(u)},history:{replaceState(){}},window:{addEventListener(){}},confirm:()=>true});
- const auth=new vm.SyntheticModule(['authClient','getTeamMember'],function(){this.setExport('authClient',client);this.setExport('getTeamMember',async()=>({member:member?{}:null}));},{context});
- const mod=new vm.SourceTextModule(source,{context});await mod.link(name=>name.startsWith('./app-header.js') ? new vm.SourceTextModule(awaitHeader,{context}) : name === './auth-client.js' ? auth : new vm.SyntheticModule(['lookupCompany'],function(){this.setExport('lookupCompany',lookup);},{context}));await mod.evaluate();
+ const auth=new vm.SyntheticModule(['authClient','getTeamMember'],function(){this.setExport('authClient',client);this.setExport('getTeamMember',async()=>({member:member?{team_id:'team-a'}:null}));},{context});
+ const mod=new vm.SourceTextModule(source,{context});await mod.link(name=>name.startsWith('./app-header.js') ? new vm.SourceTextModule(awaitHeader,{context}) : name.startsWith('./auth-client.js') ? auth : new vm.SyntheticModule(['lookupCompany'],function(){this.setExport('lookupCompany',lookup);},{context}));await mod.evaluate();
  for(const [key,value] of Object.entries({cnpj:'19131243000197',cnae:'1234567',postal_code:'01234567',state:'SP',street:'Rua Teste',number:'1',district:'Centro',city:'São Paulo',contact_name:'Responsável',contact_phone:'11999999999',contact_email:'teste@example.com'})) if(!el(key).value)el(key).value=value;
  return {el,writes,filters,redirects,async submit(){await el('client-form').handlers.submit({preventDefault(){}});}};
 }

@@ -26,9 +26,9 @@ Deno.serve(async(req)=>{
   const {data:allowed,error:limitError}=await admin.rpc("consume_login_attempt",{p_key:key});
   if(limitError) return reply({code:"unavailable"},503);
   if(!allowed) return reply({code:"rate_limit"},429);
-  const {data:member,error:memberError}=await admin.from("team_members").select("user_id").eq("username",username).eq("active",true).maybeSingle();
+  const {data:member,error:memberError}=await admin.from("team_members").select("user_id,is_super_admin,teams(active)").eq("username",username).eq("active",true).maybeSingle();
   if(memberError) return reply({code:"unavailable"},503);
-  if(!member) return reply({code:"invalid_credentials"},400);
+  if(!member || (!member.is_super_admin && !(member.teams as any)?.active)) return reply({code:"invalid_credentials"},400);
   const {data:lookup,error:lookupError}=await admin.auth.admin.getUserById(member.user_id);
   if(lookupError||!lookup.user?.email) return reply({code:"invalid_credentials"},400);
   const client=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_ANON_KEY")!,{auth:{persistSession:false,autoRefreshToken:false}});

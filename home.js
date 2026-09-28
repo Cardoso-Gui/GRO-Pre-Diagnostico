@@ -1,4 +1,5 @@
-import { authClient, getTeamMember } from './auth-client.js';
+import {updateHeader} from './app-header.js?v=20260928-team1';
+import { authClient, getTeamMember } from './auth-client.js?v=20260928-admin1';
 
 const home = document.querySelector('#home');
 const check = document.querySelector('#session-check');
@@ -41,11 +42,11 @@ async function verifyAccess() {
     const { member, error, reason } = await getTeamMember();
     if (error && reason === 'network') throw error;
     if (!member) { await authClient.auth.signOut({ scope: 'local' }); goToLogin(reason === 'session' ? 'expired' : 'denied'); return; }
-    const name = member.display_name.trim();
+    updateHeader(member); const name = member.display_name.trim();
     document.querySelector('#user-name').textContent = name;
     document.querySelector('#greeting-name').textContent = name.split(/\s+/)[0];
     document.querySelector('#user-avatar').textContent = name.split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
-    document.querySelector('#user-role').textContent = member.role === 'admin' ? 'Administrador' : 'Equipe';
+    document.querySelector('#user-role').textContent = member.is_super_admin ? 'Administrador geral' : member.role === 'admin' ? 'Administrador' : 'Equipe';
     document.querySelector('#today').textContent = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
     home.hidden = false; check.hidden = true;
     await refreshCounts();

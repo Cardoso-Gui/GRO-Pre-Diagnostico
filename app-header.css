@@ -21,3 +21,9 @@
 @media(max-width:760px){.gro-header{height:80px}.gro-header .topbar-inner{padding:0 16px;gap:16px}.gro-header .brand small{display:none}.gro-header .brand strong{font-size:24px}.gro-header .brand-mark{width:36px;height:36px}.gro-header .sign-out{padding-left:10px;margin-left:0}.gro-header .user-menu{gap:8px}}
 @media(max-width:380px){.gro-header .avatar{display:none}}
 @media print{.gro-header,.page-back{display:none!important}}
+
+.topbar nav,.gro-header nav{gap:22px}.topbar nav a,.gro-header nav a{display:flex;align-items:center;text-decoration:none;font-size:14px;font-weight:600;color:#137b68}.topbar nav a:hover,.gro-header nav a:hover{color:#0d5146}@media(max-width:760px){.topbar nav,.gro-header nav{display:flex;gap:12px}.topbar-inner{gap:14px}.topbar nav a,.gro-header nav a{font-size:12px}.brand small{display:none}.user-info{display:none}}
+
+
+@media(max-width:760px){.topbar,.gro-header{height:auto;min-height:80px}.topbar-inner,.gro-header .topbar-inner{flex-wrap:wrap;padding-top:14px;padding-bottom:10px;gap:12px}.topbar nav,.gro-header nav{order:3;width:100%;min-height:32px;gap:20px}.topbar nav a,.gro-header nav a{white-space:nowrap}}
+

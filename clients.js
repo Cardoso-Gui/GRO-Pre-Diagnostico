@@ -1,5 +1,5 @@
-import {authClient,getTeamMember} from './auth-client.js';
-import {updateHeader} from './app-header.js?v=20260925-header2';
+import {authClient,getTeamMember} from './auth-client.js?v=20260928-admin1';
+import {updateHeader} from './app-header.js?v=20260928-team1';
 const page=document.querySelector('#clients-page'),check=document.querySelector('#session-check'),list=document.querySelector('#records-list'),status=document.querySelector('#records-status'),more=document.querySelector('#more-records'),retry=document.querySelector('#retry-records'),search=document.querySelector('#client-search');
 let filters={name:'',cnpj:''},offset=0,generation=0,checking=false;const pageSize=20,currentView='clients';
 function appendRecord(row, view) {

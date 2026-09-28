@@ -28,7 +28,7 @@ async function fixture({ signInError = null, member = { display_name: 'Teste' },
   }, { context });
   const utils = new vm.SourceTextModule(utilities, { context });
   const login = new vm.SourceTextModule(source, { context });
-  await login.link(name => name === './auth-client.js' ? auth : utils);
+  await login.link(name => name.startsWith('./auth-client.js') ? auth : utils);
   await login.evaluate();
   return { element, calls, async submit() { element('username').value = ' Gui.Cardoso '; element('password').value = 'test-only-password'; await element('login-form').handlers.submit({ preventDefault() {} }); } };
 }
