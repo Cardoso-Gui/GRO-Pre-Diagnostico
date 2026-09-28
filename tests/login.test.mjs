@@ -22,7 +22,8 @@ async function fixture({ signInError = null, member = { display_name: 'Teste' },
   } };
   const context = vm.createContext({ URL, URLSearchParams, navigator: { onLine: true }, document: { querySelector: s => element(s.slice(1)), getElementById: element },
     location: { href: 'https://example.test/GRO-Pre-Diagnostico/index.html', search: '', replace: url => calls.redirects.push(url) } });
-  const auth = new vm.SyntheticModule(['authClient', 'getTeamMember', 'signInWithUsername'], function () {
+  const auth = new vm.SyntheticModule(['authClient', 'getTeamMember', 'signInWithUsername', 'loginStorage'], function () {
+    this.setExport('loginStorage',{preferences:()=>({keepConnected:false,username:''}),rememberUsername(){}});
     this.setExport('signInWithUsername', async (username, password) => { calls.signins.push({ username, password }); return { error: signInError }; });
     this.setExport('authClient', client); this.setExport('getTeamMember', async () => ({ member, error: memberError, reason }));
   }, { context });

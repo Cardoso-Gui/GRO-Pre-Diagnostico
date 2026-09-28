@@ -1,4 +1,4 @@
-import { authClient, getTeamMember, signInWithUsername } from './auth-client.js?v=20260928-admin1';
+import { authClient, getTeamMember, signInWithUsername, loginStorage } from './auth-client.js?v=20260928-remember1';
 import { normalizeUsername, friendlyAuthError } from './auth-utils.js';
 
 const form = document.querySelector('#login-form');
@@ -7,6 +7,13 @@ const username = document.querySelector('#username');
 const password = document.querySelector('#password');
 const message = document.querySelector('#login-message');
 const reveal = document.querySelector('#reveal-password');
+const keepConnected=document.querySelector('#keep-connected');
+const rememberUsername=document.querySelector('#remember-username');
+const preferences=loginStorage.preferences();
+keepConnected.checked=preferences.keepConnected;
+rememberUsername.checked=!!preferences.username;
+if(preferences.username)username.value=preferences.username;
+rememberUsername.addEventListener('change',()=>{if(!rememberUsername.checked)loginStorage.rememberUsername('');});
 let busy = false;
 
 function showMessage(text, kind = 'error') {
@@ -16,6 +23,7 @@ function setBusy(value) {
   busy = value; submit.disabled = value; submit.setAttribute('aria-busy', String(value));
   submit.querySelector('span').textContent = value ? 'Verificando acesso…' : 'Entrar na minha conta';
   username.readOnly = value; password.readOnly = value;
+  keepConnected.disabled=value;rememberUsername.disabled=value;
 }
 async function enterWorkspace() {
   const { member, error, reason } = await getTeamMember();
@@ -45,8 +53,9 @@ form.addEventListener('submit', async event => {
   if (!loginName) { showMessage('Use de 3 a 40 caracteres: letras, números, ponto, hífen ou sublinhado.'); username.focus(); return; }
   setBusy(true); showMessage('');
   try {
-    const { error } = await signInWithUsername(loginName, password.value);
+    const { error } = await signInWithUsername(loginName, password.value, keepConnected.checked);
     if (error) { showMessage(friendlyAuthError(error, navigator.onLine)); return; }
+    loginStorage.rememberUsername(rememberUsername.checked?loginName:'');
     await enterWorkspace();
   } catch (error) { showMessage(friendlyAuthError(error, navigator.onLine)); }
   finally { setBusy(false); }

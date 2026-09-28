@@ -1,4 +1,4 @@
-import {authClient,getTeamMember} from './auth-client.js?v=20260928-admin1';
+import {authClient,getTeamMember} from './auth-client.js?v=20260928-remember1';
 import {updateHeader} from './app-header.js?v=20260928-team1';
 const $=s=>document.querySelector(s);
 let member,offset=0,busy=false,rows=[],more=false;

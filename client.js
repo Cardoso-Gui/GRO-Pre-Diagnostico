@@ -1,5 +1,5 @@
 import {updateHeader} from './app-header.js?v=20260928-team1';
-import { authClient, getTeamMember } from './auth-client.js?v=20260928-admin1';
+import { authClient, getTeamMember } from './auth-client.js?v=20260928-remember1';
 import { lookupCompany } from './cnpj.js';
 const $ = selector => document.querySelector(selector);
 const form = $('#client-form');
