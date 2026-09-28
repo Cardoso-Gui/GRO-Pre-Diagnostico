@@ -7,7 +7,10 @@ function notice(message,error=false){$('#admin-status').textContent=message;$('#
 function el(tag,text,className){const node=document.createElement(tag);node.textContent=text;if(className)node.className=className;return node;}
 function editUser(user){
  uf.reset();for(const key of ['user_id','display_name','username','contact_email','team_id','role'])field(uf,key).value=user?.[key]|| (key==='team_id'?member.team_id:key==='role'?'editor':'');
- const editing=!!user;field(uf,'active').checked=user?.active!==false;
+ const editing=!!user;
+ $('#reset-password-section').hidden=!editing||!!(user?.is_super_admin&&user.user_id!==member.user_id);
+ $('#reset-password').value='';$('#reset-password-confirm').value='';$('#reset-password-status').textContent='';
+field(uf,'active').checked=user?.active!==false;
  $('#password-label').hidden=editing;field(uf,'password').required=!editing;field(uf,'password').value='';
  $('#active-label').hidden=!editing;$('#cancel-user').hidden=!editing;
  $('#user-form-title').textContent=editing?'Editar usuário':'Novo usuário';uf.querySelector('[type=submit]').textContent=editing?'Salvar alterações':'Criar usuário';
@@ -50,3 +53,17 @@ async function init(){try{const result=await getTeamMember();if(result.error)thr
 $('#retry-session').onclick=init;init();
 
 field(uf,'team_id').addEventListener('change',()=>{if(teams.some(t=>t.id===field(uf,'team_id').value&&t.grants_global_access))$('#user-note').textContent='Esta equipe concede acesso geral a todos os clientes, relatórios, usuários e equipes.';else $('#user-note').textContent='O usuário terá acesso aos dados da equipe escolhida.';});
+
+$('#reset-password-button').onclick=async()=>{
+ if(busy)return;
+ const targetId=field(uf,'user_id').value,password=$('#reset-password').value;
+ if(!targetId)return;
+ if(password.length<6||password.length>128){$('#reset-password-status').textContent='Informe uma senha de 6 a 128 caracteres.';return;}
+ if(password!==$('#reset-password-confirm').value){$('#reset-password-status').textContent='As senhas não coincidem.';return;}
+ const target=users.find(u=>u.user_id===targetId);
+ if(!confirm('Alterar a senha de '+(target?.display_name||'este usuário')+'?'))return;
+ busy=true;render();const controls=[...uf.querySelectorAll('input,select,button'),...tf.querySelectorAll('input,select,button')];const disabled=controls.map(c=>c.disabled);controls.forEach(c=>c.disabled=true);$('#reset-password-status').textContent='Alterando senha…';
+ try{const result=await authClient.functions.invoke('gro-admin',{body:{action:'reset_password',data:{user_id:targetId,password}}});if(result.error){let text='Não foi possível confirmar a alteração. Tente novamente.';try{text=(await result.error.context.json()).message||text;}catch{}throw Error(text);}$('#reset-password-status').textContent=result.data.message;}
+ catch(e){$('#reset-password-status').textContent=e.message;}
+ finally{$('#reset-password').value='';$('#reset-password-confirm').value='';controls.forEach((c,i)=>c.disabled=disabled[i]);busy=false;render();}
+};

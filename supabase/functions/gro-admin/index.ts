@@ -21,7 +21,17 @@ Deno.serve(async (req) => {
   if(actorError || !actor?.active || actor.role!=='admin' || (!actor.is_super_admin && !(actor.teams as any)?.active)) return reply(403,'Você não tem permissão para administrar usuários.');
   const raw=await req.text(); if(raw.length>12000) return reply(400,'Formulário muito grande.');
   const {action,data}=JSON.parse(raw);
-  if(!data || !['create_user','update_user','create_team','update_team'].includes(action)) return reply(400,'Operação inválida.');
+  if(!data || !['create_user','update_user','create_team','update_team','reset_password'].includes(action)) return reply(400,'Operação inválida.');
+  if(action==='reset_password') {
+   if(typeof data.password!=='string'||data.password.length<6||data.password.length>128) return reply(400,'A senha deve ter entre 6 e 128 caracteres.');
+   if(typeof data.user_id!=='string'||!data.user_id) return reply(400,'Selecione um usuário.');
+   const {data:target,error:targetError}=await db.from('team_members').select('user_id,team_id,is_super_admin,teams(active,grants_global_access)').eq('user_id',data.user_id).maybeSingle();
+   if(targetError) return reply(503,'Não foi possível verificar o usuário. Tente novamente.');
+   if(!target || (!actor.is_super_admin && (target.team_id!==actor.team_id || target.is_super_admin || (target.teams as any)?.grants_global_access)) || (target.is_super_admin && target.user_id!==actor.user_id)) return reply(403,'Você não tem permissão para alterar a senha deste usuário.');
+   const {error:passwordError}=await db.auth.admin.updateUserById(target.user_id,{password:data.password});
+   if(passwordError) return reply(400,'Não foi possível alterar a senha. Confira os requisitos e tente novamente.');
+   return reply(200,'Senha alterada. Informe a nova senha ao usuário por um canal seguro.');
+  }
   const clean:Record<string,unknown>={};
   if(action.endsWith('_team')) {
    if(!actor.is_super_admin) return reply(403,'Somente o administrador geral pode alterar equipes.');

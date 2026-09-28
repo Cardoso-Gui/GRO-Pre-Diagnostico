@@ -4,11 +4,11 @@ import fs from 'node:fs/promises';
 import vm from 'node:vm';
 import {stripTypeScriptTypes} from 'node:module';
 const source=stripTypeScriptTypes((await fs.readFile(new URL('../supabase/functions/gro-admin/index.ts',import.meta.url),'utf8')).replace(/^import .*;\s*/,''));
-function fixture({role='admin',global=false,active=true,globalTeam=false,authError=false,rpcError=null,committed=false}={}){
- let handler;const calls={created:[],deleted:[],rpc:[]};
+function fixture({role='admin',global=false,active=true,globalTeam=false,authError=false,rpcError=null,committed=false,target=null,passwordError=null}={}){
+ let handler;const calls={created:[],deleted:[],rpc:[],passwords:[]};
  const actor={user_id:'actor',role,active:true,team_id:'team-a',is_super_admin:global,teams:{active,grants_global_access:globalTeam}};
- const db={auth:{getUser:async()=>({data:{user:authError?null:{id:'actor'}},error:authError}),admin:{createUser:async data=>{calls.created.push(data);return {data:{user:{id:'new-user'}}};},deleteUser:async id=>{calls.deleted.push(id);return {};}}},
- from(table){let column,value;return {select(){return this;},eq(k,v){column=k;value=v;return this;},single:async()=>({data:actor}),maybeSingle:async()=>({data:table==='teams'?{id:'team-a'}:column==='user_id'&&committed?{user_id:'new-user'}:null})};},
+ const db={auth:{getUser:async()=>({data:{user:authError?null:{id:'actor'}},error:authError}),admin:{updateUserById:async(id,data)=>{calls.passwords.push({id,data});return {error:passwordError};},createUser:async data=>{calls.created.push(data);return {data:{user:{id:'new-user'}}};},deleteUser:async id=>{calls.deleted.push(id);return {};}}},
+ from(table){let column,value;return {select(){return this;},eq(k,v){column=k;value=v;return this;},single:async()=>({data:actor}),maybeSingle:async()=>({data:table==='teams'?{id:'team-a'}:column==='user_id'?(target||(committed?{user_id:'new-user'}:null)):null})};},
  rpc:async(name,payload)=>{calls.rpc.push(payload);return {data:rpcError?null:{user_id:'new-user'},error:rpcError};}};
  vm.runInNewContext(source,{createClient:()=>db,Deno:{env:{get:()=>''},serve:f=>handler=f},Request,Response,crypto});
  return {calls,request:(data,token='valid')=>handler(new Request('https://example.test',{method:'POST',headers:{origin:'http://127.0.0.1:4173',...(token?{authorization:`Bearer ${token}`}:{})},body:JSON.stringify(data)}))};
@@ -22,3 +22,12 @@ test('failed membership removes only uncommitted newly created auth account',asy
 test('password accepts six characters and rejects five',async()=>{for(const [password,status] of [['abc123',200],['abc12',400]]){const f=fixture();assert.equal((await f.request({...user,data:{...user.data,password}})).status,status);assert.equal(f.calls.created.length,status===200?1:0);}});
 
 test('active admin-team collaborator can manage teams; inactive team cannot',async()=>{const f=fixture({role:'editor',globalTeam:true});assert.equal((await f.request({action:'create_team',data:{name:'Test'}})).status,200);const blocked=fixture({role:'editor',globalTeam:true,active:false});assert.equal((await blocked.request({action:'create_team',data:{name:'Test'}})).status,403);});
+
+const reset={action:'reset_password',data:{user_id:'target',password:'test-only-password'}};
+test('password reset enforces team boundary and protected root',async()=>{
+ for(const opts of [{role:'editor'},{target:{user_id:'target',team_id:'team-b'}},{target:{user_id:'target',team_id:'team-a',is_super_admin:true}},{global:true,target:{user_id:'target',team_id:'team-b',is_super_admin:true}},{target:null}]){const f=fixture(opts);assert.equal((await f.request(reset)).status,403);assert.equal(f.calls.passwords.length,0);}
+});
+test('password reset works only on authorized user and never returns the password',async()=>{
+ for(const opts of [{target:{user_id:'target',team_id:'team-a'}},{global:true,target:{user_id:'target',team_id:'team-b'}}]){const f=fixture(opts);const res=await f.request(reset);assert.equal(res.status,200);assert.equal(f.calls.passwords[0].id,'target');assert.equal(f.calls.rpc.length,0);assert.equal((await res.text()).includes(reset.data.password),false);}
+});
+test('password reset rejects invalid length and reports auth failure',async()=>{const f=fixture({target:{user_id:'target',team_id:'team-a'}});assert.equal((await f.request({...reset,data:{...reset.data,password:'123'}})).status,400);assert.equal(f.calls.passwords.length,0);const failed=fixture({target:{user_id:'target',team_id:'team-a'},passwordError:{message:'failed'}});assert.equal((await failed.request(reset)).status,400);});
