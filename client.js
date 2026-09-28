@@ -1,20 +1,28 @@
-import {updateHeader} from './app-header.js?v=20260928-team1';
+import {updateHeader} from './app-header.js?v=20260928-occ1';
 import { authClient, getTeamMember } from './auth-client.js?v=20260928-global1';
 import { lookupCompany } from './cnpj.js';
 const $ = selector => document.querySelector(selector);
 const form = $('#client-form');
 const fields = $('#fields');
 const input = name => form.elements.namedItem(name);
-input('cnpj').addEventListener('input', () => {
-  input('cnpj').value = input('cnpj').value.replace(/\D/g, '').slice(0, 14);
-});
-input('cnpj').addEventListener('paste', event => {
+function formatIdentifier(name,value) {
+ const sizes={cnpj:[2,3,3,4,2],cnae:[4,1,2],postal_code:[5,3]};
+ const separators={cnpj:['.','.','/','-'],cnae:['-','/'],postal_code:['-']};
+ if(!sizes[name])return value;
+ const digits=value.replace(/\D/g,'').slice(0,sizes[name].reduce((a,b)=>a+b,0));
+ let offset=0,result='';
+ sizes[name].forEach((length,index)=>{const part=digits.slice(offset,offset+length);if(part)result+=(index?separators[name][index-1]:'')+part;offset+=length;});
+ return result;
+}
+for(const name of ['cnpj','cnae','postal_code']){
+ const field=input(name);
+ field.addEventListener('input',()=>{field.value=formatIdentifier(name,field.value);});
+ field.addEventListener('paste',event=>{
   event.preventDefault();
-  const field = input('cnpj');
-  const digits = event.clipboardData.getData('text').replace(/\D/g, '');
-  field.value = (field.value.slice(0, field.selectionStart) + digits + field.value.slice(field.selectionEnd)).slice(0, 14);
-  field.setCustomValidity(''); dirty = true; message('');
-});
+  field.value=formatIdentifier(name,field.value.slice(0,field.selectionStart)+event.clipboardData.getData('text')+field.value.slice(field.selectionEnd));
+  field.setCustomValidity('');dirty=true;message('');
+ });
+}
 const basic = ['legal_name','trade_name','cnpj','cnae','contact_name','contact_phone','contact_email'];
 const addressFields = ['postal_code','state','street','number','complement','district','city'];
 const requestedId = new URLSearchParams(location.search).get('id');
@@ -25,7 +33,7 @@ let consulting = false;
 $('#lookup-cnpj').addEventListener('click', async () => {
   if (consulting || busy || fields.disabled) return;
   consulting = true;
-  const cnpj = input('cnpj').value;
+  const cnpj = input('cnpj').value.replace(/\D/g, '');
   const before = Object.fromEntries([...basic, ...addressFields].map(key => [key, input(key).value]));
   $('#lookup-cnpj').disabled = true; $('#save').disabled = true; $('#cancel').disabled = true;
   $('#cnpj-status').textContent = 'Consultando CNPJ…';
@@ -34,12 +42,12 @@ $('#lookup-cnpj').addEventListener('click', async () => {
       const {data, error} = await authClient.functions.invoke('gro-cnpj', {body:{cnpj}});
       return {ok:!error, status:error?.context?.status || 502, json:async()=>data};
     });
-    if (input('cnpj').value !== cnpj) { $('#cnpj-status').textContent = 'O CNPJ mudou. Consulte novamente para preencher os dados corretos.'; return; }
+    if (input('cnpj').value.replace(/\D/g, '') !== cnpj) { $('#cnpj-status').textContent = 'O CNPJ mudou. Consulte novamente para preencher os dados corretos.'; return; }
     let filled = 0;
     for (const [key, value] of Object.entries(values)) {
       const field = input(key);
       if (value && !before[key].trim() && field.value === before[key]) {
-        field.value = field.maxLength > 0 ? value.slice(0, field.maxLength) : value;
+        field.value = formatIdentifier(key, value);
         field.setCustomValidity(''); filled++;
       }
     }
@@ -61,8 +69,8 @@ function mode(editing) {
 }
 function populate(row) {
   saved = row; input('team_id').value=row.team_id; input('team_id').disabled=true;
-  for (const key of basic) input(key).value = row[key] || '';
-  for (const key of addressFields) input(key).value = row.address?.[key] || '';
+  for (const key of basic) input(key).value = formatIdentifier(key, row[key] || '');
+  for (const key of addressFields) input(key).value = formatIdentifier(key, row.address?.[key] || '');
   dirty = false; mode(false);
 }
 async function verify() {

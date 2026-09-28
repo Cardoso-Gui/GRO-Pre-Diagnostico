@@ -1,5 +1,5 @@
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
-import {updateHeader} from './app-header.js?v=20260928-team1';
+import {updateHeader} from './app-header.js?v=20260928-occ1';
 const page=document.querySelector('#clients-page'),check=document.querySelector('#session-check'),list=document.querySelector('#records-list'),status=document.querySelector('#records-status'),more=document.querySelector('#more-records'),retry=document.querySelector('#retry-records'),search=document.querySelector('#client-search');
 let filters={name:'',cnpj:''},offset=0,generation=0,checking=false;const pageSize=20,currentView='clients';
 function appendRecord(row, view) {
@@ -20,6 +20,7 @@ function appendRecord(row, view) {
   if (view === 'clients') {
     const link = document.createElement('a'); link.href = `./client.html?id=${encodeURIComponent(row.id)}`;
     link.textContent = 'Consultar / editar'; link.className = 'record-link'; article.append(link);
+    const occurrences=document.createElement('a');occurrences.href='./occurrences.html?client='+encodeURIComponent(row.id);occurrences.textContent='Ocorrências';occurrences.className='record-link';article.append(occurrences);
   }
 }
 async function loadRecords(reset = false) {

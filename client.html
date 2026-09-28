@@ -2,8 +2,8 @@
 <html lang="pt-BR"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://vjtzragdciexixjzeann.supabase.co; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
-<title>Cliente · GRO</title><link rel="icon" href="./favicon.svg"><link rel="stylesheet" href="./home.css?v=20260928-global1"><link rel="stylesheet" href="./client.css?v=20260925-header2">
-<script src="./vendor/supabase-2.117.2.js?v=20260925-header2" defer></script><script type="module" src="./client.js?v=20260928-global1"></script><link rel="stylesheet" href="./app-header.css?v=20260928-global1"></head>
+<title>Cliente · GRO</title><link rel="icon" href="./favicon.svg"><link rel="stylesheet" href="./home.css?v=20260928-occ1"><link rel="stylesheet" href="./client.css?v=20260928-occ1">
+<script src="./vendor/supabase-2.117.2.js?v=20260928-occ1" defer></script><script type="module" src="./client.js?v=20260928-occ1"></script><link rel="stylesheet" href="./app-header.css?v=20260928-occ1"></head>
 <body><header class="topbar gro-header"><div class="topbar-inner">
    <a class="brand" href="./inicio.html" aria-label="GRO — página inicial"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 8 9 8 9s8-4.5 8-9V6l-8-3Z"/><path d="m8 12 3 3 5-6"/></svg></span><span><strong>GRO</strong><small>Gestão de riscos ocupacionais</small></span></a>
    <nav aria-label="Navegação principal"><a class="nav-current session-home" href="./inicio.html">Início</a></nav>
@@ -15,8 +15,8 @@
 <fieldset id="fields"><section id="client-team-section" class="form-section" hidden><label>Equipe responsável *<select name="team_id" required></select></label></section><section class="form-section"><h2>Dados da empresa</h2><div class="field-grid">
 <label class="wide">Razão social *<input name="legal_name" required maxlength="240" autocomplete="organization"></label>
 <label>Nome fantasia<input name="trade_name" maxlength="240"></label>
-<label>CNPJ *<input required name="cnpj" inputmode="numeric" pattern="[0-9]{14}" maxlength="14" placeholder="00000000000000" aria-describedby="cnpj-help"><small id="cnpj-help">Informe os 14 números do CNPJ.</small></label>
-<div class="wide cnpj-lookup"><button id="lookup-cnpj" class="secondary-button" type="button">Consultar CNPJ</button><small>Consulta pública via BrasilAPI. Preenche apenas campos vazios.</small><p id="cnpj-status" role="status"></p></div><label>CNAE principal *<input required name="cnae" maxlength="9" placeholder="0000-0/00"></label>
+<label>CNPJ *<input required name="cnpj" inputmode="numeric" maxlength="18" placeholder="00.000.000/0000-00" aria-describedby="cnpj-help"><small id="cnpj-help">Informe os 14 números do CNPJ.</small></label>
+<div class="wide cnpj-lookup"><button id="lookup-cnpj" class="secondary-button" type="button">Consultar CNPJ</button><small>Consulta pública via BrasilAPI. Preenche apenas campos vazios.</small><p id="cnpj-status" role="status"></p></div><label>CNAE principal *<input required name="cnae" inputmode="numeric" maxlength="9" placeholder="0000-0/00"></label>
 </div></section>
 <section class="form-section"><h2>Endereço</h2><div class="field-grid">
 <label>CEP *<input required name="postal_code" maxlength="9" autocomplete="postal-code" inputmode="numeric" placeholder="00000-000"></label>

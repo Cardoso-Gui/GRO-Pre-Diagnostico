@@ -1,5 +1,5 @@
 import {uploadPhoto,photoUrl} from './workstation-photos.js?v=20260928-photos1';
-import {updateHeader} from './app-header.js?v=20260928-team1';
+import {updateHeader} from './app-header.js?v=20260928-occ1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {companyFromClient,saveAssessment,clientOptionLabel,deleteDraft,completeAssessment} from './assessment-data.js?v=20260925-reports1';
 const $=s=>document.querySelector(s);
