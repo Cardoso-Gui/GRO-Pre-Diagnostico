@@ -3,5 +3,5 @@
 #member-list .team-group{border:1px solid #d2e2df;border-radius:12px;padding:20px;background:#fbfdfc;margin-bottom:12px}#member-list .team-group:last-child{margin-bottom:0}#member-list .team-group h3{margin:0;padding-bottom:14px;border-bottom:1px solid #d2e2df;color:#176c60;font-size:18px}@media(max-width:600px){#member-list .team-group{padding:16px}#member-list .team-group .admin-row{flex-wrap:wrap}}
 
 
-#member-list .team-group h3{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}#member-list .team-count{font-size:13px;font-weight:400;color:#617b89;white-space:nowrap}
+#member-list .team-group h3{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}#member-list .team-count{font-size:13px;font-weight:700;color:#617b89;white-space:nowrap}
 
