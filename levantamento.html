@@ -9,7 +9,7 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <meta name="referrer" content="no-referrer" />
     <script src="vendor/supabase-2.117.2.js?v=20260925-reports2" defer></script>
-    <script type="module" src="workspace.js?v=20260928-photos1"></script>
+    <script type="module" src="workspace.js?v=20260928-notices1"></script>
   <link rel="stylesheet" href="dimension.css?v=20260925-reports2"><link rel="stylesheet" href="./app-header.css?v=20260928-occ1"></head>
   <body>
     <section id="session-check" class="session-check" aria-live="polite"><p>Verificando seu acesso…</p><a href="index.html">Voltar ao login</a></section>
@@ -19,8 +19,8 @@
    <nav aria-label="Navegação principal"><a class="nav-current session-home" href="./inicio.html">Início</a></nav>
    <div class="user-menu"><span id="user-avatar" class="avatar" aria-hidden="true"></span><div class="user-info"><strong id="session-name"></strong><small id="user-role"></small></div><button id="sign-out" class="sign-out" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v16h5m5-13 5 5-5 5M8 12h11"/></svg><span>Sair</span></button></div>
   </div></header>
-    <p class="session-note">Cada novo levantamento mantém um registro separado no histórico do cliente. Salve o rascunho antes de sair.</p>
-    <p id="cloud-status" class="session-note" role="status"></p>
+
+    <p id="cloud-status" hidden class="session-note" role="status"></p>
 <section id="assessment-picker" class="assessment-picker" hidden>
  <h1>Levantamentos por cliente</h1><p>Selecione uma empresa para iniciar outro levantamento ou continuar um rascunho.</p>
 <label for="client-select">Empresa cadastrada</label><select id="client-select" disabled><option value="">Carregando empresas…</option></select><button id="retry-clients" type="button" hidden>Tentar novamente</button>

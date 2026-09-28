@@ -6,7 +6,7 @@ const $=s=>document.querySelector(s);
 const workspace=$('#protected-workspace'), notice=$('#session-check');
 let member, row, selected, saving=false, dirty=false, loading=false, loaded=false, sequence=0, offset=0, historyOffset=0;
 const login=()=>location.replace('./index.html?reason=expired');
-const say=(text,error=false)=>{ $('#cloud-status').textContent=text; $('#cloud-status').classList.toggle('error',error); };
+const say=(text,error=false)=>{ $('#cloud-status').textContent=text; $('#cloud-status').hidden=!error; $('#cloud-status').classList.toggle('error',error); };
 async function access(){const result=await getTeamMember();if(result.reason==='network')throw Error('Não foi possível verificar seu acesso. Mantenha esta página aberta para preservar o preenchimento, confira a conexão e tente a ação novamente.');if(!result.member){dirty=false;login();throw Error('Sua sessão terminou.');}member=result.member;updateHeader(member);$('#session-name').textContent=member.display_name;}
 const clientChoices = new Map();
 async function clientList(){
@@ -71,7 +71,7 @@ async function loadForm(){
  if(globalThis.GRO_POSTS?.busy()){say('Aguarde o envio das fotos terminar antes de salvar.',true);return null;}
  if(saving)return;saving=true;$('#save-draft-button').disabled=true;
  const version=fingerprint(); const snapshot=JSON.parse(JSON.stringify(answers));
- try{await access();row=await saveAssessment(authClient,row,snapshot);history.replaceState(null,'',`./levantamento.html?id=${encodeURIComponent(row.id)}`);cleanState=version;dirty=fingerprint()!==cleanState;say(dirty?'Rascunho salvo. Há alterações novas nesta tela; salve novamente.':`Rascunho salvo no sistema às ${new Date().toLocaleTimeString('pt-BR')}.`);}
+ try{await access();row=await saveAssessment(authClient,row,snapshot);history.replaceState(null,'',`./levantamento.html?id=${encodeURIComponent(row.id)}`);cleanState=version;dirty=fingerprint()!==cleanState;say(dirty?'Rascunho salvo. Há alterações novas nesta tela; salve novamente.':'',dirty);}
  catch(error){say(error.message,true);return null;}finally{saving=false;$('#save-draft-button').disabled=false;}
  return row;
  },complete:async answers=>{
