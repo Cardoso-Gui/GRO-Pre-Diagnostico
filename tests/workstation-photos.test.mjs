@@ -1,0 +1,8 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {validPhotoPath,preparePhoto,photoUrl,hydrateReportPhotos} from '../workstation-photos.js';
+import {reusedAnswers} from '../reuse-report.js';
+const id='11111111-1111-4111-8111-111111111111',path=`${id}/${id}/${id}.jpg`;
+test('photo paths cannot reference a different client or arbitrary URL',()=>{assert.equal(validPhotoPath(path,id),true);for(const p of ['https://example.com/x',path.replace(id,'22222222-2222-4222-8222-222222222222'),`${id}/../a.jpg`])assert.equal(validPhotoPath(p,id),false);});
+test('unsupported and oversized photos fail before decoding/upload',async()=>{await assert.rejects(preparePhoto({type:'image/svg+xml',size:20}),/JPG/);await assert.rejects(preparePhoto({type:'image/jpeg',size:21*1024*1024}),/20 MB/);});
+test('photo download failure prevents report printing readiness',async()=>{const client={storage:{from:()=>({download:async()=>({error:{}})})}};await assert.rejects(photoUrl(client,path,id),/carregar/);await assert.rejects(hydrateReportPhotos({querySelectorAll:()=>[{dataset:{photoPath:path}}]},client,id),/carregar/);});
+test('reuse preserves workstation names and photos without mutating original',()=>{const snapshot={jobsBySector:[['Produção',[{name:'Operador',workstations:[{name:'Bancada',note:'Vista geral',photoPath:path}]}]]]};const copy=reusedAnswers(snapshot,{cnpj:'123',address:{}});assert.deepEqual(copy.jobsBySector,snapshot.jobsBySector);copy.jobsBySector[0][1][0].workstations[0].name='Outro';assert.equal(snapshot.jobsBySector[0][1][0].workstations[0].name,'Bancada');});

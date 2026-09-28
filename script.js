@@ -474,7 +474,7 @@ function renderJobList(sectorName,container) {
     const activityLabel=document.createElement('label');activityLabel.className='job-activities';activityLabel.textContent='Atividades realizadas';
     const activity=document.createElement('textarea');activity.placeholder='O que essa função faz?';activity.maxLength=2000;activity.value=job.activities||'';activity.oninput=()=>job.activities=activity.value;activityLabel.append(activity);
     const remove=document.createElement('button');remove.type='button';remove.className='remove-job';remove.textContent='Remover cargo';remove.onclick=()=>{removeJobFromSector(sectorName,job.name);renderJobSections()};
-    row.append(name,quantityLabel,activityLabel,remove);container.append(row);
+    row.append(name,quantityLabel,activityLabel);if(globalThis.GRO_POSTS)row.append(globalThis.GRO_POSTS.render(job));row.append(remove);container.append(row);
   });
 }
 
@@ -1218,6 +1218,8 @@ function validateReport() {
   }
   notice.replaceChildren();
   const missing = getReportMissingFields(true);
+  if(globalThis.GRO_POSTS?.busy())missing.push({text:'Aguarde o envio das fotos terminar.',section:'Postos de trabalho',destination:'#jobs-section'});
+  for(const [sector,jobs] of jobsBySector){if(!selectedSectorNames.has(sector))continue;for(const job of jobs)for(const post of job.workstations||[]){if(!post.name?.trim()||!post.photoPath)missing.push({text:`${sector} / ${job.name}: informe o nome e a foto do posto de trabalho, ou remova o posto vazio.`,section:'Postos de trabalho',destination:'#jobs-section'});}}
   notice.hidden = missing.length === 0;
   if (!missing.length) return true;
   finalReport.hidden = true;

@@ -129,3 +129,6 @@ body{margin:0;background:#f4f7f8;color:#203943;font-family:'Segoe UI',Arial,sans
 .report-recommendation-group{margin-top:20px}.report-recommendation-group .report-mini-card p{margin:8px 0 0;font-size:13px;white-space:pre-line}.report-recommendation-group>h4{padding-bottom:8px;border-bottom:1px solid #dce7e3}
 @media print{.report-recommendation-group{margin-top:4mm}.report-recommendation-group .report-mini-card p{font-size:9pt}}
 .report-actions .reuse-report,.report-toolbar .reuse-report{border:1px solid #137b68;background:#edf6f2;color:#137b68;border-radius:9px;padding:10px 15px;font:600 13px/1.4 'Segoe UI',sans-serif;cursor:pointer}.reuse-report:hover{background:#deeee7}.reuse-report:focus-visible{outline:3px solid #8dbdb1;outline-offset:3px}
+
+.report-workstation{margin:16px 0;padding:14px;border:1px solid #d8e5e2;border-radius:8px;break-inside:avoid}.report-workstation h4{margin:0 0 10px}.report-workstation-photo{display:block;width:100%;max-height:300px;object-fit:contain}.report-workstation figcaption{margin-top:8px;font-size:12px;white-space:pre-wrap}@media print{.report-workstation-photo{max-height:70mm}.report-job:has(.report-workstation){break-inside:auto}.report-workstation{page-break-inside:avoid}}
+

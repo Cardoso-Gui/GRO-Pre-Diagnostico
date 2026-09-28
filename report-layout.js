@@ -20,6 +20,13 @@ export function organizeReport(content, answers) {
         heading.append(make('strong', '', job.name), make('span', 'report-job-count', `${job.quantity} funcionário(s)`));
         card.append(heading, make('span', 'report-field-label', 'Atividades desenvolvidas'), make('p', '', job.activities || 'Não informadas'));
         if (job.foodHandling) card.append(make('p', '', 'Condição da atividade: Manipulação de alimentos — controle sanitário'));
+        for(const post of job.workstations||[]){
+          const figure=make('figure','report-workstation');
+          figure.append(make('h4','',post.name||'Posto de trabalho'));
+          if(post.photoPath){const image=make('img','report-workstation-photo');image.dataset.photoPath=post.photoPath;image.alt=post.name||'Posto de trabalho';figure.append(image);}
+          if(post.note)figure.append(make('figcaption','',post.note));
+          card.append(figure);
+        }
         group.append(card);
       }
       container.append(group);

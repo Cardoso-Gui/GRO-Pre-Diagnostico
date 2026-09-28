@@ -1,3 +1,4 @@
+import {uploadPhoto,photoUrl} from './workstation-photos.js?v=20260928-photos1';
 import {updateHeader} from './app-header.js?v=20260928-team1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {companyFromClient,saveAssessment,clientOptionLabel,deleteDraft,completeAssessment} from './assessment-data.js?v=20260925-reports1';
@@ -66,13 +67,15 @@ async function loadForm(){
  if(data.status!=='draft')throw Error('Este levantamento está concluído e preservado no histórico.');
  if(member.role!=='admin'&&data.responsible_id!==member.user_id)throw Error('Somente o responsável ou administrador pode editar este rascunho.');
  row=data;
- globalThis.GRO_CLOUD={save:async answers=>{
+ globalThis.GRO_CLOUD={uploadPhoto:async file=>{await access();return uploadPhoto(authClient,file,row.client_id,member.user_id);},photoUrl:path=>photoUrl(authClient,path,row.client_id),save:async answers=>{
+ if(globalThis.GRO_POSTS?.busy()){say('Aguarde o envio das fotos terminar antes de salvar.',true);return null;}
  if(saving)return;saving=true;$('#save-draft-button').disabled=true;
  const version=fingerprint(); const snapshot=JSON.parse(JSON.stringify(answers));
  try{await access();row=await saveAssessment(authClient,row,snapshot);history.replaceState(null,'',`./levantamento.html?id=${encodeURIComponent(row.id)}`);cleanState=version;dirty=fingerprint()!==cleanState;say(dirty?'Rascunho salvo. Há alterações novas nesta tela; salve novamente.':`Rascunho salvo no sistema às ${new Date().toLocaleTimeString('pt-BR')}.`);}
  catch(error){say(error.message,true);return null;}finally{saving=false;$('#save-draft-button').disabled=false;}
  return row;
  },complete:async answers=>{
+ if(globalThis.GRO_POSTS?.busy()){say('Aguarde o envio das fotos terminar.',true);return false;}
  if(saving)return false;saving=true;$('#generate-report-button').disabled=true;
  const fields=[...$('#questionnaire').querySelectorAll('input,select,textarea,button')];
  const states=fields.map(field=>field.disabled);fields.forEach(field=>field.disabled=true);
@@ -80,7 +83,7 @@ async function loadForm(){
  catch(error){say(error.message,true);return false;}
  finally{saving=false;fields.forEach((field,i)=>field.disabled=states[i]);$('#generate-report-button').disabled=false;}
 },reload:()=>{if(!dirty||confirm('Descartar alterações não salvas e recarregar o rascunho?')){dirty=false;location.reload();}}};
- for(const file of ['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js', 'script.js'])await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=file+'?v=20260925-reports1';script.onload=resolve;script.onerror=reject;document.body.append(script);});
+ for(const file of ['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js', 'workstation-editor.js','script.js'])await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=file+'?v=20260928-photos1';script.onload=resolve;script.onerror=reject;document.body.append(script);});
  globalThis.GRO_FORM.restore(row.answers);
  cleanState=fingerprint();dirty=Boolean(row.unsaved);
  $('#questionnaire').hidden=false;$('#page-title').textContent=row.title;$('#cnpj-form').hidden=true;$('#clear-draft-button').hidden=true;$('#load-draft-button').textContent='Recarregar rascunho';

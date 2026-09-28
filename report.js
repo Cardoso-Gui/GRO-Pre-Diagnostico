@@ -1,6 +1,7 @@
+import {hydrateReportPhotos} from './workstation-photos.js?v=20260928-photos1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {updateHeader} from './app-header.js?v=20260928-team1';
-import {organizeReport} from './report-layout.js?v=20260925-layout3';
+import {organizeReport} from './report-layout.js?v=20260928-photos1';
 import {addReuseButton} from './reuse-report.js?v=20260928-admin1';
 const message=document.querySelector('#report-status'),content=document.querySelector('#report-content'),print=document.querySelector('#report-print');
 const tags=new Set(['section','div','article','h2','h3','h4','p','span','strong','small','ul','li']);
@@ -13,12 +14,13 @@ function renderNode(node,depth=0){
  node.children.forEach(child=>el.append(renderNode(child,depth+1)));return el;
 }
 async function load(){
+ for(const img of content.querySelectorAll('img'))if(img.src.startsWith('blob:'))URL.revokeObjectURL(img.src);
  content.hidden=true;print.disabled=true;message.textContent='Carregando relatório…';
  try{
  const access=await getTeamMember();if(!access.member){if(access.reason==='network')throw Error('Não foi possível verificar seu acesso. Tente novamente.');location.replace('./index.html?reason=expired');return;}
  updateHeader(access.member);
  const id=new URLSearchParams(location.search).get('id');if(!/^[0-9a-f-]{36}$/i.test(id||''))throw Error('Endereço de relatório inválido.');
- const {data,error}=await authClient.from('assessments').select('title,report_revision,final_snapshot,completed_at,team_members!assessments_responsible_id_fkey(display_name)').eq('id',id).eq('status','completed').maybeSingle();
+ const {data,error}=await authClient.from('assessments').select('client_id,title,report_revision,final_snapshot,completed_at,team_members!assessments_responsible_id_fkey(display_name)').eq('id',id).eq('status','completed').maybeSingle();
  if(error||!data)throw Error('Relatório indisponível. Volte à lista ou tente novamente.');
  const doc=data.final_snapshot?.answers?.report_document;
  if(doc?.version!==1||!Array.isArray(doc.children))throw Error('Este relatório não possui uma versão de visualização compatível.');
@@ -111,6 +113,7 @@ async function load(){
  }
  closing.append(heading,paragraph,attribution,signatures);content.append(closing);
  organizeReport(content,data.final_snapshot?.answers||{});
+ await hydrateReportPhotos(content,authClient,data.client_id);
  message.textContent='Concluído em '+new Date(data.completed_at).toLocaleString('pt-BR')+'. Versão preservada no histórico.';
  content.hidden=false;print.disabled=false;
  document.querySelector('.report-toolbar .reuse-report')?.remove();
