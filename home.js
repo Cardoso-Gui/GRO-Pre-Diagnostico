@@ -113,7 +113,7 @@ function openRecords(view) {
     : 'Levantamentos concluídos e registrados no sistema.';
   dialog.showModal(); loadRecords(true);
 }
-document.querySelector('#open-clients').addEventListener('click', () => openRecords('clients'));
+document.querySelector('#open-clients').addEventListener('click', () => location.assign('./clients.html'));
 search.addEventListener('submit', event => {
   event.preventDefault();
   filters = {
@@ -137,4 +137,4 @@ authClient.auth.onAuthStateChange(event => { if (event === 'SIGNED_OUT') { hideW
 window.addEventListener('pageshow', event => { if (event.persisted) verifyAccess(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden) hideWorkspace(); else verifyAccess(); });
 await verifyAccess();
-const requestedView=new URLSearchParams(location.search).get('view');if(!home.hidden&&requestedView==='clients')openRecords('clients');if(!home.hidden&&requestedView==='reports')location.replace('./reports.html');
+const requestedView=new URLSearchParams(location.search).get('view');if(!home.hidden&&requestedView==='clients')location.replace('./clients.html');if(!home.hidden&&requestedView==='reports')location.replace('./reports.html');
