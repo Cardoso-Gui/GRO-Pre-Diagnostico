@@ -25,7 +25,7 @@ function editTeam(team){tf.reset();field(tf,'id').value=team?.id||'';field(tf,'n
 function render(){
  const query=$('#user-search').value.trim().toLocaleLowerCase('pt-BR');$('#users-list').replaceChildren();
  for(const user of users.filter(u=>`${u.display_name} ${u.username}`.toLocaleLowerCase('pt-BR').includes(query))){
-  const row=el('article','','admin-row'),info=el('div','');info.append(el('strong',user.display_name),el('p',`${user.username} · ${teams.find(t=>t.id===user.team_id)?.name||'Equipe'}`),el('span',!user.active?'Inativo':(user.is_super_admin||teams.some(t=>t.id===user.team_id&&t.active&&t.grants_global_access))?'Administrador geral':user.role==='admin'?'Administrador':'Colaborador',`admin-badge${user.active?'':' inactive'}`));
+  const row=el('article','','admin-row'),info=el('div','');info.append(el('strong',user.display_name),el('p',`${user.username} · ${teams.find(t=>t.id===user.team_id)?.name||'Equipe'}${user.contact_phone?' · '+formatPhone(user.contact_phone):''}`),el('span',!user.active?'Inativo':(user.is_super_admin||teams.some(t=>t.id===user.team_id&&t.active&&t.grants_global_access))?'Administrador geral':user.role==='admin'?'Administrador':'Colaborador',`admin-badge${user.active?'':' inactive'}`));
   const button=el('button','Editar');button.type='button';button.disabled=busy||(!member.is_super_admin&&user.is_super_admin);button.addEventListener('click',()=>{editUser(user);uf.scrollIntoView({behavior:'smooth',block:'start'});field(uf,'display_name').focus({preventScroll:true});});row.append(info,button);$('#users-list').append(row);
  }
  if(!$('#users-list').children.length)$('#users-list').append(el('p','Nenhum usuário encontrado.'));
