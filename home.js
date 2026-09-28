@@ -49,11 +49,23 @@ async function verifyAccess() {
     document.querySelector('#user-role').textContent = member.is_super_admin ? 'Administrador geral' : member.role === 'admin' ? 'Administrador' : 'Equipe';
     document.querySelector('#today').textContent = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
     home.hidden = false; check.hidden = true;
-    await refreshCounts();
+    await Promise.all([refreshCounts(),refreshDrafts()]);
   } catch { check.querySelector('p').textContent = 'Não foi possível verificar seu acesso. Confira a conexão e tente novamente.'; document.querySelector('#retry-session').hidden = false; }
   finally { checking = false; }
 }
 
+async function refreshDrafts(){
+ const ticket=generation, target=document.querySelector('#draft-list'), message=document.querySelector('#draft-status'), retryButton=document.querySelector('#retry-drafts'), count=document.querySelector('#draft-count');
+ target.replaceChildren();count.hidden=true;retryButton.hidden=true;message.textContent='Carregando rascunhos…';
+ try{
+  const {data,error}=await authClient.from('assessments').select('id,title,updated_at,clients!inner(legal_name,trade_name,archived)').eq('status','draft').eq('clients.archived',false).order('updated_at',{ascending:false}).order('id').limit(10);
+  if(ticket!==generation||home.hidden)return;if(error)throw error;
+  const make=(tag,text,cls)=>{const el=document.createElement(tag);el.textContent=text;if(cls)el.className=cls;return el;};
+  for(const row of data){const name=row.clients.trade_name||row.clients.legal_name;const card=make('article','','draft-row');const info=make('div','','draft-info');info.append(make('h3',name),make('p',row.title||'Levantamento inicial'));const date=make('div','','draft-updated');date.append(make('span','Última atualização'),make('strong',new Date(row.updated_at).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'})));const link=make('a','Continuar →','secondary-button');link.href='./levantamento.html?id='+encodeURIComponent(row.id);link.setAttribute('aria-label','Continuar levantamento de '+name);card.append(make('span',name.trim().split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase(),'draft-avatar'),info,date,make('span','Rascunho','draft-badge'),link);target.append(card);}
+  count.textContent=`${data.length} ${data.length===1?'rascunho':'rascunhos'}`;count.hidden=false;message.textContent=data.length?'':'Nenhum levantamento em andamento. Comece pelo card Novo levantamento.';
+ }catch{if(ticket!==generation||home.hidden)return;message.textContent='Não foi possível carregar os rascunhos. Confira a conexão e tente novamente.';retryButton.hidden=false;}
+}
+document.querySelector('#retry-drafts').onclick=refreshDrafts;
 function appendRecord(row, view) {
   const article = document.createElement('article'); article.className = 'record';
   const title = document.createElement('h3'); title.textContent = view === 'clients' ? row.legal_name : row.title;

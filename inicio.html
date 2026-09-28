@@ -5,8 +5,8 @@
  <meta name="referrer" content="no-referrer">
  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://vjtzragdciexixjzeann.supabase.co wss://vjtzragdciexixjzeann.supabase.co; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
  <title>Início · GRO</title><link rel="icon" href="./favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="./home.css?v=20260928-occ1">
- <script src="./vendor/supabase-2.117.2.js?v=20260928-occ1" defer></script><script type="module" src="./home.js?v=20260928-occ1"></script>
-</head>
+ <script src="./vendor/supabase-2.117.2.js?v=20260928-occ1" defer></script><script type="module" src="./home.js?v=20260928-drafts1"></script>
+<link rel="stylesheet" href="./home-drafts.css?v=20260928-drafts1"></head>
 <body>
  <section id="session-check" class="session-check" aria-live="polite"><p>Preparando sua área de trabalho…</p><button id="retry-session" type="button" hidden>Tentar novamente</button><a href="./index.html">Voltar ao login</a></section>
  <div id="home" hidden>
@@ -36,7 +36,7 @@
     </button>
    </section>
    <p class="home-error" id="home-error" role="status" hidden>Não foi possível atualizar as quantidades. Abra um card para tentar novamente.</p>
-   <div class="workspace-note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/></svg><p>Um bom levantamento começa com atenção aos detalhes.<br><span>Tenha em mãos os dados da empresa, dos setores e das atividades.</span></p></div>
+   <section class="drafts" aria-labelledby="drafts-title"><div class="drafts-heading"><div><p class="eyebrow">Continue de onde parou</p><h2 id="drafts-title">Levantamentos em andamento</h2><p>Até 10 rascunhos, dos mais recentes para os mais antigos.</p></div><span id="draft-count" class="draft-count" hidden></span></div><div id="draft-list"></div><p id="draft-status" role="status">Carregando rascunhos…</p><button id="retry-drafts" class="secondary-button" hidden>Tentar novamente</button></section><div class="workspace-note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/></svg><p>Um bom levantamento começa com atenção aos detalhes.<br><span>Tenha em mãos os dados da empresa, dos setores e das atividades.</span></p></div>
   </main>
   <footer class="page-footer"><span>GRO <span aria-hidden="true">/</span> Gestão de Riscos Ocupacionais</span><span>Área da equipe</span></footer>
  </div>
