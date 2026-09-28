@@ -7,7 +7,7 @@
   const list=make('div');box.append(list);
   const draw=()=>{list.replaceChildren();for(const post of job.workstations||[]){
    const card=make('div');card.className='workstation-card';
-   const label=make('label','Nome do posto');const name=make('input');name.value=post.name||'';name.maxLength=120;name.placeholder='Ex.: Bancada de montagem';name.oninput=()=>{post.name=name.value;changed();};label.append(name);
+   const label=make('label','Nome do posto de trabalho');label.className='post-name-field';const required=make('span','Obrigatório');required.className='post-name-required';const name=make('input');name.setAttribute('aria-required','true');name.value=post.name||'';name.maxLength=120;name.placeholder='Ex.: Bancada de montagem';name.oninput=()=>{post.name=name.value;changed();};label.append(required,name);
    const noteLabel=make('label','Observação (opcional)');const note=make('textarea');note.value=post.note||'';note.maxLength=1000;note.rows=2;note.oninput=()=>{post.note=note.value;changed();};noteLabel.append(note);
    const image=make('img');image.alt=post.name||'Foto do posto de trabalho';image.hidden=true;
    const status=make('p');status.setAttribute('role','status');

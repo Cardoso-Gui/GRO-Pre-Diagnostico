@@ -1219,7 +1219,17 @@ function validateReport() {
   notice.replaceChildren();
   const missing = getReportMissingFields(true);
   if(globalThis.GRO_POSTS?.busy())missing.push({text:'Aguarde o envio das fotos terminar.',section:'Postos de trabalho',destination:'#jobs-section'});
-  for(const [sector,jobs] of jobsBySector){if(!selectedSectorNames.has(sector))continue;for(const job of jobs)for(const post of job.workstations||[]){if(!post.name?.trim()||!post.photoPath)missing.push({text:`${sector} / ${job.name}: informe o nome e a foto do posto de trabalho, ou remova o posto vazio.`,section:'Postos de trabalho',destination:'#jobs-section'});}}
+  for(const [sector,jobs] of jobsBySector){
+    if(!selectedSectorNames.has(sector))continue;
+    for(const job of jobs)for(const post of job.workstations||[]){
+      const missingName=!post.name?.trim(), missingPhoto=!post.photoPath;
+      if(!missingName&&!missingPhoto)continue;
+      const instruction=missingName&&missingPhoto
+        ? 'informe o nome e adicione a foto do posto de trabalho, ou remova o posto vazio.'
+        : missingName ? 'informe o nome do posto de trabalho.' : `adicione a foto do posto de trabalho “${post.name.trim()}”.`;
+      missing.push({text:`${sector} / ${job.name}: ${instruction}`,section:'Postos de trabalho',destination:'#jobs-section'});
+    }
+  }
   notice.hidden = missing.length === 0;
   if (!missing.length) return true;
   finalReport.hidden = true;

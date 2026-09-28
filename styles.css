@@ -1478,3 +1478,6 @@ button:disabled {
 .post-photo-area:focus-within{outline:none}
 .post-photo-area button:focus-visible{outline:2px solid #218975;outline-offset:3px}
 @media(max-width:600px){.post-photo-area{grid-template-columns:repeat(2,minmax(0,1fr))}.post-photo-actions{grid-column:1/-1;flex-direction:row}.post-photo-area .post-photo-picker{min-height:185px}.post-photo-picker strong{font-size:14px}}
+
+.workstation-card .post-name-field{padding:14px;border:1px solid #b4d5cb;border-left:4px solid #13816c;border-radius:8px;background:#f0f8f5;font-size:16px;font-weight:700;color:#193e47;gap:7px}.post-name-required{font-size:11px;font-weight:600;color:#667c78}.workstation-card .post-name-field input{min-width:0;width:100%;box-sizing:border-box;background:#fff;font-size:16px;font-weight:400;border:1px solid #91b8ae;padding:12px;border-radius:8px}
+
