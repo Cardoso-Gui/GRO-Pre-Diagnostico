@@ -1,14 +1,23 @@
-import {addClientSearch} from './client-search.js?v=20260929-1';
-addClientSearch(document.querySelector('#report-client'));
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
 import {clientOptionLabel} from './assessment-data.js';
 import {addReuseButton} from './reuse-report.js?v=20260928-admin1';
-const select=document.querySelector('#report-client'),list=document.querySelector('#report-list'),status=document.querySelector('#list-status'),more=document.querySelector('#list-more');
+const select={value:''},list=document.querySelector('#report-list'),status=document.querySelector('#list-status'),more=document.querySelector('#list-more');
+const search=document.querySelector('#report-search'),results=document.querySelector('#client-results'),clients=[];
+const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+function choose(client){select.value=client.id;search.value=clientOptionLabel(client);results.replaceChildren();load();}
+function findClients(){
+ sequence++;select.value='';list.replaceChildren();results.replaceChildren();more.hidden=true;history.replaceState(null,'','./reports.html');
+ const query=normalize(search.value.trim()),digits=query.replace(/\D/g,'');
+ const found=clients.filter(c=>!query||normalize(clientOptionLabel(c)+' '+c.legal_name).includes(query)||(/^[-.\/\d\s]+$/.test(query)&&digits&&String(c.cnpj||'').replace(/\D/g,'').includes(digits)));
+ if(found.length===1){choose(found[0]);return;}
+ status.textContent=found.length?'Escolha uma das empresas encontradas para ver os relatórios.':'Nenhuma empresa encontrada.';
+ for(const c of found){const card=document.createElement('article');card.className='report-record';const button=document.createElement('button');button.type='button';button.textContent=clientOptionLabel(c);button.onclick=()=>choose(c);card.append(button);results.append(card);}
+}
 let sequence=0,offset=0,isAdmin=false;
 async function load(reset=true){
  const ticket=++sequence,client=select.value;if(reset){offset=0;list.replaceChildren();}more.hidden=true;
- if(!client){status.textContent='Selecione um cliente para consultar seus relatórios.';return;}
+ if(!client){status.textContent='Digite o nome ou CNPJ e clique em Pesquisar.';return;}
  history.replaceState(null,'','./reports.html?client='+encodeURIComponent(client));status.textContent='Carregando relatórios…';
  try{const {data,error}=await authClient.from('assessments').select('id,title,revision,completed_at,team_members!assessments_responsible_id_fkey(display_name)').eq('client_id',client).eq('status','completed').order('completed_at',{ascending:false}).order('id').range(offset,offset+20);
  if(ticket!==sequence)return;if(error)throw error;
@@ -22,14 +31,14 @@ async function load(reset=true){
  if(isAdmin){const remove=document.createElement('button');remove.className='delete-report';remove.setAttribute('aria-label','Excluir relatório');remove.title='Excluir relatório';const icon=document.createElementNS('http://www.w3.org/2000/svg','svg');icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('aria-hidden','true');const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d','M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7');icon.append(path);remove.append(icon);remove.onclick=()=>askDelete(row,remove);actions.append(remove);}
  card.append(title,info,actions);list.append(card);
  }offset+=Math.min(20,data.length);more.hidden=data.length<=20;status.textContent=offset?'':'Este cliente ainda não tem relatórios gerados.';
- }catch{if(ticket===sequence)status.textContent='Não foi possível carregar os relatórios. Clique em Atualizar para tentar novamente.';}
+ }catch{if(ticket===sequence)status.textContent='Não foi possível carregar os relatórios. Clique em Pesquisar para tentar novamente.';}
 }
 async function initialize(){try{
  const access=await getTeamMember();if(!access.member){if(access.reason==='network')throw Error();location.replace('./index.html?reason=expired');return;}updateHeader(access.member);isAdmin=access.member.role==='admin';
- for(let start=0;;start+=200){const {data,error}=await authClient.from('clients').select('id,legal_name,trade_name,cnpj').order('legal_name').order('id').range(start,start+199);if(error)throw error;for(const c of data){const o=document.createElement('option');o.value=c.id;o.textContent=clientOptionLabel(c);o.dataset.search=c.legal_name;select.append(o);}if(data.length<200)break;}
- select.disabled=false;const requested=new URLSearchParams(location.search).get('client');if(requested)select.value=requested;await load();
+ for(let start=0;;start+=200){const {data,error}=await authClient.from('clients').select('id,legal_name,trade_name,cnpj').order('legal_name').order('id').range(start,start+199);if(error)throw error;clients.push(...data);if(data.length<200)break;}
+ search.disabled=false;document.querySelector('#list-refresh').disabled=false;const requested=new URLSearchParams(location.search).get('client'),client=clients.find(c=>c.id===requested);if(client){choose(client);}else await load();
  }catch{status.textContent='Não foi possível carregar os clientes. Recarregue a página para tentar novamente.';}}
-select.onchange=()=>load();more.onclick=()=>load(false);document.querySelector('#list-refresh').onclick=()=>select.disabled?location.reload():load();
+more.onclick=()=>load(false);document.querySelector('#report-search-form').onsubmit=e=>{e.preventDefault();findClients();};
 document.querySelector('#sign-out').onclick=async()=>{await authClient.auth.signOut({scope:'local'});location.replace('./index.html');};
 authClient.auth.onAuthStateChange(e=>{if(e==='SIGNED_OUT'){list.replaceChildren();location.replace('./index.html');}});
 async function askDelete(row,button){
