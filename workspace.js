@@ -1,3 +1,5 @@
+import {addClientSearch} from './client-search.js?v=20260929-1';
+addClientSearch(document.querySelector('#client-select'));
 import {uploadPhoto,photoUrl} from './workstation-photos.js?v=20260928-photos1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
@@ -16,7 +18,7 @@ async function clientList(){
   for(let start=0;;start+=200){
    const {data,error}=await authClient.from('clients').select('id,legal_name,trade_name,cnpj,cnae,address,contact_name,contact_phone,contact_email').eq('archived',false).order('legal_name').order('id').range(start,start+199);
    if(ticket!==sequence)return;if(error)throw error;
-   for(const client of data){clientChoices.set(client.id,client);const option=document.createElement('option');option.value=client.id;option.textContent=clientOptionLabel(client);select.append(option);}
+   for(const client of data){clientChoices.set(client.id,client);const option=document.createElement('option');option.value=client.id;option.textContent=clientOptionLabel(client);option.dataset.search=client.legal_name;select.append(option);}
    if(data.length<200)break;
   }
   select.disabled=clientChoices.size===0;say(clientChoices.size?'Selecione a empresa para ver seus levantamentos.':'Nenhuma empresa cadastrada. Cadastre uma empresa para começar.');
@@ -83,7 +85,7 @@ async function loadForm(){
  catch(error){say(error.message,true);return false;}
  finally{saving=false;fields.forEach((field,i)=>field.disabled=states[i]);$('#generate-report-button').disabled=false;}
 },reload:()=>{if(!dirty||confirm('Descartar alterações não salvas e recarregar o rascunho?')){dirty=false;location.reload();}}};
- for(const file of ['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js', 'workstation-editor.js','script.js'])await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=file+'?v=20260928-photos1';script.onload=resolve;script.onerror=reject;document.body.append(script);});
+ for(const file of ['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js', 'workstation-editor.js','script.js'])await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=file+'?v=20260929-update1';script.onload=resolve;script.onerror=reject;document.body.append(script);});
  globalThis.GRO_FORM.restore(row.answers);
  cleanState=fingerprint();dirty=Boolean(row.unsaved);
  $('#questionnaire').hidden=false;$('#page-title').textContent=row.title;$('#cnpj-form').hidden=true;$('#clear-draft-button').hidden=true;$('#load-draft-button').textContent='Recarregar rascunho';

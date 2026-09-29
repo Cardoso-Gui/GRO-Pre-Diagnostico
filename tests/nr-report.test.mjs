@@ -15,8 +15,8 @@ test('NR35 não aparece por palavras no cargo ou CNAE, nem queda de mesmo nível
 test('NR35 tem critério somente com risco de queda de altura selecionado', () => {
   assert.deepEqual(matches('NR-35',[{risk:{code:'ACI.002',name:'Queda de altura',group:'Acidentes'}}]), ['Queda de altura']);
 });
-test('controle sanitário não inclui NR09 como agente biológico ocupacional', () => {
-  assert.deepEqual(matches('NR-09',[{risk:{code:'SAN.001',name:'Contaminação dos alimentos',group:'Biológicos'}}]), []);
+test('exposição biológica na manipulação de alimentos inclui avaliação ocupacional', () => {
+  assert.equal(matches('NR-09',[{risk:{code:'SAN.001',name:'Exposição a agentes biológicos na manipulação de alimentos',group:'Biológicos'}}]).length, 1);
 });
 test('preserva critérios de risco e de atividade econômica', () => {
   assert.deepEqual(matches('NR-09',[{risk:{code:'02.01.001',name:'Ruído',group:'Físicos'}}]), ['Físicos']);

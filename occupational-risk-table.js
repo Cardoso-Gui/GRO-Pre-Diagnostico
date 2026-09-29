@@ -37,6 +37,8 @@ const OCCUPATIONAL_RISK_TABLE = [
   {"code":"PSI.004","group":"Psicossociais relacionados ao trabalho","name":"Baixa autonomia na realização do trabalho"},
   {"code":"PSI.005","group":"Psicossociais relacionados ao trabalho","name":"Metas ou exigências de trabalho incompatíveis com os recursos disponíveis"},
   {"code":"PSI.006","group":"Psicossociais relacionados ao trabalho","name":"Conflitos ou falta de clareza de papéis e responsabilidades"},
-  { code: "SAN.001", group: "Biológicos", name: "Contaminação microbiológica dos alimentos pelo manipulador" },
+  { code: "ACI.017", group: "Acidentes", name: "Acidente de trânsito" },
+  { code: "BIO.001", group: "Biológicos", name: "Exposição a agentes biológicos — vírus, bactérias, fungos e parasitas" },
+  { code: "SAN.001", group: "Biológicos", name: "Exposição a agentes biológicos na manipulação de alimentos" },
 ];
 

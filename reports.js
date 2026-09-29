@@ -1,3 +1,5 @@
+import {addClientSearch} from './client-search.js?v=20260929-1';
+addClientSearch(document.querySelector('#report-client'));
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
 import {clientOptionLabel} from './assessment-data.js';
@@ -24,7 +26,7 @@ async function load(reset=true){
 }
 async function initialize(){try{
  const access=await getTeamMember();if(!access.member){if(access.reason==='network')throw Error();location.replace('./index.html?reason=expired');return;}updateHeader(access.member);isAdmin=access.member.role==='admin';
- for(let start=0;;start+=200){const {data,error}=await authClient.from('clients').select('id,legal_name,trade_name,cnpj').order('legal_name').order('id').range(start,start+199);if(error)throw error;for(const c of data){const o=document.createElement('option');o.value=c.id;o.textContent=clientOptionLabel(c);select.append(o);}if(data.length<200)break;}
+ for(let start=0;;start+=200){const {data,error}=await authClient.from('clients').select('id,legal_name,trade_name,cnpj').order('legal_name').order('id').range(start,start+199);if(error)throw error;for(const c of data){const o=document.createElement('option');o.value=c.id;o.textContent=clientOptionLabel(c);o.dataset.search=c.legal_name;select.append(o);}if(data.length<200)break;}
  select.disabled=false;const requested=new URLSearchParams(location.search).get('client');if(requested)select.value=requested;await load();
  }catch{status.textContent='Não foi possível carregar os clientes. Recarregue a página para tentar novamente.';}}
 select.onchange=()=>load();more.onclick=()=>load(false);document.querySelector('#list-refresh').onclick=()=>select.disabled?location.reload():load();

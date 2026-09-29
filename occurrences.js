@@ -1,3 +1,5 @@
+import {addClientSearch} from './client-search.js?v=20260929-1';
+addClientSearch(document.querySelector('#client-picker'));
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
 import {uploadPhoto,photoUrl} from './workstation-photos.js';
@@ -37,7 +39,7 @@ $('#more').onclick=()=>history(false);$('#retry-list').onclick=()=>history(false
 window.addEventListener('beforeunload',e=>{if(dirty||busy){e.preventDefault();e.returnValue='';}});
 $('#sign-out').onclick=async()=>{if(busy||dirty&&!confirm('Descartar a ocorrência não salva e sair?'))return;dirty=false;await authClient.auth.signOut({scope:'local'});location.replace('./index.html');};
 async function init(){try{const access=await getTeamMember();if(!access.member){if(access.reason==='network')throw Error();location.replace('./index.html?reason=expired');return;}member=access.member;updateHeader(member);
- picker.replaceChildren(new Option('Selecione uma empresa',''));let start=0;while(true){const {data,error}=await authClient.from('clients').select('id,legal_name,trade_name').eq('archived',false).order('legal_name').order('id').range(start,start+199);if(error)throw error;for(const c of data)picker.append(new Option(c.trade_name||c.legal_name,c.id));if(data.length<200)break;start+=200;}
+ picker.replaceChildren(new Option('Selecione uma empresa',''));let start=0;while(true){const {data,error}=await authClient.from('clients').select('id,legal_name,trade_name,cnpj').eq('archived',false).order('legal_name').order('id').range(start,start+199);if(error)throw error;for(const c of data){const option=new Option(c.trade_name||c.legal_name,c.id);option.dataset.search=c.legal_name+' '+(c.cnpj||'');picker.append(option);}if(data.length<200)break;start+=200;}
  const requested=new URLSearchParams(location.search).get('client');if(requested&&[...picker.options].some(o=>o.value===requested))picker.value=requested;picker.dataset.previous=picker.value;
  $('#session-check').hidden=true;$('#team-page').hidden=false;await history();
  }catch{$('#session-check p').textContent='Não foi possível carregar as ocorrências. Confira a conexão e tente novamente.';$('#retry-session').hidden=false;}}

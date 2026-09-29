@@ -7,7 +7,7 @@ let row,targets=[],details=new Map(),epis=new Map(),current=0,index=0,saving=fal
 const fingerprint=()=>JSON.stringify({details:Array.from(details.entries()),epis:Array.from(epis.entries())});
 const dirty=()=>fingerprint()!==baseline;
 const say=text=>$('#message').textContent=text;
-const catalog=[...ESOCIAL_RISK_TABLE_24.map(r=>({...r,source:'eSocial · Tabela 24'})),...OCCUPATIONAL_RISK_TABLE.map(r=>({...r,source:r.code==='SAN.001'?'Controle sanitário · sem código eSocial':'GRO complementar · identificador interno'}))];
+const catalog=[...ESOCIAL_RISK_TABLE_24.map(r=>({...r,source:'eSocial · Tabela 24'})),...OCCUPATIONAL_RISK_TABLE.map(r=>({...r,source:'GRO complementar · identificador interno'}))];
 function render(){
  const target=targets[current];$('#risk-nav').replaceChildren();$('#cards').replaceChildren();
  if(!target){say('Nenhum cargo ou GHE disponível. Volte ao levantamento para organizar os riscos.');$('#next').disabled=true;return;}
@@ -19,13 +19,12 @@ function render(){
  const risk=target.risks[index];if(!risk){const p=document.createElement('p');p.textContent='Nenhum risco para detalhar neste cargo ou GHE. A opção de ausência do eSocial não exige detalhamento.';$('#cards').append(p);return;}
  const key=detailKey('source',target.id,risk.code),data=details.get(key)||{};
  const article=document.createElement('article');article.append($('#detail-template').content.cloneNode(true));article.querySelector('h2').textContent=risk.name;article.querySelector('.tag').textContent=`${risk.group} · ${risk.code} · ${risk.source}`;article.querySelector('.status').textContent='Detalhamento';
- if(risk.code==='SAN.001'){article.querySelector('h3').textContent='01 Situação de manipulação dos alimentos';article.querySelectorAll('h3')[1].textContent='02 Possíveis consequências para o alimento e consumidor';}
+ if(risk.code==='SAN.001') article.querySelector('.hint').textContent='Contato do trabalhador com vírus, bactérias, fungos ou parasitas presentes em alimentos, resíduos, utensílios ou superfícies contaminadas.';
  article.querySelectorAll('[data-field]').forEach(field=>{field.maxLength=4000;field.value=data[field.dataset.field]||'';field.addEventListener('input',()=>{data[field.dataset.field]=field.value;details.set(key,data);say('Alterações ainda não salvas. Você pode alternar entre cargos ou GHEs antes de salvar.');});});
  article.querySelectorAll('.choices input').forEach((field,i)=>{field.checked=Boolean(data.controls?.[i]);field.onchange=()=>{data.controls=Array.from(article.querySelectorAll('.choices input'),el=>el.checked);details.set(key,data);say('Alterações ainda não salvas.')}});
  const epiKey=detailKey('epi-data',target.id,risk.code),epi=epis.get(epiKey)||{applicable:'',items:[]};
  const applicable=article.querySelector('#detail-epi-applicable'),items=article.querySelector('#detail-epi-items'),epiLabel=article.querySelector('#detail-epi-label');
  applicable.value=epi.applicable;items.value=(epi.items||[]).join('\n');epiLabel.hidden=epi.applicable!=='Sim';
- if(risk.code==='SAN.001'){applicable.closest('.grid').hidden=true;}
  applicable.onchange=()=>{epi.applicable=applicable.value;epiLabel.hidden=epi.applicable!=='Sim';epis.set(epiKey,epi);say('Alterações ainda não salvas.');};
  items.oninput=()=>{epi.items=[...new Set(items.value.split('\n').map(v=>v.trim()).filter(Boolean))];epis.set(epiKey,epi);say('Alterações ainda não salvas.');};
  $('#cards').append(article);

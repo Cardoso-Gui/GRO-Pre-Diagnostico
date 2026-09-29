@@ -23,7 +23,9 @@ export function organizeReport(content, answers) {
         for(const post of job.workstations||[]){
           const figure=make('figure','report-workstation');
           figure.append(make('h4','',post.name||'Posto de trabalho'));
-          if(post.photoPath){const image=make('img','report-workstation-photo');image.dataset.photoPath=post.photoPath;image.alt=post.name||'Posto de trabalho';figure.append(image);}
+          const photos=make('div','report-workstation-photos');
+          for(const path of (Array.isArray(post.photoPaths)?post.photoPaths:(post.photoPath?[post.photoPath]:[]))){const image=make('img','report-workstation-photo');image.dataset.photoPath=path;image.alt=post.name||'Posto de trabalho';photos.append(image);}
+          figure.append(photos);
           if(post.note)figure.append(make('figcaption','',post.note));
           card.append(figure);
         }

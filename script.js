@@ -103,7 +103,7 @@ const riskModeDescriptions = {
 
 const occupationalRiskSource = [
   ...ESOCIAL_RISK_TABLE_24.map(risk => ({...risk, source: "eSocial - Tabela 24"})),
-  ...OCCUPATIONAL_RISK_TABLE.map(risk => ({...risk, source: risk.code === "SAN.001" ? "Controle sanitário · não é agente ocupacional ou código eSocial" : "GRO complementar · identificador interno"})),
+  ...OCCUPATIONAL_RISK_TABLE.map(risk => ({...risk, source: "GRO complementar · identificador interno"})),
 ];
 
 const fields = {
@@ -1090,7 +1090,7 @@ function updateReportAvailability() {
 }
 
 function getTrainingSuggestions(selections) {
-  selections = selections.filter(item => item.risk.code !== "SAN.001" && item.risk.code !== "09.01.001");
+  selections = selections.filter(item => item.risk.code !== "09.01.001");
   const suggestions = new Map();
 
   TRAINING_RULES.forEach((rule) => {
@@ -1198,7 +1198,7 @@ function getReportMissingFields(detailed = false) {
     const fields = {source:"fonte ou situação de exposição", frequency:"frequência", duration:"tempo ou circunstância", damage:"possíveis danos ou consequências", measures:"medidas existentes (informe se não houver)"};
     Object.entries(fields).forEach(([key, label]) => { if (!filled(data[key])) add(`${prefix}: ${label}.`); });
     if (!["Sim", "Não"].includes(data.measure)) add(`${prefix}: responda se precisa medir/avaliar.`);
-    if (selection.risk.code !== "SAN.001") {
+    {
       const epi = getEpiData(selection.targetId, selection.risk.code);
       if (!["Sim", "Não"].includes(epi.applicable)) add(`${prefix}: informe se EPI é aplicável.`);
       if (epi.applicable === "Sim" && !epi.items?.some(filled)) add(`${prefix}: informe quais EPIs.`);
@@ -1222,7 +1222,7 @@ function validateReport() {
   for(const [sector,jobs] of jobsBySector){
     if(!selectedSectorNames.has(sector))continue;
     for(const job of jobs)for(const post of job.workstations||[]){
-      const missingName=!post.name?.trim(), missingPhoto=!post.photoPath;
+      const missingName=!post.name?.trim(), missingPhoto=!(post.photoPaths?.length||post.photoPath);
       if(!missingName&&!missingPhoto)continue;
       const instruction=missingName&&missingPhoto
         ? 'informe o nome e adicione a foto do posto de trabalho, ou remova o posto vazio.'
@@ -1608,7 +1608,7 @@ function getGenericRuleMatches(rule, selections) {
 
   selections.forEach((selection) => {
     const risk = selection.risk;
-    if (["09.01.001", "SAN.001"].includes(risk.code)) return;
+    if (risk.code === "09.01.001") return;
 
     if (rule.riskCodes?.includes(risk.code)) {
       matches.push(risk.name);
