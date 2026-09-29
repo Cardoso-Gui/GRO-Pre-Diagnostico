@@ -1,5 +1,5 @@
-import {addClientSearch} from './client-search.js?v=20260929-1';
-addClientSearch(document.querySelector('#client-select'));
+import {addClientPickerSearch} from './client-search.js?v=20260929-button1';
+addClientPickerSearch(document.querySelector('#client-select'));
 import {uploadPhoto,photoUrl} from './workstation-photos.js?v=20260928-photos1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
