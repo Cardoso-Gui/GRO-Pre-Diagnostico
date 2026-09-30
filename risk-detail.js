@@ -21,11 +21,17 @@ function render(){
  const article=document.createElement('article');article.append($('#detail-template').content.cloneNode(true));article.querySelector('h2').textContent=risk.name;article.querySelector('.tag').textContent=`${risk.group} · ${risk.code} · ${risk.source}`;article.querySelector('.status').textContent='Detalhamento';
  if(risk.code==='SAN.001') article.querySelector('.hint').textContent='Contato do trabalhador com vírus, bactérias, fungos ou parasitas presentes em alimentos, resíduos, utensílios ou superfícies contaminadas.';
  article.querySelectorAll('[data-field]').forEach(field=>{field.maxLength=4000;field.value=data[field.dataset.field]||'';field.addEventListener('input',()=>{data[field.dataset.field]=field.value;details.set(key,data);say('Alterações ainda não salvas. Você pode alternar entre cargos ou GHEs antes de salvar.');});});
- article.querySelectorAll('.choices input').forEach((field,i)=>{field.checked=Boolean(data.controls?.[i]);field.onchange=()=>{data.controls=Array.from(article.querySelectorAll('.choices input'),el=>el.checked);details.set(key,data);say('Alterações ainda não salvas.')}});
  const epiKey=detailKey('epi-data',target.id,risk.code),epi=epis.get(epiKey)||{applicable:'',items:[]};
- const applicable=article.querySelector('#detail-epi-applicable'),items=article.querySelector('#detail-epi-items'),epiLabel=article.querySelector('#detail-epi-label');
- applicable.value=epi.applicable;items.value=(epi.items||[]).join('\n');epiLabel.hidden=epi.applicable!=='Sim';
- applicable.onchange=()=>{epi.applicable=applicable.value;epiLabel.hidden=epi.applicable!=='Sim';epis.set(epiKey,epi);say('Alterações ainda não salvas.');};
+ const choices=Array.from(article.querySelectorAll('.choices input'));
+ const items=article.querySelector('#detail-epi-items'),epiLabel=article.querySelector('#detail-epi-label');
+ choices.forEach((field,i)=>{field.checked=Boolean(data.controls?.[i])||(i===2&&epi.applicable==='Sim');});
+ if(choices[2].checked){data.controls=choices.map(el=>el.checked);details.set(key,data);epi.applicable='Sim';epis.set(epiKey,epi);}
+ items.value=(epi.items||[]).join('\n');epiLabel.hidden=!choices[2].checked;
+ choices.forEach(field=>{field.onchange=()=>{
+  data.controls=choices.map(el=>el.checked);details.set(key,data);
+  epi.applicable=choices[2].checked?'Sim':'Não';epis.set(epiKey,epi);
+  epiLabel.hidden=!choices[2].checked;say('Alterações ainda não salvas.');
+ };});
  items.oninput=()=>{epi.items=[...new Set(items.value.split('\n').map(v=>v.trim()).filter(Boolean))];epis.set(epiKey,epi);say('Alterações ainda não salvas.');};
  $('#cards').append(article);
 }
