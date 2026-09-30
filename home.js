@@ -1,3 +1,4 @@
+import {watchPageResume} from './page-resume.js?v=20260930-resume1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
 import { authClient, getTeamMember } from './auth-client.js?v=20260928-global1';
 
@@ -12,6 +13,7 @@ const search = document.querySelector('#client-search');
 let filters = { name: '', cnpj: '' };
 const pageSize = 20;
 let checking = false;
+let resumeMember;
 let currentView = 'clients';
 let offset = 0;
 let generation = 0;
@@ -42,7 +44,7 @@ async function verifyAccess() {
     const { member, error, reason } = await getTeamMember();
     if (error && reason === 'network') throw error;
     if (!member) { await authClient.auth.signOut({ scope: 'local' }); goToLogin(reason === 'session' ? 'expired' : 'denied'); return; }
-    updateHeader(member); const name = member.display_name.trim();
+    resumeMember=member; updateHeader(member); const name = member.display_name.trim();
     document.querySelector('#user-name').textContent = name;
     document.querySelector('#greeting-name').textContent = name.split(/\s+/)[0];
     document.querySelector('#user-avatar').textContent = name.split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
@@ -147,7 +149,9 @@ more.addEventListener('click', () => loadRecords()); retry.addEventListener('cli
 document.querySelector('#retry-session').addEventListener('click', verifyAccess);
 document.querySelector('#sign-out').addEventListener('click', async () => { hideWorkspace(); await authClient.auth.signOut({ scope: 'local' }); goToLogin('signedout'); });
 authClient.auth.onAuthStateChange(event => { if (event === 'SIGNED_OUT') { hideWorkspace(); goToLogin('signedout'); } });
-window.addEventListener('pageshow', event => { if (event.persisted) verifyAccess(); });
-document.addEventListener('visibilitychange', () => { if (document.hidden) hideWorkspace(); else verifyAccess(); });
+
+
 await verifyAccess();
 const requestedView=new URLSearchParams(location.search).get('view');if(!home.hidden&&requestedView==='clients')location.replace('./clients.html');if(!home.hidden&&requestedView==='reports')location.replace('./reports.html');
+
+watchPageResume({getMember:getTeamMember,currentMember:()=>resumeMember,onAccessChanged:()=>location.replace('./index.html?reason=expired')});

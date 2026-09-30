@@ -1,3 +1,4 @@
+import {watchPageResume} from './page-resume.js?v=20260930-resume1';
 import {hydrateReportPhotos} from './workstation-photos.js?v=20260928-photos1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
@@ -13,12 +14,13 @@ function renderNode(node,depth=0){
  el.className=String(node.className||'').split(/\s+/).filter(c=>/^(report-[a-z-]+|nr-status|is-warning|is-neutral|is-ok)$/.test(c)).join(' ');
  node.children.forEach(child=>el.append(renderNode(child,depth+1)));return el;
 }
+let resumeMember;
 async function load(){
  for(const img of content.querySelectorAll('img'))if(img.src.startsWith('blob:'))URL.revokeObjectURL(img.src);
  content.hidden=true;print.disabled=true;message.textContent='Carregando relatório…';
  try{
  const access=await getTeamMember();if(!access.member){if(access.reason==='network')throw Error('Não foi possível verificar seu acesso. Tente novamente.');location.replace('./index.html?reason=expired');return;}
- updateHeader(access.member);
+ resumeMember=access.member; updateHeader(access.member);
  const id=new URLSearchParams(location.search).get('id');if(!/^[0-9a-f-]{36}$/i.test(id||''))throw Error('Endereço de relatório inválido.');
  const {data,error}=await authClient.from('assessments').select('client_id,title,report_revision,final_snapshot,completed_at,team_members!assessments_responsible_id_fkey(display_name)').eq('id',id).eq('status','completed').maybeSingle();
  if(error||!data)throw Error('Relatório indisponível. Volte à lista ou tente novamente.');
@@ -124,5 +126,7 @@ async function load(){
 print.onclick=()=>window.print();document.querySelector('#report-retry').onclick=load;
 document.querySelector('#sign-out').onclick=async()=>{content.hidden=true;await authClient.auth.signOut({scope:'local'});location.replace('./index.html');};
 authClient.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){content.replaceChildren();content.hidden=true;print.disabled=true;location.replace('./index.html');}});
-document.addEventListener('visibilitychange',()=>{if(document.hidden){content.hidden=true;print.disabled=true;}else load();});
+
 await load();
+
+watchPageResume({getMember:getTeamMember,currentMember:()=>resumeMember,onAccessChanged:()=>location.replace('./index.html?reason=expired')});

@@ -1,3 +1,4 @@
+import {watchPageResume} from './page-resume.js?v=20260930-resume1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
 const $=s=>document.querySelector(s);
@@ -53,6 +54,8 @@ async function load(reset=false){
 $('#member-search').addEventListener('input',render);
 $('#more-members').onclick=()=>load();$('#retry-list').onclick=()=>load();$('#retry-session').onclick=()=>load(true);
 $('#sign-out').onclick=async()=>{await authClient.auth.signOut({scope:'local'});location.replace('./index.html?reason=signedout');};
-document.addEventListener('visibilitychange',()=>{if(document.hidden)$('#team-page').hidden=true;else load(true);});
+
 authClient.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){$('#team-page').hidden=true;location.replace('./index.html?reason=expired');}});
 load(true);
+
+watchPageResume({getMember:getTeamMember,currentMember:()=>member,onAccessChanged:()=>location.replace('./index.html?reason=expired')});

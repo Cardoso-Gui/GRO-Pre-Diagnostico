@@ -1,3 +1,4 @@
+import {watchPageResume} from './page-resume.js?v=20260930-resume1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
 import { authClient, getTeamMember } from './auth-client.js?v=20260928-global1';
 import { lookupCompany } from './cnpj.js';
@@ -163,10 +164,11 @@ $('#cancel').addEventListener('click', () => { if (!dirty || confirm('Descartar 
 $('#retry').addEventListener('click', initialize);
 window.addEventListener('beforeunload', event => { if (dirty || busy) { event.preventDefault(); event.returnValue = ''; } });
 authClient.auth.onAuthStateChange(event => { if (event === 'SIGNED_OUT') { dirty = false; $('#content').hidden = true; location.replace('./index.html?reason=expired'); } });
-document.addEventListener('visibilitychange', () => { if (document.hidden) $('#content').hidden = true; else initialize(); });
-window.addEventListener('pageshow', event => { if (event.persisted) initialize(); });
+
+
 await initialize();
 
 
 
 document.querySelector('#sign-out').addEventListener('click',async()=>{if(busy)return;if(dirty&&!confirm('Sair sem salvar as alterações do cadastro?'))return;dirty=false;await authClient.auth.signOut({scope:'local'});location.assign('./index.html?reason=signedout');});
+watchPageResume({getMember:getTeamMember,currentMember:()=>currentMember,onAccessChanged:()=>location.replace('./index.html?reason=expired')});

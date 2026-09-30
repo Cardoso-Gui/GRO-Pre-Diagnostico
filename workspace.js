@@ -1,3 +1,4 @@
+import {watchPageResume} from './page-resume.js?v=20260930-resume1';
 import {addClientPickerSearch} from './client-search.js?v=20260929-button1';
 addClientPickerSearch(document.querySelector('#client-select'));
 import {uploadPhoto,photoUrl} from './workstation-photos.js?v=20260928-photos1';
@@ -111,8 +112,8 @@ $('#more-drafts').addEventListener('click',()=>historyList(false));
 $('#sign-out').addEventListener('click',async()=>{if(dirty&&!confirm('Sair sem salvar as alterações?'))return;dirty=false;await authClient.auth.signOut({scope:'local'});login();});
 authClient.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){workspace.hidden=true;dirty=false;login();}});
 window.addEventListener('beforeunload',event=>{if(dirty||saving){event.preventDefault();event.returnValue='';}});
-document.addEventListener('visibilitychange',()=>{if(document.hidden)workspace.hidden=true;else initialize();});
-window.addEventListener('pageshow',event=>{if(event.persisted)initialize();});
+
+
 await initialize();
 
 
@@ -120,3 +121,5 @@ await initialize();
 
 
 
+
+watchPageResume({getMember:getTeamMember,currentMember:()=>member,onAccessChanged:()=>location.replace('./index.html?reason=expired')});
