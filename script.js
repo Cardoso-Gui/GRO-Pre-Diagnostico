@@ -720,7 +720,24 @@ function renderSelectedRisks(targetId, container) {
   selectedRisks.forEach((risk) => {
     const pill = document.createElement("span");
     pill.className = "selected-risk-pill";
-    pill.textContent = `${risk.code} - ${risk.name}`;
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "remove-selected-risk";
+    remove.textContent = "×";
+    remove.setAttribute("aria-label", `Remover ${risk.name}`);
+    remove.title = `Remover ${risk.name}`;
+    remove.addEventListener("click", () => {
+      toggleRiskSelection(targetId, risk.code, false);
+      container.closest(".risk-card")?.querySelectorAll("input[type=checkbox]").forEach(input => {
+        input.checked = getSelectedRiskCodes(targetId).has(input.value);
+      });
+      renderSelectedRisks(targetId, container);
+      renderRiskSourceSection();
+      document.querySelector("#questionnaire")?.dispatchEvent(new Event("input", {bubbles:true}));
+    });
+    const name = document.createElement("span");
+    name.textContent = `${risk.code} - ${risk.name}`;
+    pill.append(remove, name);
     container.appendChild(pill);
   });
 }
