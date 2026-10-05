@@ -46,11 +46,11 @@ $('#next').onclick=async()=>{
 };
 $('#back').onclick=e=>{if(saving){e.preventDefault();say('Aguarde o salvamento terminar.');return;}if(dirty()&&!confirm('Voltar sem salvar o detalhamento? As alterações desta página serão descartadas.')){e.preventDefault();return;}baseline=fingerprint()};
 window.addEventListener('beforeunload',event=>{if(dirty()||saving){event.preventDefault();event.returnValue=''}});
-$('#save').onclick=()=>persistDetails();
+
 async function persistDetails(){
- if(saving||!row)return false;saving=true;$('#save').disabled=true;$('#next').disabled=true;const version=fingerprint();const snapshot=JSON.parse(JSON.stringify(detailAnswers(row.answers,details,epis)));
+ if(saving||!row)return false;saving=true;$('#next').disabled=true;const version=fingerprint();const snapshot=JSON.parse(JSON.stringify(detailAnswers(row.answers,details,epis)));
  try{const access=await getTeamMember();if(!access.member)throw Error('Não foi possível confirmar seu acesso. Mantenha esta página aberta e tente novamente.');row=await saveAssessment(authClient,row,snapshot);baseline=version;say(dirty()?'Detalhamento salvo. Há alterações posteriores ainda não salvas.':'Detalhamento salvo no rascunho.');return !dirty();}
- catch(error){say(error.message);return false}finally{saving=false;$('#save').disabled=false;$('#next').disabled=false}
+ catch(error){say(error.message);return false}finally{saving=false;$('#next').disabled=false}
 }
 async function load(){try{
  const access=await getTeamMember();if(!access.member)throw Error('Entre na sua conta para acessar o detalhamento.');
@@ -64,7 +64,7 @@ async function load(){try{
  const params=new URLSearchParams(location.search);
  const requested=targets.findIndex(t=>t.id===params.get('target'));
  if(requested>=0){current=requested;index=Math.max(0,targets[current].risks.findIndex(r=>r.code===params.get('risk')));$('#target-select').value=String(current);}
- $('#editor').hidden=false;say('Alterne entre os riscos e salve todas as alterações no botão Salvar detalhamento.');render();
+ $('#editor').hidden=false;say('Use Salvar e avançar para guardar as alterações e continuar.');render();
  }catch(error){say(error.message)}}
 for(const link of document.querySelectorAll('.gro-header a'))link.onclick=event=>$('#back').onclick(event);
 $('#sign-out').onclick=async()=>{if(saving)return;if(dirty()&&!confirm('Sair sem salvar o detalhamento?'))return;baseline=fingerprint();await authClient.auth.signOut({scope:'local'});location.assign('./index.html?reason=signedout');};
