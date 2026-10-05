@@ -123,3 +123,6 @@ await initialize();
 
 
 watchPageResume({getMember:getTeamMember,currentMember:()=>member,onAccessChanged:()=>location.replace('./index.html?reason=expired')});
+
+// Browser Back can restore an obsolete draft after editing on the dedicated page.
+window.addEventListener('pageshow',event=>{if(event.persisted){refreshDirty();if(!dirty&&!saving)location.reload();else say('Esta tela pode estar desatualizada. Preserve suas alterações e use Recarregar rascunho para buscar a versão salva antes de continuar.',true);}});

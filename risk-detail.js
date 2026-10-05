@@ -6,7 +6,7 @@ const $=s=>document.querySelector(s),id=new URLSearchParams(location.search).get
 let row,targets=[],details=new Map(),epis=new Map(),current=0,index=0,saving=false,baseline='';
 const fingerprint=()=>JSON.stringify({details:Array.from(details.entries()),epis:Array.from(epis.entries())});
 const dirty=()=>fingerprint()!==baseline;
-const say=text=>$('#message').textContent=text;
+const say=text=>{ $('#message').textContent=text; $('#save-status').textContent=text; };
 const catalog=[...ESOCIAL_RISK_TABLE_24.map(r=>({...r,source:'eSocial · Tabela 24'})),...OCCUPATIONAL_RISK_TABLE.map(r=>({...r,source:'GRO complementar · identificador interno'}))];
 function render(){
  const target=targets[current];$('#risk-nav').replaceChildren();$('#cards').replaceChildren();
@@ -14,7 +14,7 @@ function render(){
  $('#target-title').textContent=target.title;$('#target-description').textContent=target.description;
  $('#next').disabled=saving;
  const hasNextTarget=targets.some((item,i)=>i>current&&item.risks.length>0);
- $('#next').textContent=index<target.risks.length-1?'Próximo risco →':hasNextTarget?(row.answers.selectedRiskMode==='ghe'?'Próximo GHE →':'Próximo cargo →'):'Salvar e voltar ao levantamento';
+ $('#next').textContent=index<target.risks.length-1?'Salvar e avançar →':hasNextTarget?(row.answers.selectedRiskMode==='ghe'?'Salvar e ir ao próximo GHE →':'Salvar e ir ao próximo cargo →'):'Salvar e voltar ao levantamento';
  target.risks.forEach((risk,i)=>{const button=document.createElement('button');button.type='button';button.textContent=risk.name;button.className=i===index?'active':'';button.setAttribute('aria-pressed',String(i===index));const small=document.createElement('small');small.textContent=risk.group;button.append(small);button.onclick=()=>{index=i;render()};$('#risk-nav').append(button)});
  const risk=target.risks[index];if(!risk){const p=document.createElement('p');p.textContent='Nenhum risco para detalhar neste cargo ou GHE. A opção de ausência do eSocial não exige detalhamento.';$('#cards').append(p);return;}
  const key=detailKey('source',target.id,risk.code),data=details.get(key)||{};
@@ -38,10 +38,11 @@ function render(){
 $('#target-select').onchange=()=>{current=Number($('#target-select').value);index=0;render()};
 $('#next').onclick=async()=>{
  if(saving||!targets[current])return;
+ if(!await persistDetails())return;
  if(index<targets[current].risks.length-1){index++;render();return;}
  const nextTarget=targets.findIndex((item,i)=>i>current&&item.risks.length>0);
  if(nextTarget!==-1){current=nextTarget;index=0;$('#target-select').value=String(current);render();return;}
- if(await persistDetails())location.assign('./levantamento.html?id='+encodeURIComponent(id)+'#risk-source-section');
+ location.assign('./levantamento.html?id='+encodeURIComponent(id)+'#risk-source-section');
 };
 $('#back').onclick=e=>{if(saving){e.preventDefault();say('Aguarde o salvamento terminar.');return;}if(dirty()&&!confirm('Voltar sem salvar o detalhamento? As alterações desta página serão descartadas.')){e.preventDefault();return;}baseline=fingerprint()};
 window.addEventListener('beforeunload',event=>{if(dirty()||saving){event.preventDefault();event.returnValue=''}});
@@ -68,3 +69,5 @@ async function load(){try{
 for(const link of document.querySelectorAll('.gro-header a'))link.onclick=event=>$('#back').onclick(event);
 $('#sign-out').onclick=async()=>{if(saving)return;if(dirty()&&!confirm('Sair sem salvar o detalhamento?'))return;baseline=fingerprint();await authClient.auth.signOut({scope:'local'});location.assign('./index.html?reason=signedout');};
 await load();
+
+window.addEventListener('pageshow',event=>{if(event.persisted){if(!dirty()&&!saving)location.reload();else say('Há alterações não salvas nesta tela. Salve antes de sair; se houver conflito, mantenha a página aberta.');}});
