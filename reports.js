@@ -12,7 +12,16 @@ function findClients(){
  const found=clients.filter(c=>!query||normalize(clientOptionLabel(c)+' '+c.legal_name).includes(query)||(/^[-.\/\d\s]+$/.test(query)&&digits&&String(c.cnpj||'').replace(/\D/g,'').includes(digits)));
  if(found.length===1){choose(found[0]);return;}
  status.textContent=found.length?'Escolha uma das empresas encontradas para ver os relatórios.':'Nenhuma empresa encontrada.';
- for(const c of found){const card=document.createElement('article');card.className='report-record';const button=document.createElement('button');button.type='button';button.textContent=clientOptionLabel(c);button.onclick=()=>choose(c);card.append(button);results.append(card);}
+ for(const c of found){
+  const button=document.createElement('button');button.type='button';button.className='report-client-card';
+  const icon=document.createElement('span');icon.className='report-client-icon';icon.textContent=(c.trade_name||c.legal_name||'E').trim().slice(0,2).toUpperCase();icon.setAttribute('aria-hidden','true');
+  const info=document.createElement('span');info.className='report-client-info';
+  const name=document.createElement('strong');name.textContent=c.trade_name?.trim()||c.legal_name;
+  const cnpj=document.createElement('span');const digits=String(c.cnpj||'').replace(/\D/g,'');cnpj.textContent='CNPJ '+(digits.length===14?digits.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,'$1.$2.$3/$4-$5'):c.cnpj||'não informado');
+  info.append(name,cnpj);const action=document.createElement('span');action.className='report-client-action';action.textContent='Ver relatórios →';
+  button.append(icon,info,action);button.onclick=()=>choose(c);results.append(button);
+ }
+
 }
 let sequence=0,offset=0,isAdmin=false;
 async function load(reset=true){
