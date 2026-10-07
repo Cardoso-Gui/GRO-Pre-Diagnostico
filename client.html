@@ -11,7 +11,7 @@
   </div></header>
 <main class="client-main"><a class="page-back" href="./clients.html">← Voltar aos clientes</a><section id="loading" role="status"><p>Carregando cadastro…</p><button id="retry" class="secondary-button" hidden>Tentar novamente</button></section>
 <section id="content" hidden><p class="eyebrow">Área da equipe / Clientes</p><h1 id="page-title">Novo cliente</h1><p class="intro" id="page-description">Cadastre a empresa para organizar os próximos levantamentos.</p>
-<form id="client-form"><p class="required-note">* Campos obrigatórios. Apenas nome fantasia e complemento são opcionais.</p>
+<form id="client-form"><p class="required-note">* Campos obrigatórios. Nome fantasia, complemento e e-mail são opcionais.</p>
 <fieldset id="fields"><section id="client-team-section" class="form-section" hidden><label>Equipe responsável *<select name="team_id" required></select></label></section><section class="form-section"><h2>Dados da empresa</h2><div class="field-grid">
 <label class="wide">Razão social *<input name="legal_name" required maxlength="240" autocomplete="organization"></label>
 <label>Nome fantasia<input name="trade_name" maxlength="240"></label>
@@ -30,7 +30,7 @@
 <section class="form-section"><h2>Contato do responsável</h2><div class="field-grid">
 <label class="wide">Nome do responsável *<input required name="contact_name" maxlength="160" autocomplete="name"></label>
 <label>Telefone / WhatsApp *<input required name="contact_phone" type="tel" maxlength="30" autocomplete="tel" placeholder="(00) 00000-0000"></label>
-<label>E-mail *<input required name="contact_email" type="email" maxlength="254" autocomplete="email"></label>
+<label>E-mail (opcional)<input name="contact_email" type="email" maxlength="254" autocomplete="email"></label>
 </div></section></fieldset>
 <p id="feedback" role="status" tabindex="-1"></p><div class="form-actions"><button id="save" class="primary-button" type="submit">Salvar cliente</button><button id="edit" class="primary-button" type="button" hidden>Editar cadastro</button><button id="cancel" class="secondary-button" type="button" hidden>Cancelar edição</button><a href="./clients.html">Voltar aos clientes</a></div>
 </form></section></main></body></html>
