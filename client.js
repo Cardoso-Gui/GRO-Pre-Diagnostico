@@ -111,7 +111,7 @@ async function initialize() {
 }
 function validate() {
   for (const name of [...basic,...addressFields]) input(name).setCustomValidity('');
-  for (const name of [...basic,...addressFields].filter(name => !['trade_name','complement'].includes(name))) {
+  for (const name of [...basic,...addressFields].filter(name => !['trade_name','complement','contact_email'].includes(name))) {
     if (!input(name).value.trim()) input(name).setCustomValidity('Preencha este campo obrigatório.');
   }
   input('legal_name').setCustomValidity(input('legal_name').value.trim() ? '' : 'Informe a razão social.');
