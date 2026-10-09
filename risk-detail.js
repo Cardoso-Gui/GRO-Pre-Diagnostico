@@ -15,7 +15,7 @@ function render(){
  $('#next').disabled=saving;
  const hasNextTarget=targets.some((item,i)=>i>current&&item.risks.length>0);
  $('#next').textContent=index<target.risks.length-1?'Salvar e avançar →':hasNextTarget?(row.answers.selectedRiskMode==='ghe'?'Salvar e ir ao próximo GHE →':'Salvar e ir ao próximo cargo →'):'Salvar e voltar ao levantamento';
- target.risks.forEach((risk,i)=>{const button=document.createElement('button');button.type='button';button.textContent=risk.name;button.className=i===index?'active':'';button.setAttribute('aria-pressed',String(i===index));const small=document.createElement('small');small.textContent=risk.group;button.append(small);button.onclick=()=>{index=i;render()};$('#risk-nav').append(button)});
+ target.risks.forEach((risk,i)=>{const button=document.createElement('button');button.type='button';button.textContent=risk.name;button.className=i===index?'active':'';button.setAttribute('aria-pressed',String(i===index));const small=document.createElement('small');small.textContent=risk.group;button.append(small);button.onclick=()=>{if(i!==index&&!validateCurrentRisk())return;index=i;render()};$('#risk-nav').append(button)});
  const risk=target.risks[index];if(!risk){const p=document.createElement('p');p.textContent='Nenhum risco para detalhar neste cargo ou GHE. A opção de ausência do eSocial não exige detalhamento.';$('#cards').append(p);return;}
  const key=detailKey('source',target.id,risk.code),data=details.get(key)||{};
  const article=document.createElement('article');article.append($('#detail-template').content.cloneNode(true));article.querySelector('h2').textContent=risk.name;article.querySelector('.tag').textContent=`${risk.group} · ${risk.code} · ${risk.source}`;article.querySelector('.status').textContent='Detalhamento';
@@ -35,9 +35,9 @@ function render(){
  items.oninput=()=>{epi.items=[...new Set(items.value.split('\n').map(v=>v.trim()).filter(Boolean))];epis.set(epiKey,epi);say('Alterações ainda não salvas.');};
  $('#cards').append(article);
 }
-$('#target-select').onchange=()=>{current=Number($('#target-select').value);index=0;render()};
+$('#target-select').onchange=()=>{if(!validateCurrentRisk()){$('#target-select').value=String(current);return;}current=Number($('#target-select').value);index=0;render()};
 $('#next').onclick=async()=>{
- if(saving||!targets[current])return;
+ if(saving||!targets[current]||!validateCurrentRisk())return;
  if(!await persistDetails())return;
  if(index<targets[current].risks.length-1){index++;render();return;}
  const nextTarget=targets.findIndex((item,i)=>i>current&&item.risks.length>0);
@@ -48,6 +48,8 @@ $('#back').onclick=e=>{if(saving){e.preventDefault();say('Aguarde o salvamento t
 window.addEventListener('beforeunload',event=>{if(dirty()||saving){event.preventDefault();event.returnValue=''}});
 
 async function persistDetails(){
+ const risk=targets[current]?.risks[index];if(risk){const key=detailKey('epi-data',targets[current].id,risk.code);const epi=epis.get(key)||{items:[]};epi.applicable=$('#detail-epi-label')?.hidden?'Não':'Sim';epis.set(key,epi);}
+
  if(saving||!row)return false;saving=true;$('#next').disabled=true;const version=fingerprint();const snapshot=JSON.parse(JSON.stringify(detailAnswers(row.answers,details,epis)));
  try{const access=await getTeamMember();if(!access.member)throw Error('Não foi possível confirmar seu acesso. Mantenha esta página aberta e tente novamente.');row=await saveAssessment(authClient,row,snapshot);baseline=version;say(dirty()?'Detalhamento salvo. Há alterações posteriores ainda não salvas.':'Detalhamento salvo no rascunho.');return !dirty();}
  catch(error){say(error.message);return false}finally{saving=false;$('#next').disabled=false}
@@ -71,3 +73,11 @@ $('#sign-out').onclick=async()=>{if(saving)return;if(dirty()&&!confirm('Sair sem
 await load();
 
 window.addEventListener('pageshow',event=>{if(event.persisted){if(!dirty()&&!saving)location.reload();else say('Há alterações não salvas nesta tela. Salve antes de sair; se houver conflito, mantenha a página aberta.');}});
+
+function validateCurrentRisk(){
+ const card=$('#cards'),missing=[];
+ const labels={source:'Informe a fonte ou situação de exposição.',frequency:'Selecione a frequência.',duration:'Informe o tempo ou circunstância de exposição.',damage:'Descreva os possíveis danos à saúde.',measures:'Descreva as medidas existentes; informe se não houver.',measure:'Informe se precisa medir ou avaliar.'};
+ for(const [key,text] of Object.entries(labels)){const el=card.querySelector('[data-field="'+key+'"]');if(el&&!el.value.trim())missing.push({text,element:el});}
+ const epi=card.querySelector('#detail-epi-items');if(epi&&!card.querySelector('#detail-epi-label').hidden&&!epi.value.trim())missing.push({text:'Informe quais EPIs são utilizados.',element:epi});
+ return GRO_VALIDATE.show(missing);
+}
