@@ -182,14 +182,10 @@ gheForm.addEventListener("submit", (event) => {
   const name = gheNameInput.value.trim();
   const linkedJobs = getCheckedGheAssociations();
 
-  if (!name) {
-    return;
-  }
-
-  if (linkedJobs.length === 0) {
-    GRO_VALIDATE.show([{text:"Selecione pelo menos um setor/cargo para criar o GHE.",element:gheAssociationList.querySelector("input")||gheAssociationList}]);
-    return;
-  }
+  const missing = [];
+  if (!name) missing.push({text:"Informe o nome do GHE.",element:gheNameInput});
+  if (!linkedJobs.length) missing.push({text:"Selecione pelo menos um setor/cargo para criar o GHE.",element:gheAssociationList.querySelector("input")||gheAssociationList});
+  if (!GRO_VALIDATE.show(missing)) return;
 
   const exists = gheList.some((ghe) => normalizeSectorName(ghe.name) === normalizeSectorName(name));
 
