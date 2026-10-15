@@ -458,6 +458,11 @@ function updateDistribution() {
 function createJobCard(sectorName) {
   const card=document.createElement('article'); card.className='job-card';
   const title=document.createElement('h3');title.textContent=sectorName;card.append(title);
+  const removeSectorButton=document.createElement('button');
+  removeSectorButton.type='button';removeSectorButton.className='remove-job';
+  removeSectorButton.textContent='Remover setor';
+  removeSectorButton.onclick=()=>removeSector(sectorName);
+  card.append(removeSectorButton);
   const list=document.createElement('div');list.className='job-list';renderJobList(sectorName,list);card.append(list);
   const add=document.createElement('button');add.type='button';add.textContent='＋ Adicionar cargo';add.className='add-job';
   const form=document.createElement('form');form.className='job-form';form.hidden=true;
@@ -466,6 +471,28 @@ function createJobCard(sectorName) {
   form.onsubmit=e=>{e.preventDefault();if(!form.elements.jobName.value.trim()||!form.elements.activities.value.trim())return;addJobToSector(sectorName,form.elements.jobName.value,Number(form.elements.quantity.value),form.elements.activities.value);renderJobSections()};
   card.append(add,form);return card;
 }
+function removeSector(sectorName) {
+  if (!confirm('Remover o setor "' + sectorName + '" e todos os seus cargos deste levantamento? Os vínculos deste setor nos GHEs também serão removidos. Salve o rascunho para gravar a alteração.')) return;
+  (jobsBySector.get(sectorName) || []).forEach(job => {
+    const id = createTargetId("job", sectorName, job.name);
+    (selectedRisksByTarget.get(id) || []).forEach(code => {
+      riskSourcesBySelection.delete(createTargetId("source", id, code));
+      epiBySelection.delete(createTargetId("epi-data", id, code));
+    });
+    selectedRisksByTarget.delete(id);
+  });
+  jobsBySector.delete(sectorName);
+  selectedSectorNames.delete(sectorName);
+  gheList.forEach(ghe => {
+    ghe.linkedJobs = ghe.linkedJobs.filter(link => link.sectorName !== sectorName);
+  });
+  const checkbox = findSectorCheckbox(normalizeSectorName(sectorName));
+  if (checkbox) checkbox.checked = false;
+  updateSelectedSectors();
+  renderEpiSection();
+  updateReportAvailability();
+}
+
 function renderJobList(sectorName,container) {
   (jobsBySector.get(sectorName)||[]).forEach(job=>{
     const row=document.createElement('div');row.className='job-edit-row';
@@ -1325,6 +1352,11 @@ function getReportMissingFields(detailed = false, { checkEmployeeDistribution = 
   if (!["ghe", "job"].includes(selectedRiskMode)) add("Escolha a organização por cargo ou GHE.");
   const targets = getRiskTargets();
   if (!targets.length) add("Cadastre os cargos ou GHEs para organizar os riscos.");
+  if (selectedRiskMode === "ghe") {
+    gheList.forEach(ghe => {
+      if (!ghe.linkedJobs?.length) add(ghe.name + ": vincule pelo menos um setor/cargo ao GHE ou exclua o GHE.");
+    });
+  }
   section = "Riscos ocupacionais"; destination = "#risk-selection-section";
   targets.forEach(target => {
     if (!getSelectedRiskCodes(target.id).size) add(`${target.title}: selecione os riscos ou a opção de ausência aplicável.`);
