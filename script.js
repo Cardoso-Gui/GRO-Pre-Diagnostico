@@ -568,6 +568,7 @@ function renderRiskSelection() {
     emptyCard.className = "risk-card";
     emptyCard.innerHTML = "<h3>Nenhum GHE criado</h3><p class=\"risk-card-note\">Crie um GHE para selecionar os riscos ocupacionais aplicáveis.</p>";
     riskSelectionGrid.appendChild(emptyCard);
+    renderRiskSourceSection();
     return;
   }
 
@@ -639,11 +640,124 @@ function createRiskCard(target) {
   tools.appendChild(groupSelect);
   card.appendChild(title);
   card.appendChild(note);
+  if (selectedRiskMode === "ghe") {
+    const ghe = gheList.find(item => item.id === target.id);
+    if (ghe) card.appendChild(createGheActions(ghe));
+  }
   card.appendChild(tools);
   card.appendChild(riskList);
   card.appendChild(selectedList);
 
   return card;
+}
+
+
+function createGheActions(ghe) {
+  const container = document.createElement("div");
+  const actions = document.createElement("div");
+  actions.className = "risk-tools";
+  const edit = document.createElement("button");
+  edit.type = "button";
+  edit.textContent = "Selecionar setores e cargos";
+  const remove = document.createElement("button");
+  remove.type = "button";
+  remove.textContent = "Excluir GHE";
+  remove.className = "ghe-delete";
+  const panel = document.createElement("dialog");
+  panel.className = "ghe-dialog";
+  panel.setAttribute("aria-label", "Setores e cargos do GHE " + ghe.name);
+  edit.onclick = () => {
+    panel.replaceChildren();
+    const heading = document.createElement("h3");
+    heading.textContent = "Setores e cargos — " + ghe.name;
+    panel.appendChild(heading);
+    const options = document.createElement("div");
+    options.className = "ghe-tree";
+    const groups = new Map();
+    getAvailableJobsForGhe().filter(job => selectedSectorNames.has(job.sectorName)).forEach(job => {
+      if (!groups.has(job.sectorName)) groups.set(job.sectorName, []);
+      groups.get(job.sectorName).push(job);
+    });
+    groups.forEach((jobs, sector) => {
+      const group = document.createElement("div");
+      group.className = "ghe-tree-sector";
+      const sectorLabel = document.createElement("label");
+      const sectorCheckbox = document.createElement("input");
+      sectorCheckbox.type = "checkbox";
+      const sectorText = document.createElement("strong");
+      sectorText.textContent = sector;
+      sectorLabel.append(sectorCheckbox, sectorText);
+      group.appendChild(sectorLabel);
+      const children = [];
+      const updateSector = () => {
+        sectorCheckbox.checked = children.every(input => input.checked);
+        sectorCheckbox.indeterminate = !sectorCheckbox.checked && children.some(input => input.checked);
+      };
+      jobs.forEach(job => {
+      const label = document.createElement("label");
+      label.className = "ghe-tree-job";
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.dataset.sector = job.sectorName;
+      checkbox.dataset.job = job.jobName;
+      checkbox.checked = ghe.linkedJobs.some(link => link.sectorName === job.sectorName && link.jobName === job.jobName);
+      const text = document.createElement("span");
+      text.textContent = job.jobName;
+      checkbox.onchange = updateSector;
+      children.push(checkbox);
+      label.append(checkbox, text);
+      group.appendChild(label);
+      });
+      sectorCheckbox.onchange = () => {
+        children.forEach(input => { input.checked = sectorCheckbox.checked; });
+        updateSector();
+      };
+      updateSector();
+      options.appendChild(group);
+    });
+    const save = document.createElement("button");
+    save.type = "button";
+    save.textContent = "Salvar vínculos";
+    save.onclick = () => {
+      const links = Array.from(options.querySelectorAll("input[data-job]:checked")).map(input => ({
+        sectorName: input.dataset.sector, jobName: input.dataset.job
+      }));
+      if (!GRO_VALIDATE.show(links.length ? [] : [{text: "Selecione pelo menos um setor/cargo para o GHE.", element: options.querySelector("input") || edit}])) return;
+      ghe.linkedJobs = links;
+      panel.close();
+      renderRiskSelection();
+    };
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.textContent = "Cancelar";
+    cancel.onclick = () => { panel.close(); edit.focus(); };
+    const footer = document.createElement("div");
+    footer.className = "ghe-dialog-actions";
+    footer.append(cancel, save);
+    panel.append(options, footer);
+    panel.showModal();
+    (options.querySelector("input") || cancel).focus();
+  };
+  remove.onclick = () => deleteGhe(ghe.id);
+  actions.append(edit, remove);
+  container.append(actions, panel);
+  return container;
+}
+
+function deleteGhe(id) {
+  const index = gheList.findIndex(ghe => ghe.id === id);
+  if (index < 0) return;
+  if (!confirm('Excluir o GHE "' + gheList[index].name + '" e seus riscos e respostas? Os setores e cargos cadastrados serão mantidos. Salve o rascunho para gravar a exclusão.')) return;
+  const codes = selectedRisksByTarget.get(id) || new Set();
+  codes.forEach(code => {
+    riskSourcesBySelection.delete(createTargetId("source", id, code));
+    epiBySelection.delete(createTargetId("epi-data", id, code));
+  });
+  selectedRisksByTarget.delete(id);
+  gheList.splice(index, 1);
+  renderRiskSelection();
+  renderEpiSection();
+  updateReportAvailability();
 }
 
 function buildRiskGroupOptions(select) {
@@ -1977,4 +2091,3 @@ function setLoading(isLoading) {
 }
 
 globalThis.GRO_FORM = { restore: restoreDraft, snapshot: getDraft };
-
