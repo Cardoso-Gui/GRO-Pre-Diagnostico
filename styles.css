@@ -1498,3 +1498,12 @@ button:disabled {
 .ghe-tree input{width:18px;height:18px;flex:0 0 18px;accent-color:#0e8274}
 .ghe-dialog-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:20px}
 .ghe-delete{background:#fff4f3;color:#ad3a31;border:1px solid #edc6c2;box-shadow:none}
+
+.sector-card-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}
+.sector-card-header h3{margin:0;overflow-wrap:anywhere;min-width:0}
+.delete-sector-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;flex-shrink:0;padding:10px 14px;background:#b42318;color:#fff;border:1px solid #b42318;border-radius:8px;box-shadow:none;font-weight:700;cursor:pointer}
+.delete-sector-button:hover{background:#912018;border-color:#912018}
+.delete-sector-button:focus-visible{outline:3px solid #b42318;outline-offset:3px}
+.sector-delete-dialog{margin:auto}
+.sector-delete-dialog p{line-height:1.6}
+@media(max-width:480px){.sector-card-header{flex-wrap:wrap}.sector-card-header .delete-sector-button{margin-left:auto}}
