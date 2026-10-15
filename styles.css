@@ -1487,3 +1487,14 @@ button:disabled {
 
 .selected-risk-list{flex-direction:column;align-items:stretch}.selected-risk-pill{gap:10px;border-radius:10px;padding:6px 10px;min-width:0}.selected-risk-pill>span{overflow-wrap:anywhere}.selected-risk-pill .remove-selected-risk{flex:0 0 34px;width:34px;min-height:34px;padding:0;margin:0;border:1px solid #b42318;border-radius:8px;background:#b42318;color:#fff;font-size:24px;line-height:1;box-shadow:none;cursor:pointer}.selected-risk-pill .remove-selected-risk:hover{background:#912018}.selected-risk-pill .remove-selected-risk:focus-visible{outline:2px solid #a52b25;outline-offset:2px}
 
+
+.ghe-dialog{width:min(560px,calc(100vw - 32px));max-height:85vh;box-sizing:border-box;padding:24px;border:1px solid #d5e1e6;border-radius:16px;color:#193e47;background:#fff;box-shadow:0 24px 80px #163c4960}
+.ghe-dialog::backdrop{background:#163c4980}
+.ghe-dialog h3{margin:0 0 20px}
+.ghe-tree{max-height:50vh;overflow:auto;display:grid;gap:12px}
+.ghe-tree-sector{border:1px solid #d5e1e6;border-radius:10px;padding:14px}
+.ghe-tree-sector label{display:flex;align-items:center;gap:10px;cursor:pointer;margin:0;padding:8px}
+.ghe-tree-sector .ghe-tree-job{margin-left:28px}
+.ghe-tree input{width:18px;height:18px;flex:0 0 18px;accent-color:#0e8274}
+.ghe-dialog-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:20px}
+.ghe-delete{background:#fff4f3;color:#ad3a31;border:1px solid #edc6c2;box-shadow:none}
