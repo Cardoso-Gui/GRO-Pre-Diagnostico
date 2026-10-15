@@ -56,3 +56,25 @@ test('excluir só remove GHE confirmado e suas respostas',()=>{
  assert.equal(ctx.selectedSectorNames.size,2);
  }
 });
+test('remover setor limpa cargos e vínculos, preserva outro setor e permite cancelar',()=>{
+ for(const accepted of [false,true]){
+ const checkbox={checked:true};
+ const ctx=vm.createContext({confirm:()=>accepted,selectedSectorNames:new Set(['A','B']),
+ jobsBySector:new Map([['A',[{name:'Cargo'}]],['B',[{name:'Outro'}]]]),
+ gheList:[{id:'g1',linkedJobs:[{sectorName:'A',jobName:'Cargo'},{sectorName:'B',jobName:'Outro'}]}],
+ selectedRisksByTarget:new Map([['job__A__Cargo',new Set(['r'])],['g1',new Set(['r'])]]),
+ riskSourcesBySelection:new Map([['source__job__A__Cargo__r',{}],['source__g1__r',{}]]),
+ epiBySelection:new Map([['epi-data__job__A__Cargo__r',{}]]),
+ createTargetId:(...parts)=>parts.join('__'),normalizeSectorName:x=>x,findSectorCheckbox:()=>checkbox,
+ updateSelectedSectors:()=>{},renderEpiSection:()=>{},updateReportAvailability:()=>{}});
+ vm.runInContext(source.slice(source.indexOf('function removeSector('),source.indexOf('function renderJobList(')),ctx);
+ ctx.removeSector('A');
+ assert.equal(ctx.jobsBySector.has('A'),!accepted);
+ assert.equal(ctx.selectedSectorNames.has('A'),!accepted);
+ assert.equal(checkbox.checked,!accepted);
+ assert.equal(ctx.gheList[0].linkedJobs.length,accepted?1:2);
+ assert.equal(ctx.riskSourcesBySelection.has('source__job__A__Cargo__r'),!accepted);
+ assert.equal(ctx.jobsBySector.has('B'),true);
+ assert.equal(ctx.riskSourcesBySelection.has('source__g1__r'),true);
+ }
+});
