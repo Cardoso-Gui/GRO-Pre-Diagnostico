@@ -689,6 +689,8 @@ function createRiskCard(target) {
   note.textContent = target.note;
   searchInput.type = "search";
   searchInput.placeholder = "Buscar risco ou código";
+  searchInput.setAttribute("aria-label", "Buscar risco ou código");
+  groupSelect.setAttribute("aria-label", "Filtrar por tipo de risco");
 
   buildRiskGroupOptions(groupSelect);
   renderRiskOptions(target.id, riskList, selectedList, searchInput.value, groupSelect.value);
@@ -709,9 +711,32 @@ function createRiskCard(target) {
     const ghe = gheList.find(item => item.id === target.id);
     if (ghe) card.appendChild(createGheActions(ghe));
   }
-  card.appendChild(tools);
-  card.appendChild(riskList);
-  card.appendChild(selectedList);
+  const add = document.createElement("button");
+  add.type = "button";
+  add.className = "add-risks-button";
+  add.textContent = "Adicionar riscos";
+  const dialog = document.createElement("dialog");
+  dialog.className = "ghe-dialog risk-picker-dialog";
+  dialog.setAttribute("aria-label", "Adicionar riscos — " + target.title);
+  const heading = document.createElement("h3");
+  heading.textContent = "Adicionar riscos — " + target.title;
+  const hint = document.createElement("p");
+  hint.textContent = "Marque os riscos aplicáveis. As seleções são aplicadas ao marcar ou desmarcar.";
+  const done = document.createElement("button");
+  done.type = "button";
+  done.textContent = "Concluir";
+  const footer = document.createElement("div");
+  footer.className = "ghe-dialog-actions";
+  footer.appendChild(done);
+  dialog.append(heading, hint, tools, riskList, footer);
+  add.onclick = () => {
+    renderRiskOptions(target.id, riskList, selectedList, searchInput.value, groupSelect.value);
+    dialog.showModal();
+    searchInput.focus();
+  };
+  done.onclick = () => dialog.close();
+  dialog.addEventListener("close", () => add.focus());
+  card.append(add, selectedList, dialog);
 
   return card;
 }
@@ -873,6 +898,7 @@ function renderRiskOptions(targetId, container, selectedList, searchTerm, group)
       container.querySelectorAll("input[type=checkbox]").forEach(input => { input.checked = getSelectedRiskCodes(targetId).has(input.value); });
       renderSelectedRisks(targetId, selectedList);
       renderRiskSourceSection();
+      document.querySelector("#questionnaire")?.dispatchEvent(new Event("input", {bubbles:true}));
     });
 
     text.appendChild(name);
@@ -898,7 +924,25 @@ function renderSelectedRisks(targetId, container) {
 
   container.innerHTML = "";
 
+  const summary = document.createElement("p");
+  summary.className = "risk-selection-count";
+  summary.setAttribute("aria-live", "polite");
+  summary.textContent = selectedRisks.length
+    ? selectedRisks.length + (selectedRisks.length === 1 ? " risco selecionado" : " riscos selecionados")
+    : "Nenhum risco selecionado. Clique em Adicionar riscos.";
+  container.appendChild(summary);
+  const groups = new Map();
   selectedRisks.forEach((risk) => {
+    const groupName = risk.group || "Outros";
+    if (!groups.has(groupName)) {
+      const section = document.createElement("section");
+      section.className = "selected-risk-group";
+      const heading = document.createElement("h4");
+      heading.textContent = groupName;
+      section.appendChild(heading);
+      container.appendChild(section);
+      groups.set(groupName, section);
+    }
     const pill = document.createElement("span");
     pill.className = "selected-risk-pill";
     const remove = document.createElement("button");
@@ -919,7 +963,7 @@ function renderSelectedRisks(targetId, container) {
     const name = document.createElement("span");
     name.textContent = `${risk.code} - ${risk.name}`;
     pill.append(remove, name);
-    container.appendChild(pill);
+    groups.get(groupName).appendChild(pill);
   });
 }
 

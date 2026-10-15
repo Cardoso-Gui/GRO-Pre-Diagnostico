@@ -72,3 +72,24 @@
   .ghe-tree-sector label{overflow-wrap:anywhere}
   .job-card input,.job-card textarea{font-size:16px}
 }
+
+.add-risks-button{margin:18px 0 12px}
+.selected-risk-group{display:grid;gap:8px;min-width:0}
+.selected-risk-group h4{margin:14px 0 4px}
+.risk-selection-count{margin:0;color:#526b76}
+.risk-picker-dialog{width:min(800px,calc(100vw - 24px));margin:auto;max-height:90vh}
+.risk-picker-dialog .risk-list{max-height:48vh;overflow:auto}
+.risk-picker-dialog h3,.risk-picker-dialog .risk-option span{overflow-wrap:anywhere;min-width:0}
+.risk-picker-dialog .risk-tools{margin:16px 0}
+.risk-picker-dialog .risk-option{align-items:flex-start}
+.risk-picker-dialog .risk-option input{flex:0 0 20px;width:20px;height:20px}
+@media(max-width:600px){
+ .risk-picker-dialog{padding:16px}
+ .risk-picker-dialog .risk-tools{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+ .risk-picker-dialog .risk-tools input,.risk-picker-dialog .risk-tools select{width:100%;min-width:0;font-size:16px}
+ .risk-picker-dialog .risk-option{padding:12px 8px}
+ .risk-picker-dialog .risk-option small{overflow-wrap:anywhere}
+ .risk-picker-dialog .ghe-dialog-actions button{width:100%}
+ .selected-risk-group .selected-risk-pill{align-items:flex-start}
+ .selected-risk-group .remove-selected-risk{min-width:44px;min-height:44px}
+}
