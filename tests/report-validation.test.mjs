@@ -23,14 +23,17 @@ test('detalhar riscos permite total divergente, mas gerar relatório bloqueia',(
  f.ctx.currentCompany=null;
  assert.ok(f.ctx.getReportMissingFields(true,{checkEmployeeDistribution:false}).some(x=>x.text==='Selecione a empresa.'));
 });
-test('adicionar cargo a GHE existente mantém id e vínculos sem duplicar',()=>{
- let submit;const existing={id:'original',name:'Produção',linkedJobs:[{sectorName:'A',jobName:'Operador'}]};
- const ctx=vm.createContext({gheForm:{addEventListener:(_,fn)=>submit=fn},gheNameInput:{value:'produção'},gheList:[existing],
- getCheckedGheAssociations:()=>[{sectorName:'A',jobName:'Operador'},{sectorName:'B',jobName:'Auxiliar'}],
- normalizeSectorName:x=>x.toLowerCase(),GRO_VALIDATE:{show:items=>!items.length},clearGheAssociations:()=>{},renderRiskSelection:()=>{},
- createTargetId:()=>{throw Error('Não deve recriar o GHE');}});
+test('criar GHE bloqueia nomes repetidos e não altera vínculos existentes',()=>{
+ for(const name of ['Produção',' produção ','PRODUCAO','Novo GHE','  ']){
+ let submit,errors;const existing={id:'original',name:'Produção',linkedJobs:[{sectorName:'A',jobName:'Operador'}]};
+ const ctx=vm.createContext({gheForm:{addEventListener:(_,fn)=>submit=fn},gheNameInput:{value:name},gheList:[existing],
+ normalizeSectorName:x=>x.trim().toLowerCase().normalize('NFD').replace(/\p{M}/gu,''),
+ GRO_VALIDATE:{show:items=>{errors=items;return !items.length;}},renderRiskSelection:()=>{},createTargetId:()=> 'new'});
  vm.runInContext(source.slice(source.indexOf('gheForm.addEventListener("submit"'),source.indexOf('generateReportButton.addEventListener')),ctx);
  submit({preventDefault(){}});
- assert.equal(ctx.gheList.length,1);assert.equal(existing.id,'original');assert.equal(existing.linkedJobs.length,2);
- assert.equal(existing.linkedJobs[1].sectorName,'B');
+ assert.equal(ctx.gheList.length,name==='Novo GHE'?2:1);
+ assert.equal(errors.length,name==='Novo GHE'?0:1);
+ assert.equal(existing.linkedJobs.length,1);
+ if(name==='Novo GHE')assert.equal(ctx.gheList[1].linkedJobs.length,0);
+ }
 });
