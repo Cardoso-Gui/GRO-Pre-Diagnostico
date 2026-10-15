@@ -736,7 +736,13 @@ function createRiskCard(target) {
   };
   done.onclick = () => dialog.close();
   dialog.addEventListener("close", () => add.focus());
-  card.append(add, selectedList, dialog);
+  const gheActions = card.querySelector(".ghe-card-actions");
+  if (gheActions) {
+    gheActions.insertBefore(add, gheActions.querySelector(".ghe-delete"));
+    card.append(selectedList, dialog);
+  } else {
+    card.append(add, selectedList, dialog);
+  }
 
   return card;
 }
@@ -745,7 +751,7 @@ function createRiskCard(target) {
 function createGheActions(ghe) {
   const container = document.createElement("div");
   const actions = document.createElement("div");
-  actions.className = "risk-tools";
+  actions.className = "ghe-card-actions";
   const edit = document.createElement("button");
   edit.type = "button";
   edit.textContent = "Selecionar setores e cargos";
