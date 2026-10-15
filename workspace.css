@@ -93,3 +93,9 @@
  .selected-risk-group .selected-risk-pill{align-items:flex-start}
  .selected-risk-group .remove-selected-risk{min-width:44px;min-height:44px}
 }
+
+.ghe-card-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin:16px 0}
+.ghe-card-actions>button{width:100%;min-width:0;min-height:52px;padding:12px 10px;white-space:normal;overflow-wrap:anywhere}
+.ghe-card-actions .add-risks-button{margin:0}
+.ghe-card-actions .ghe-delete{grid-column:1/-1;justify-self:end;width:auto;min-width:150px}
+@media(max-width:600px){.ghe-card-actions{gap:10px}.ghe-card-actions>button{font-size:14px}.ghe-card-actions .ghe-delete{width:100%}}
