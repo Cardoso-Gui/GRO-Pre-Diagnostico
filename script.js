@@ -457,12 +457,14 @@ function updateDistribution() {
 }
 function createJobCard(sectorName) {
   const card=document.createElement('article'); card.className='job-card';
-  const title=document.createElement('h3');title.textContent=sectorName;card.append(title);
+  const title=document.createElement('h3');title.textContent=sectorName;
+  const header=document.createElement('div');header.className='sector-card-header';header.append(title);card.append(header);
   const removeSectorButton=document.createElement('button');
-  removeSectorButton.type='button';removeSectorButton.className='remove-job';
-  removeSectorButton.textContent='Remover setor';
+  removeSectorButton.type='button';removeSectorButton.className='delete-sector-button';
+  removeSectorButton.innerHTML='<svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg><span>Excluir setor</span>';
+  removeSectorButton.setAttribute('aria-label', 'Excluir setor ' + sectorName);
   removeSectorButton.onclick=()=>removeSector(sectorName);
-  card.append(removeSectorButton);
+  header.append(removeSectorButton);
   const list=document.createElement('div');list.className='job-list';renderJobList(sectorName,list);card.append(list);
   const add=document.createElement('button');add.type='button';add.textContent='＋ Adicionar cargo';add.className='add-job';
   const form=document.createElement('form');form.className='job-form';form.hidden=true;
@@ -471,8 +473,47 @@ function createJobCard(sectorName) {
   form.onsubmit=e=>{e.preventDefault();if(!form.elements.jobName.value.trim()||!form.elements.activities.value.trim())return;addJobToSector(sectorName,form.elements.jobName.value,Number(form.elements.quantity.value),form.elements.activities.value);renderJobSections()};
   card.append(add,form);return card;
 }
-function removeSector(sectorName) {
-  if (!confirm('Remover o setor "' + sectorName + '" e todos os seus cargos deste levantamento? Os vínculos deste setor nos GHEs também serão removidos. Salve o rascunho para gravar a alteração.')) return;
+
+function confirmSectorRemoval(sectorName) {
+  return new Promise(resolve => {
+    const previousFocus = document.activeElement;
+    const dialog = document.createElement("dialog");
+    dialog.className = "ghe-dialog sector-delete-dialog";
+    dialog.setAttribute("aria-labelledby", "sector-delete-title");
+    dialog.setAttribute("aria-describedby", "sector-delete-description");
+    const title = document.createElement("h3");
+    title.id = "sector-delete-title";
+    title.textContent = 'Excluir setor "' + sectorName + '"?';
+    const description = document.createElement("p");
+    description.id = "sector-delete-description";
+    description.textContent = "Os cargos deste setor e seus vínculos nos GHEs também serão removidos. Os demais setores serão mantidos. Salve o rascunho para gravar a alteração.";
+    const actions = document.createElement("div");
+    actions.className = "ghe-dialog-actions";
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.textContent = "Cancelar";
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "delete-sector-button";
+    remove.textContent = "Excluir setor";
+    let accepted = false;
+    cancel.onclick = () => dialog.close();
+    remove.onclick = () => { accepted = true; dialog.close(); };
+    dialog.addEventListener("close", () => {
+      dialog.remove();
+      previousFocus?.focus();
+      resolve(accepted);
+    }, {once:true});
+    actions.append(cancel, remove);
+    dialog.append(title, description, actions);
+    document.body.appendChild(dialog);
+    dialog.showModal();
+    cancel.focus();
+  });
+}
+
+async function removeSector(sectorName) {
+  if (!await confirmSectorRemoval(sectorName)) return;
   (jobsBySector.get(sectorName) || []).forEach(job => {
     const id = createTargetId("job", sectorName, job.name);
     (selectedRisksByTarget.get(id) || []).forEach(code => {
