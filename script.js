@@ -474,7 +474,7 @@ function createJobCard(sectorName) {
   card.append(add,form);return card;
 }
 
-function confirmSectorRemoval(sectorName) {
+function confirmSectorRemoval(sectorName, kind = "setor") {
   return new Promise(resolve => {
     const previousFocus = document.activeElement;
     const dialog = document.createElement("dialog");
@@ -483,10 +483,12 @@ function confirmSectorRemoval(sectorName) {
     dialog.setAttribute("aria-describedby", "sector-delete-description");
     const title = document.createElement("h3");
     title.id = "sector-delete-title";
-    title.textContent = 'Excluir setor "' + sectorName + '"?';
+    title.textContent = 'Excluir ' + kind + ' "' + sectorName + '"?';
     const description = document.createElement("p");
     description.id = "sector-delete-description";
-    description.textContent = "Os cargos deste setor e seus vínculos nos GHEs também serão removidos. Os demais setores serão mantidos. Salve o rascunho para gravar a alteração.";
+    description.textContent = kind === "cargo"
+      ? "Os postos de trabalho e os vínculos deste cargo nos GHEs também serão removidos. Os demais cargos serão mantidos. Salve o rascunho para gravar a alteração."
+      : "Os cargos deste setor e seus vínculos nos GHEs também serão removidos. Os demais setores serão mantidos. Salve o rascunho para gravar a alteração.";
     const actions = document.createElement("div");
     actions.className = "ghe-dialog-actions";
     const cancel = document.createElement("button");
@@ -495,7 +497,7 @@ function confirmSectorRemoval(sectorName) {
     const remove = document.createElement("button");
     remove.type = "button";
     remove.className = "delete-sector-button";
-    remove.textContent = "Excluir setor";
+    remove.textContent = "Excluir " + kind;
     let accepted = false;
     cancel.onclick = () => dialog.close();
     remove.onclick = () => { accepted = true; dialog.close(); };
@@ -543,8 +545,12 @@ function renderJobList(sectorName,container) {
     qty.oninput=()=>{const n=Number(qty.value);if(Number.isSafeInteger(n)&&n>0){job.quantity=n;qty.setCustomValidity('');updateDistribution()}else qty.setCustomValidity('Informe um número inteiro maior que zero.')};quantityLabel.append(qty);
     const activityLabel=document.createElement('label');activityLabel.className='job-activities';activityLabel.textContent='Atividades realizadas';
     const activity=document.createElement('textarea');activity.placeholder='O que essa função faz?';activity.maxLength=2000;activity.value=job.activities||'';activity.oninput=()=>job.activities=activity.value;activityLabel.append(activity);
-    const remove=document.createElement('button');remove.type='button';remove.className='remove-job';remove.textContent='Remover cargo';remove.onclick=()=>{removeJobFromSector(sectorName,job.name);renderJobSections()};
-    row.append(name,quantityLabel,activityLabel);if(globalThis.GRO_POSTS)row.append(globalThis.GRO_POSTS.render(job));row.append(remove);container.append(row);
+    const remove=document.createElement('button');remove.type='button';remove.className='delete-sector-button';
+    remove.innerHTML='<svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg><span>Excluir cargo</span>';
+    remove.setAttribute('aria-label','Excluir cargo '+job.name);
+    remove.onclick=async()=>{if(!await confirmSectorRemoval(job.name,"cargo"))return;removeJobFromSector(sectorName,job.name);renderJobSections();renderEpiSection();updateReportAvailability()};
+    const header=document.createElement('div');header.className='job-card-header';header.append(name,remove);
+    row.append(header,quantityLabel,activityLabel);if(globalThis.GRO_POSTS)row.append(globalThis.GRO_POSTS.render(job));container.append(row);
   });
 }
 
@@ -572,6 +578,15 @@ function addJobToSector(sectorName, jobName, quantity, activities = "", foodHand
 }
 
 function removeJobFromSector(sectorName, jobName) {
+  const id = createTargetId("job", sectorName, jobName);
+  (selectedRisksByTarget.get(id) || []).forEach(code => {
+    riskSourcesBySelection.delete(createTargetId("source", id, code));
+    epiBySelection.delete(createTargetId("epi-data", id, code));
+  });
+  selectedRisksByTarget.delete(id);
+  gheList.forEach(ghe => {
+    ghe.linkedJobs = ghe.linkedJobs.filter(link => link.sectorName !== sectorName || link.jobName !== jobName);
+  });
   const jobs = jobsBySector.get(sectorName) || [];
   jobsBySector.set(
     sectorName,
