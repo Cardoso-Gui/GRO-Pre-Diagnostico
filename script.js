@@ -187,9 +187,15 @@ gheForm.addEventListener("submit", (event) => {
   if (!linkedJobs.length) missing.push({text:"Selecione pelo menos um setor/cargo para criar o GHE.",element:gheAssociationList.querySelector("input")||gheAssociationList});
   if (!GRO_VALIDATE.show(missing)) return;
 
-  const exists = gheList.some((ghe) => normalizeSectorName(ghe.name) === normalizeSectorName(name));
+  const existing = gheList.find((ghe) => normalizeSectorName(ghe.name) === normalizeSectorName(name));
 
-  if (!exists) {
+  if (existing) {
+    linkedJobs.forEach(link => {
+      if (!existing.linkedJobs.some(item => item.sectorName === link.sectorName && item.jobName === link.jobName)) {
+        existing.linkedJobs.push(link);
+      }
+    });
+  } else {
     gheList.push({ id: createTargetId("ghe", name), name, linkedJobs });
   }
 
@@ -778,7 +784,7 @@ function renderRiskSourceSection() {
   if(selections.length){
     const note=document.createElement('p');note.textContent='Preencha exposição, danos, medidas existentes e melhorias em uma página dedicada.';
     const button=document.createElement('button');button.type='button';button.id='open-risk-details';button.textContent='Preencher detalhes dos riscos';
-    button.onclick=async()=>{if(!globalThis.GRO_CLOUD)return;if(!GRO_VALIDATE.show(getReportMissingFields(true).filter(item=>item.section!=='Detalhamento dos riscos').map(item=>({...item,element:document.querySelector(item.destination)}))))return;button.disabled=true;try{const saved=await globalThis.GRO_CLOUD.save(getDraft());if(saved)location.assign('./risk-detail.html?id='+encodeURIComponent(saved.id)+'&target='+encodeURIComponent(button.dataset.target||'')+'&risk='+encodeURIComponent(button.dataset.risk||''));}finally{button.disabled=false}};
+    button.onclick=async()=>{if(!globalThis.GRO_CLOUD)return;if(!GRO_VALIDATE.show(getReportMissingFields(true, { checkEmployeeDistribution: false }).filter(item=>item.section!=='Detalhamento dos riscos').map(item=>({...item,element:document.querySelector(item.destination)}))))return;button.disabled=true;try{const saved=await globalThis.GRO_CLOUD.save(getDraft());if(saved)location.assign('./risk-detail.html?id='+encodeURIComponent(saved.id)+'&target='+encodeURIComponent(button.dataset.target||'')+'&risk='+encodeURIComponent(button.dataset.risk||''));}finally{button.disabled=false}};
     riskSourceGrid.append(note,button);
   }
   renderEpiSection();
@@ -894,6 +900,13 @@ function getRiskSourceData(targetId, riskCode) {
 }
 
 function renderGheAssociationOptions() {
+  const names = document.querySelector("#ghe-existing-names");
+  names.replaceChildren();
+  gheList.forEach(ghe => {
+    const option = document.createElement("option");
+    option.value = ghe.name;
+    names.appendChild(option);
+  });
   const availableJobs = getAvailableJobsForGhe();
   gheAssociationList.innerHTML = "";
 
@@ -1171,7 +1184,7 @@ function getCurrentCnaeText() {
   };
 }
 
-function getReportMissingFields(detailed = false) {
+function getReportMissingFields(detailed = false, { checkEmployeeDistribution = true } = {}) {
   const missing = [];
   let section = "Dados da empresa", destination = "#company-card", riskTarget = "", riskCode = "";
   const add = text => missing.push({text, section, destination, riskTarget, riskCode});
@@ -1193,7 +1206,7 @@ function getReportMissingFields(detailed = false) {
       if (selectedRiskMode === "ghe" && !gheList.some(g => g.linkedJobs?.some(j => j.sectorName === sector && j.jobName === job.name))) add(`${sector} / ${job.name}: vincule o cargo a um GHE.`);
     });
   });
-  if (total !== employees) add("A quantidade distribuída nos cargos deve corresponder ao total de funcionários.");
+  if (checkEmployeeDistribution && total !== employees) add("A quantidade distribuída nos cargos deve corresponder ao total de funcionários.");
   section = "Organização dos riscos"; destination = "#risk-mode-section";
   if (!["ghe", "job"].includes(selectedRiskMode)) add("Escolha a organização por cargo ou GHE.");
   const targets = getRiskTargets();
