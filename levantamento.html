@@ -4,12 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mapa de Riscos - CNPJ</title>
-    <link rel="stylesheet" href="styles.css?v=20261015-job-dialog4" />
-    <link rel="stylesheet" href="workspace.css?v=20261015-job-dialog4" />
+    <link rel="stylesheet" href="styles.css?v=20261015-ghe-create5" />
+    <link rel="stylesheet" href="workspace.css?v=20261015-ghe-create5" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <meta name="referrer" content="no-referrer" />
     <script src="vendor/supabase-2.117.2.js?v=20260925-reports2" defer></script>
-    <script type="module" src="workspace.js?v=20261015-job-dialog4"></script>
+    <script type="module" src="workspace.js?v=20261015-ghe-create5"></script>
   <link rel="stylesheet" href="dimension.css?v=20260925-reports2"><link rel="stylesheet" href="./app-header.css?v=20260928-occ1"><link rel="stylesheet" href="./client-search.css?v=20260929-inline1"></head>
   <body>
     <section id="session-check" class="session-check" aria-live="polite"><p>Verificando seu acesso…</p><a href="index.html">Voltar ao login</a></section>
@@ -219,24 +219,18 @@
             </div>
 
             <form class="ghe-form" id="ghe-form" hidden>
-              <label for="ghe-name-input">Nome do GHE novo ou existente</label>
+              <label for="ghe-name-input">Nome do GHE</label>
               <div class="ghe-name-row">
                 <input
                   id="ghe-name-input"
-                  list="ghe-existing-names"
                   type="text"
                   placeholder="Ex.: GHE Produção - Máquinas"
                   autocomplete="off"
                 />
-                <button type="submit">Criar ou adicionar ao GHE</button>
+                <button type="submit">Criar</button>
               </div>
 
-              <datalist id="ghe-existing-names"></datalist>
-              <p class="risk-card-note">Para adicionar setores e cargos a um GHE já criado, selecione seu nome e marque os novos vínculos. Os vínculos e riscos existentes serão mantidos.</p>
-              <div class="ghe-association-panel">
-                <p class="result-label">Setores e cargos do GHE</p>
-                <div class="ghe-association-list" id="ghe-association-list"></div>
-              </div>
+              <p class="risk-card-note">Após criar o GHE, use “Selecionar setores e cargos” no card dele para definir os vínculos.</p>
             </form>
 
             <div class="risk-selection-grid" id="risk-selection-grid"></div>

@@ -26,7 +26,6 @@ const riskSelectionSection = document.querySelector("#risk-selection-section");
 const riskSelectionGrid = document.querySelector("#risk-selection-grid");
 const gheForm = document.querySelector("#ghe-form");
 const gheNameInput = document.querySelector("#ghe-name-input");
-const gheAssociationList = document.querySelector("#ghe-association-list");
 const riskSourceSection = document.querySelector("#risk-source-section");
 const riskSourceGrid = document.querySelector("#risk-source-grid");
 const epiSection = document.querySelector("#epi-section");
@@ -178,29 +177,15 @@ riskModeForm.addEventListener("change", (event) => {
 
 gheForm.addEventListener("submit", (event) => {
   event.preventDefault();
-
   const name = gheNameInput.value.trim();
-  const linkedJobs = getCheckedGheAssociations();
-
   const missing = [];
   if (!name) missing.push({text:"Informe o nome do GHE.",element:gheNameInput});
-  if (!linkedJobs.length) missing.push({text:"Selecione pelo menos um setor/cargo para criar o GHE.",element:gheAssociationList.querySelector("input")||gheAssociationList});
-  if (!GRO_VALIDATE.show(missing)) return;
-
-  const existing = gheList.find((ghe) => normalizeSectorName(ghe.name) === normalizeSectorName(name));
-
-  if (existing) {
-    linkedJobs.forEach(link => {
-      if (!existing.linkedJobs.some(item => item.sectorName === link.sectorName && item.jobName === link.jobName)) {
-        existing.linkedJobs.push(link);
-      }
-    });
-  } else {
-    gheList.push({ id: createTargetId("ghe", name), name, linkedJobs });
+  if (name && gheList.some(ghe => normalizeSectorName(ghe.name) === normalizeSectorName(name))) {
+    missing.push({text:"Já existe um GHE com esse nome. Escolha outro nome.",element:gheNameInput});
   }
-
+  if (!GRO_VALIDATE.show(missing)) return;
+  gheList.push({id:createTargetId("ghe", name),name,linkedJobs:[]});
   gheNameInput.value = "";
-  clearGheAssociations();
   renderRiskSelection();
 });
 
@@ -640,9 +625,6 @@ function renderRiskSelection() {
     return;
   }
 
-  if (selectedRiskMode === "ghe") {
-    renderGheAssociationOptions();
-  }
 
   const targets = getRiskTargets();
 
@@ -1096,48 +1078,6 @@ function getRiskSourceData(targetId, riskCode) {
   return riskSourcesBySelection.get(key);
 }
 
-function renderGheAssociationOptions() {
-  const names = document.querySelector("#ghe-existing-names");
-  names.replaceChildren();
-  gheList.forEach(ghe => {
-    const option = document.createElement("option");
-    option.value = ghe.name;
-    names.appendChild(option);
-  });
-  const availableJobs = getAvailableJobsForGhe();
-  gheAssociationList.innerHTML = "";
-
-  if (availableJobs.length === 0) {
-    const empty = document.createElement("p");
-    empty.className = "risk-card-note";
-    empty.textContent = "Adicione cargos aos setores antes de criar um GHE.";
-    gheAssociationList.appendChild(empty);
-    return;
-  }
-
-  availableJobs.forEach((job) => {
-    const label = document.createElement("label");
-    const checkbox = document.createElement("input");
-    const text = document.createElement("span");
-    const jobName = document.createElement("strong");
-    const sectorName = document.createElement("small");
-
-    label.className = "ghe-association-option";
-    checkbox.type = "checkbox";
-    checkbox.value = job.id;
-    checkbox.dataset.sector = job.sectorName;
-    checkbox.dataset.job = job.jobName;
-    jobName.textContent = job.jobName;
-    sectorName.textContent = `${job.sectorName} - ${job.quantity} funcionário(s)`;
-
-    text.appendChild(jobName);
-    text.appendChild(sectorName);
-    label.appendChild(checkbox);
-    label.appendChild(text);
-    gheAssociationList.appendChild(label);
-  });
-}
-
 function getAvailableJobsForGhe() {
   return Array.from(jobsBySector.entries()).flatMap(([sectorName, jobs]) =>
     jobs.map((job) => ({
@@ -1147,19 +1087,6 @@ function getAvailableJobsForGhe() {
       quantity: job.quantity,
     }))
   );
-}
-
-function getCheckedGheAssociations() {
-  return Array.from(gheAssociationList.querySelectorAll("input:checked")).map((checkbox) => ({
-    sectorName: checkbox.dataset.sector,
-    jobName: checkbox.dataset.job,
-  }));
-}
-
-function clearGheAssociations() {
-  gheAssociationList.querySelectorAll("input:checked").forEach((checkbox) => {
-    checkbox.checked = false;
-  });
 }
 
 function formatGheLinks(linkedJobs) {
