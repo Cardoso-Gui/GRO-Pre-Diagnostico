@@ -219,17 +219,20 @@
             </div>
 
             <form class="ghe-form" id="ghe-form" hidden>
-              <label for="ghe-name-input">Nome do GHE</label>
+              <label for="ghe-name-input">Nome do GHE novo ou existente</label>
               <div class="ghe-name-row">
                 <input
                   id="ghe-name-input"
+                  list="ghe-existing-names"
                   type="text"
                   placeholder="Ex.: GHE Produção - Máquinas"
                   autocomplete="off"
                 />
-                <button type="submit">Criar GHE</button>
+                <button type="submit">Criar ou adicionar ao GHE</button>
               </div>
 
+              <datalist id="ghe-existing-names"></datalist>
+              <p class="risk-card-note">Para adicionar setores e cargos a um GHE já criado, selecione seu nome e marque os novos vínculos. Os vínculos e riscos existentes serão mantidos.</p>
               <div class="ghe-association-panel">
                 <p class="result-label">Setores e cargos do GHE</p>
                 <div class="ghe-association-list" id="ghe-association-list"></div>
