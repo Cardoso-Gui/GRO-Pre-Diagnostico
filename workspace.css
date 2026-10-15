@@ -53,3 +53,22 @@
 #draft-list article > .delete-draft:hover { background: #912018; border-color: #912018; }
 #draft-list article > a:focus-visible,
 #draft-list article > .delete-draft:focus-visible { outline: 3px solid #82bdb0; outline-offset: 3px; }
+
+.job-card-header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.job-card-header>strong{min-width:0;overflow-wrap:anywhere}
+.job-edit-row>label{grid-column:1/-1}
+.job-edit-row,.job-card,.workstation-editor,.workstation-card{min-width:0}
+@media(max-width:600px){
+  .job-edit-row,.job-card .job-form{grid-template-columns:minmax(0,1fr)}
+  .job-card-header,.sector-card-header{flex-wrap:wrap}
+  .job-card-header .delete-sector-button{margin-left:auto;min-height:44px}
+  .workstation-editor{padding:10px}
+  .workstation-card{padding:10px}
+  .post-photo-area{grid-template-columns:minmax(0,1fr)}
+  .post-photo-area .post-photo-picker{padding:16px 10px;min-height:150px}
+  .ghe-dialog-actions{flex-wrap:wrap}
+  .ghe-dialog-actions button{min-height:44px}
+  .ghe-tree-sector .ghe-tree-job{margin-left:12px}
+  .ghe-tree-sector label{overflow-wrap:anywhere}
+  .job-card input,.job-card textarea{font-size:16px}
+}

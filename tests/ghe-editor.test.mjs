@@ -78,3 +78,19 @@ test('remover setor limpa cargos e vínculos, preserva outro setor e permite can
  assert.equal(ctx.riskSourcesBySelection.has('source__g1__r'),true);
  }
 });
+test('excluir cargo remove só seu vínculo e riscos próprios',()=>{
+ const ctx=vm.createContext({jobsBySector:new Map([['A',[{name:'Um'},{name:'Dois'}]]]),
+ selectedRisksByTarget:new Map([['job__A__Um',new Set(['r'])],['g1',new Set(['r'])]]),
+ riskSourcesBySelection:new Map([['source__job__A__Um__r',{}],['source__g1__r',{}]]),
+ epiBySelection:new Map([['epi-data__job__A__Um__r',{}]]),
+ gheList:[{linkedJobs:[{sectorName:'A',jobName:'Um'},{sectorName:'A',jobName:'Dois'},{sectorName:'B',jobName:'Um'}]}],
+ createTargetId:(...parts)=>parts.join('__'),renderRiskModeSection:()=>{}});
+ vm.runInContext(source.slice(source.indexOf('function removeJobFromSector('),source.indexOf('function getJobSuggestions(')),ctx);
+ ctx.removeJobFromSector('A','Um');
+ assert.equal(ctx.jobsBySector.get('A').length,1);
+ assert.equal(ctx.gheList[0].linkedJobs.length,2);
+ assert.equal(ctx.selectedRisksByTarget.has('job__A__Um'),false);
+ assert.equal(ctx.riskSourcesBySelection.has('source__job__A__Um__r'),false);
+ assert.equal(ctx.epiBySelection.size,0);
+ assert.equal(ctx.riskSourcesBySelection.has('source__g1__r'),true);
+});
