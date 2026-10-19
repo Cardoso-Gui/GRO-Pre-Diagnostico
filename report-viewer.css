@@ -17,6 +17,7 @@ body{background:#f5f8f3;color:#193f38}
 #report-content .report-cover{border-top:3px solid #12877a}#report-content .report-cover h3{font-size:25px}
 #report-content .report-block{padding:24px;border-color:#d8e4da}
 .viewer-group{border:1px solid #d9e5dc;border-radius:10px;margin:14px 0;background:#fff;overflow:hidden}
+.viewer-sector>.report-job{margin:12px 16px}
 .viewer-group>summary,.viewer-risk>summary,.viewer-inventory>summary{cursor:pointer;display:flex;align-items:center;gap:14px;list-style:none;padding:18px;color:#224b3b}.viewer-group>summary::-webkit-details-marker,.viewer-risk>summary::-webkit-details-marker,.viewer-inventory>summary::-webkit-details-marker{display:none}
 .viewer-group>summary>strong{font-size:16px;flex:1;overflow-wrap:anywhere}.viewer-group>summary:after,.viewer-risk>summary:after,.viewer-inventory>summary:after{content:'+';font-size:20px;flex-shrink:0;margin-left:auto}.viewer-group[open]>summary:after,.viewer-risk[open]>summary:after,.viewer-inventory[open]>summary:after{content:'−'}
 .viewer-count{font-size:11px;background:#eff4f0;color:#486d5b;border-radius:20px;padding:6px 9px;white-space:nowrap}
