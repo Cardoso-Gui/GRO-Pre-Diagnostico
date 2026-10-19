@@ -1416,7 +1416,7 @@ function getCurrentCnaeText() {
 function getReportMissingFields(detailed = false, { checkEmployeeDistribution = true } = {}) {
   const missing = [];
   let section = "Dados da empresa", destination = "#company-card", riskTarget = "", riskCode = "";
-  const add = text => missing.push({text, section, destination, riskTarget, riskCode});
+  const add = (text,targetId=riskTarget) => missing.push({text, section, destination, riskTarget, riskCode, targetId});
   const filled = value => String(value ?? "").trim().length > 0;
   const employees = Number(employeeCountInput.value);
   if (!currentCompany) add("Selecione a empresa.");
@@ -1442,12 +1442,12 @@ function getReportMissingFields(detailed = false, { checkEmployeeDistribution = 
   if (!targets.length) add("Cadastre os cargos ou GHEs para organizar os riscos.");
   if (selectedRiskMode === "ghe") {
     gheList.forEach(ghe => {
-      if (!ghe.linkedJobs?.length) add(ghe.name + ": vincule pelo menos um setor/cargo ao GHE ou exclua o GHE.");
+      if (!ghe.linkedJobs?.length) add(ghe.name + ": vincule pelo menos um setor/cargo ao GHE ou exclua o GHE.",ghe.id);
     });
   }
   section = "Riscos ocupacionais"; destination = "#risk-selection-section";
   targets.forEach(target => {
-    if (!getSelectedRiskCodes(target.id).size) add(`${target.title}: selecione os riscos ou a opção de ausência aplicável.`);
+    if (!getSelectedRiskCodes(target.id).size) add(`${target.title}: selecione os riscos ou a opção de ausência aplicável.`,target.id);
   });
   section = "Dimensionamento"; destination = "#employee-count";
   if (/pendente|necessária/i.test(dimensionFields.cipaSummary.textContent) || /pendente/i.test(dimensionFields.sesmtSummary.textContent)) add("Calcule ou revise o dimensionamento.");
@@ -1459,25 +1459,16 @@ function getReportMissingFields(detailed = false, { checkEmployeeDistribution = 
     Object.entries(fields).forEach(([key, label]) => { if (!filled(data[key])) add(`${prefix}: ${label}.`); });
     if (!["Sim", "Não"].includes(data.measure)) add(`${prefix}: responda se precisa medir/avaliar.`);
     {
-      section = "EPIs"; destination = "#wizard-epi"; riskTarget = ""; riskCode = "";
+      section = "EPIs"; destination = "#wizard-epi"; riskTarget = ""; riskCode = selection.risk.code;
       const epi = getEpiData(selection.targetId, selection.risk.code);
-      if (!["Sim", "Não"].includes(epi.applicable)) add(`${prefix}: informe se EPI é aplicável.`);
-      if (epi.applicable === "Sim" && !epi.items?.some(filled)) add(`${prefix}: informe quais EPIs.`);
+      if (!["Sim", "Não"].includes(epi.applicable)) add(`${prefix}: informe se EPI é aplicável.`,selection.targetId);
+      if (epi.applicable === "Sim" && !epi.items?.some(filled)) add(`${prefix}: informe quais EPIs.`,selection.targetId);
     }
   });
   return detailed ? missing : missing.map(item => item.text);
 }
 
-function validateReport() {
-  let notice = document.querySelector("#report-validation");
-  if (!notice) {
-    notice = document.createElement("div");
-    notice.id = "report-validation";
-    notice.setAttribute("role", "alert");
-    notice.tabIndex = -1;
-    generateReportButton.before(notice);
-  }
-  notice.replaceChildren();
+function collectReportMissingFields() {
   const missing = getReportMissingFields(true);
   if(globalThis.GRO_POSTS?.busy())missing.push({text:'Aguarde o envio das fotos terminar.',section:'Postos de trabalho',destination:'#jobs-section'});
   for(const [sector,jobs] of jobsBySector){
@@ -1491,6 +1482,20 @@ function validateReport() {
       missing.push({text:`${sector} / ${job.name}: ${instruction}`,section:'Postos de trabalho',destination:'#jobs-section'});
     }
   }
+  return missing;
+}
+
+function validateReport() {
+  let notice = document.querySelector("#report-validation");
+  if (!notice) {
+    notice = document.createElement("div");
+    notice.id = "report-validation";
+    notice.setAttribute("role", "alert");
+    notice.tabIndex = -1;
+    generateReportButton.before(notice);
+  }
+  notice.replaceChildren();
+  const missing = collectReportMissingFields();
   notice.hidden = missing.length === 0;
   if (!missing.length) return true;
   finalReport.hidden = true;
@@ -2212,7 +2217,7 @@ function setLoading(isLoading) {
   button.textContent = isLoading ? "Consultando..." : "Consultar";
 }
 
-globalThis.GRO_FORM = { restore: restoreDraft, snapshot: getDraft, setEpi(targetId,riskCode,value) {
+globalThis.GRO_FORM = { restore: restoreDraft, snapshot: getDraft, review:()=>({answers:getDraft(),targets:getRiskTargets(),selections:getRiskSelections(),missing:collectReportMissingFields()}), setEpi(targetId,riskCode,value) {
   if(!getRiskSelections().some(s=>s.targetId===targetId&&s.risk.code===riskCode))return;
   epiBySelection.set(createTargetId("epi-data",targetId,riskCode),value);
   const data=getRiskSourceData(targetId,riskCode);data.controls=[Boolean(data.controls?.[0]),Boolean(data.controls?.[1]),value.applicable==="Sim"];
