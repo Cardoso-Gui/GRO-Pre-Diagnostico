@@ -119,6 +119,21 @@ export function paginateReport(content,title='Relatório do levantamento'){
    hasContent=true;pendingHeadings=[];
   }
  }
+ // Keep each complete category in its own column when both fit on one sheet.
+ function categoryPair(left,right){
+  if(left?.dataset?.type!=='physical'||right?.dataset?.type!=='ergonomic')return null;
+  const grid=document.createElement('div');grid.className='print-risk-columns print-category-pair';
+  for(const category of [left,right]){
+   const column=category.cloneNode(true);column.classList.add('print-risk-column');
+   for(const risk of column.querySelectorAll('.viewer-risk'))risk.classList.add('print-risk-card');
+   grid.append(column);
+  }
+  const measure=document.createElement('div');measure.className='print-risk-measure';measure.append(grid);content.append(measure);
+  const height=grid.getBoundingClientRect().height;measure.remove();
+  // Reserve room for the repeated group heading and page context. Larger
+  // categories keep the existing independently paginated layout.
+  return height>0&&height<=900?grid:null;
+ }
  function put(original,chain=[],ctx=''){
   if(original.nodeType===3){if(original.textContent.trim())textPieces(original,chain,ctx);return;}
   if(original.nodeType!==1)return;
@@ -131,7 +146,12 @@ export function paginateReport(content,title='Relatório do levantamento'){
    if(original.classList.contains('report-sectors')&&hasContent)next();
    if(original.matches('.viewer-group')&&original.querySelector('.viewer-risk'))ctx=original.querySelector(':scope > summary > strong')?.textContent.trim()||ctx;
    if(original.classList.contains('compact-training'))ctx='Treinamentos sugeridos — continuação';
-   for(const child of original.childNodes){if(child.nodeType===1&&child.tagName==='THEAD')continue;put(child,[...chain,original],ctx);}
+   const children=[...original.childNodes];
+   for(let i=0;i<children.length;i++){
+    const child=children[i];if(child.nodeType===1&&child.tagName==='THEAD')continue;
+    const pair=original.classList.contains('viewer-group')?categoryPair(child,children[i+1]):null;
+    if(pair){put(pair,[...chain,original],ctx);i++;}else put(child,[...chain,original],ctx);
+   }
    return;
   }
   const heading=/^H[1-6]$/.test(tag)||tag==='SUMMARY';
