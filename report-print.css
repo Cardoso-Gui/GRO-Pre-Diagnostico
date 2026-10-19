@@ -5,7 +5,7 @@
  #report-content .report-sheets{display:block;width:180mm;margin:0;padding:0}
  #report-content .report-sheet{display:flow-root;box-sizing:border-box;width:180mm;height:258mm;margin:0;padding:0;break-after:page;page-break-after:always}
  #report-content .report-sheet:last-child{break-after:auto;page-break-after:auto}
- #report-content .report-sheet-context{box-sizing:border-box;min-height:12mm;padding:2mm 3mm;margin:0 0 2mm;background:#eaf2ed;color:#254e3e;font:600 9pt/1.4 Arial,sans-serif;overflow-wrap:anywhere}
+ #report-content .report-sheet-context{box-sizing:border-box;min-height:8mm;padding:1.5mm 3mm;margin:0 0 1mm;background:#eaf2ed;color:#254e3e;font:600 9pt/1.4 Arial,sans-serif;overflow-wrap:anywhere}
  #report-content .report-sheet-context:empty{min-height:0;padding:0;margin:0;background:none}
  #report-content .report-sheet-body{display:flow-root;margin:0;padding:0}
  #report-content .report-print-title{font:600 13pt/1.4 Arial,sans-serif;border-bottom:1px solid #a8bbb5;padding:0 0 3mm;margin:0 0 5mm}
