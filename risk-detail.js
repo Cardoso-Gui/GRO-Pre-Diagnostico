@@ -1,4 +1,4 @@
-import {riskDetailStatus} from './risk-detail-status.js?v=20261019-detail1';
+import {riskDetailStatus} from './risk-detail-status.js?v=20261019-epi1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {saveAssessment} from './assessment-data.js';
@@ -36,18 +36,8 @@ function render(){
  const article=document.createElement('article');article.append($('#detail-template').content.cloneNode(true));article.querySelector('h2').textContent=risk.name;article.querySelector('.tag').textContent=`${risk.group} · ${risk.code} · ${risk.source}`;article.dataset.group=groupKey(risk.group);
  if(risk.code==='SAN.001') article.querySelector('.hint').textContent='Contato do trabalhador com vírus, bactérias, fungos ou parasitas presentes em alimentos, resíduos, utensílios ou superfícies contaminadas.';
  article.querySelectorAll('[data-field]').forEach(field=>{field.maxLength=4000;field.value=data[field.dataset.field]||'';field.addEventListener('input',()=>{data[field.dataset.field]=field.value;details.set(key,data);say('Alterações ainda não salvas. Você pode alternar entre cargos ou GHEs antes de salvar.');});});
- const epiKey=detailKey('epi-data',target.id,risk.code),epi=epis.get(epiKey)||{applicable:'',items:[]};
  const choices=Array.from(article.querySelectorAll('.choices input'));
- const items=article.querySelector('#detail-epi-items'),epiLabel=article.querySelector('#detail-epi-label');
- choices.forEach((field,i)=>{field.checked=Boolean(data.controls?.[i])||(i===2&&epi.applicable==='Sim');});
- if(choices[2].checked){data.controls=choices.map(el=>el.checked);details.set(key,data);epi.applicable='Sim';epis.set(epiKey,epi);}
- items.value=(epi.items||[]).join('\n');epiLabel.hidden=!choices[2].checked;
- choices.forEach(field=>{field.onchange=()=>{
-  data.controls=choices.map(el=>el.checked);details.set(key,data);
-  epi.applicable=choices[2].checked?'Sim':'Não';epis.set(epiKey,epi);
-  epiLabel.hidden=!choices[2].checked;say('Alterações ainda não salvas.');
- };});
- items.oninput=()=>{epi.items=[...new Set(items.value.split('\n').map(v=>v.trim()).filter(Boolean))];epis.set(epiKey,epi);say('Alterações ainda não salvas.');};
+ choices.forEach((field,i)=>{field.checked=Boolean(data.controls?.[i]);field.onchange=()=>{data.controls=[...choices.map(el=>el.checked),Boolean(data.controls?.[2])];details.set(key,data);say('Alterações ainda não salvas.');};});
  $('#cards').append(article);updateProgress();
  if(moveFocus){const title=article.querySelector('h2');title.tabIndex=-1;title.focus({preventScroll:true});article.scrollIntoView({block:'start'});}
 }
@@ -66,9 +56,7 @@ $('#back').onclick=e=>{if(saving){e.preventDefault();say('Aguarde o salvamento t
 window.addEventListener('beforeunload',event=>{if(dirty()||saving){event.preventDefault();event.returnValue=''}});
 
 async function persistDetails(){
- const risk=targets[current]?.risks[index];if(risk){const key=detailKey('epi-data',targets[current].id,risk.code);const epi=epis.get(key)||{items:[]};epi.applicable=$('#detail-epi-label')?.hidden?'Não':'Sim';epis.set(key,epi);}
-
- if(saving||!row)return false;saving=true;$('#next').disabled=true;const version=fingerprint();const snapshot=JSON.parse(JSON.stringify(detailAnswers(row.answers,details,epis)));
+ if(saving||!row)return false;saving=true;$('#next').disabled=true;const version=fingerprint();const snapshot=JSON.parse(JSON.stringify(detailAnswers(row.answers,details)));
  try{const access=await getTeamMember();if(!access.member)throw Error('Não foi possível confirmar seu acesso. Mantenha esta página aberta e tente novamente.');row=await saveAssessment(authClient,row,snapshot);baseline=version;say(dirty()?'Detalhamento salvo. Há alterações posteriores ainda não salvas.':'Detalhamento salvo no rascunho.');return !dirty();}
  catch(error){say(error.message);return false}finally{saving=false;$('#next').disabled=false}
 }
@@ -96,7 +84,6 @@ function validateCurrentRisk(){
  const card=$('#cards'),missing=[];
  const labels={source:'Informe a fonte ou situação de exposição.',frequency:'Selecione a frequência.',duration:'Informe o tempo ou circunstância de exposição.',damage:'Descreva os possíveis danos à saúde.',measures:'Descreva as medidas existentes; informe se não houver.',measure:'Informe se precisa medir ou avaliar.'};
  for(const [key,text] of Object.entries(labels)){const el=card.querySelector('[data-field="'+key+'"]');if(el&&!el.value.trim())missing.push({text,element:el});}
- const epi=card.querySelector('#detail-epi-items');if(epi&&!card.querySelector('#detail-epi-label').hidden&&!epi.value.trim())missing.push({text:'Informe quais EPIs são utilizados.',element:epi});
  return GRO_VALIDATE.show(missing);
 }
 
