@@ -1,3 +1,4 @@
+import {compactPrintReport} from './report-print-compact.js?v=20261019-compact1';
 const make=(tag,text='',className='')=>{const el=document.createElement(tag);el.textContent=text;el.className=className;return el;};
 const normalized=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 export function reportVisitDate(answers){
@@ -149,19 +150,23 @@ export function mountReportViewer(content,data){
   image.replaceWith(button);button.append(image);
   on(button,'click',()=>{large.src=image.src;large.alt=image.alt;$('#report-photo-title').textContent=image.alt;dialog.showModal();});
  }
- // Native details create fragmentation containers in Chromium printing. Temporarily
- // flatten them, moving (not copying) nodes so photos and all saved text stay intact.
+ // Format a disposable print copy; restore the original nodes, listeners and states.
  const beforePrint=()=>{
-  if(printState)return;printState=[];
-  for(const original of [...content.querySelectorAll('details')]){
-   const replacement=make('div');
-   for(const attribute of original.attributes)if(attribute.name!=='open')replacement.setAttribute(attribute.name,attribute.value);
-   replacement.append(...original.childNodes);original.replaceWith(replacement);
-   printState.push({original,replacement});
-  }
+  if(printState)return;
+  printState=[...content.childNodes];
+  const copies=printState.map(el=>el.cloneNode(true));
+  content.replaceChildren(...copies);
+  try{
+   for(const original of [...content.querySelectorAll('details')]){
+    const replacement=make('div');
+    for(const attribute of original.attributes)if(attribute.name!=='open')replacement.setAttribute(attribute.name,attribute.value);
+    replacement.append(...original.childNodes);original.replaceWith(replacement);
+   }
+   compactPrintReport(content);
+  }catch(error){content.replaceChildren(...printState);printState=null;throw error;}
  };
  const afterPrint=()=>{
-  if(printState){for(const {original,replacement} of printState.reverse()){original.append(...replacement.childNodes);replacement.replaceWith(original);}printState=null;}
+  if(printState){content.replaceChildren(...printState);printState=null;}
  };
  on(window,'beforeprint',beforePrint);on(window,'afterprint',afterPrint);
  return {destroy(){controls.abort();afterPrint();closePhoto();printStyle.remove();index.replaceChildren();select.replaceChildren();overview.replaceChildren();input.value='';searchStatus.textContent='';content.classList.remove('viewer-searching');}};
