@@ -21,7 +21,7 @@ function showMessage(text, kind = 'error') {
 }
 function setBusy(value) {
   busy = value; submit.disabled = value; submit.setAttribute('aria-busy', String(value));
-  submit.querySelector('span').textContent = value ? 'Verificando acesso…' : 'Entrar na minha conta';
+  submit.querySelector('span').textContent = value ? 'Verificando acesso…' : 'Entrar';
   username.readOnly = value; password.readOnly = value;
   keepConnected.disabled=value;rememberUsername.disabled=value;
 }
