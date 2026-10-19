@@ -4,7 +4,7 @@ import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
 import {organizeReport} from './report-layout.js?v=20260929-update1';
 import {addReuseButton} from './reuse-report.js?v=20260929-update1';
-import {mountReportViewer,reportVisitDate} from './report-viewer.js?v=20261019-fit1';
+import {mountReportViewer,reportVisitDate} from './report-viewer.js?v=20261019-columns1';
 const message=document.querySelector('#report-status'),content=document.querySelector('#report-content'),print=document.querySelector('#report-print');
 const tags=new Set(['section','div','article','h2','h3','h4','p','span','strong','small','ul','li']);
 function renderNode(node,depth=0){
