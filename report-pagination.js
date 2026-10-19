@@ -119,7 +119,7 @@ export function paginateReport(content,title='Relatório do levantamento'){
    hasContent=true;pendingHeadings=[];
   }
  }
- // Keep each complete category in its own column when both fit on one sheet.
+ // Keep the two categories in their own columns, including across page breaks.
  function categoryPair(left,right){
   if(left?.dataset?.type!=='physical'||right?.dataset?.type!=='ergonomic')return null;
   const grid=document.createElement('div');grid.className='print-risk-columns print-category-pair';
@@ -130,14 +130,52 @@ export function paginateReport(content,title='Relatório do levantamento'){
   }
   const measure=document.createElement('div');measure.className='print-risk-measure';measure.append(grid);content.append(measure);
   const height=grid.getBoundingClientRect().height;measure.remove();
-  // Reserve room for the repeated group heading and page context. Larger
-  // categories keep the existing independently paginated layout.
+  // Avoid making large categories consume many half-empty pages. A selected
+  // pair still has dedicated overflow handling if the real page is tighter.
   return height>0&&height<=900?grid:null;
+ }
+ function putCategoryPair(original,chain,ctx){
+  const queues=[...original.children].map(col=>[...col.querySelectorAll('.viewer-risk')]);
+  let first=true;
+  while(queues.some(q=>q.length)){
+   const grid=original.cloneNode(false);
+   const columns=[...original.children].map((col,i)=>{
+    const copy=col.cloneNode(false);const heading=col.querySelector('h4');
+    if(heading&&queues[i].length)copy.append(heading.cloneNode(true));grid.append(copy);return copy;
+   });
+   parent(chain).append(grid);
+   // Retry the complete categories on a fresh sheet before splitting cards.
+   if(first){
+    columns.forEach((col,i)=>queues[i].forEach(r=>col.append(r.cloneNode(true))));
+    if(fits()){hasContent=true;pendingHeadings=[];return;}
+    grid.remove();
+    if(hasContent){next(ctx);first=false;continue;}
+    parent(chain).append(grid);
+    columns.forEach(col=>col.querySelectorAll('.viewer-risk').forEach(r=>r.remove()));
+   }
+   first=false;let placed=0;
+   for(let i=0;i<2;i++){
+    while(queues[i].length){
+     const card=queues[i][0].cloneNode(true);columns[i].append(card);
+     if(!fits()){card.remove();break;}
+     queues[i].shift();placed++;hasContent=true;pendingHeadings=[];
+    }
+   }
+   if(!placed){
+    grid.remove();cleanEmpty();
+    // An exceptionally tall card uses the existing full-width splitter;
+    // never send the column wrapper through generic recursive pagination.
+    const queue=queues.find(q=>q.length),card=queue.shift().cloneNode(true);
+    card.classList.remove('print-risk-card');put(card,chain,ctx);
+   }
+   if(queues.some(q=>q.length))next(ctx);
+  }
  }
  function put(original,chain=[],ctx=''){
   if(original.nodeType===3){if(original.textContent.trim())textPieces(original,chain,ctx);return;}
   if(original.nodeType!==1)return;
   const tag=original.tagName;
+  if(original.classList.contains('print-category-pair')){putCategoryPair(original,chain,ctx);return;}
   if(original.classList.contains('viewer-category')){putCategory(original,chain,ctx);return;}
   // Group and section containers may naturally span sheets.
   const container=original.matches('.report-block,.viewer-group,.viewer-category,.report-card-list,.viewer-inventory,table,tbody');
