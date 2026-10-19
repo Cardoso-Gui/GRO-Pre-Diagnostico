@@ -35,7 +35,7 @@ export function compactPrintReport(content){
    if(!filled(value))continue;
    if(label==='Frequência'||label==='Tempo/circunstância'){
     if(!exposureAdded){const values=[['Frequência',get('Frequência')],['Tempo/circunstância',get('Tempo/circunstância')]].filter(([,v])=>filled(v));rows.push(['Exposição',values.map(([l,v])=>l+': '+v).join(' · ')]);exposureAdded=true;}
-   }else if(label==='Melhorias propostas'&&reference)rows.push(['Recomendação',reference+' — ver Recomendações consolidadas']);
+   }else if(label==='Melhorias propostas'&&reference){const link=node('span',reference+' — Recomendações consolidadas, pág. 0000');link.dataset.printReference=reference;rows.push(['Recomendação',link]);}
    else rows.push([label,value]);
   }
   const extra=[...card.children].filter(el=>!el.classList.contains('report-detail-field'));
@@ -47,7 +47,8 @@ export function compactPrintReport(content){
   const section=node('section','','report-block compact-recommendations');
   section.append(node('h3','Recomendações consolidadas'));
   if(recommendations.size)section.append(table(['Ref.','Cargo/GHE e risco','Recomendação registrada'],[...recommendations.values()].map(item=>[item.ref,stacked([...item.links].map(([target,risks])=>target+'\n'+risks.join('\n'))),item.value]),'compact-recommendations-table'));
-  else section.append(node('p','Nenhuma melhoria adicional informada. Registros como “n/a” permanecem nas fichas dos riscos.'));
+  for(const [index,row] of [...section.querySelectorAll('.compact-recommendations-table tbody tr')].entries()){row.dataset.recommendationRef=[...recommendations.values()][index].ref;}
+  if(!recommendations.size)section.append(node('p','Nenhuma melhoria adicional informada. Registros como “n/a” permanecem nas fichas dos riscos.'));
   section.append(node('h4','Medições e avaliações indicadas'));
   if(measurements.length)section.append(table(['Ref. do risco','Cargo/GHE','Risco'],measurements.map(([key,target,name,code])=>[key,target,name+' · '+code])));
   else section.append(node('p','Nenhuma medição ou avaliação marcada como necessária.'));
@@ -71,7 +72,7 @@ export function compactPrintReport(content){
     const bindings=node('div');for(const binding of item.links){const p=node('p');p.append(node('strong',binding.target));for(const line of binding.criteria)p.append(node('br'),document.createTextNode(line));bindings.append(p);}
     return [stacked([item.title,item.reason].filter(Boolean)),bindings];
    });
-   training.querySelector('.report-card-list')?.replaceWith(table(['Treinamento / justificativa','Cargos/GHEs e critérios registrados'],rows));
+   training.querySelector('.report-card-list')?.replaceWith(table(['Treinamento / justificativa','Cargos/GHEs e critérios registrados'],rows,'compact-training'));
   }
  }
  const epis=find('EPIs informados');

@@ -1,4 +1,5 @@
-import {compactPrintReport} from './report-print-compact.js?v=20261019-compact1';
+import {paginateReport} from './report-pagination.js?v=20261019-pages1';
+import {compactPrintReport} from './report-print-compact.js?v=20261019-pages1';
 const make=(tag,text='',className='')=>{const el=document.createElement(tag);el.textContent=text;el.className=className;return el;};
 const normalized=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 export function reportVisitDate(answers){
@@ -105,7 +106,7 @@ export function mountReportViewer(content,data){
  const printStyle=make('style');printStyle.textContent='@page { @top-left { content: '+JSON.stringify(companyName.replace(/[\r\n]/g,' ').slice(0,110))+'; font: 8pt Arial; color: #36584e; } @top-right { content: '+JSON.stringify(revision)+'; font: 8pt Arial; color: #36584e; } }';document.head.append(printStyle);
  const sections=[...content.children],index=$('#report-index'),select=$('#report-section-select');
  index.replaceChildren();select.replaceChildren();
- let active=0,searchState=null,printState=null;
+ let active=0,searchState=null,printState=null,printLayoutStyle=null;
  const titles=sections.map((section,i)=>{section.classList.add('viewer-section');section.id='report-section-'+i;return section===cover?'Visão geral':section.querySelector('h3')?.textContent||'Informações complementares';});
  const activate=(i,focus=false)=>{
   active=i;sections.forEach((el,n)=>el.dataset.active=String(i===n));
@@ -163,9 +164,18 @@ export function mountReportViewer(content,data){
     replacement.append(...original.childNodes);original.replaceWith(replacement);
    }
    compactPrintReport(content);
-  }catch(error){content.replaceChildren(...printState);printState=null;throw error;}
+   // beforeprint may run before the browser activates print media. Apply the
+   // same rules while measuring, then remove them when printing finishes.
+   printLayoutStyle=make('style');
+   const rules=[];
+   for(const sheet of [...document.styleSheets]){try{for(const rule of sheet.cssRules)if(rule.type===CSSRule.MEDIA_RULE&&rule.conditionText==='print')rules.push(...[...rule.cssRules].map(r=>r.cssText));}catch{}}
+   printLayoutStyle.textContent=rules.join('\n');document.head.append(printLayoutStyle);
+   document.body.classList.add('report-paginated');paginateReport(content,document.querySelector('#report-title')?.textContent||'Relatório do levantamento');
+  }catch(error){printLayoutStyle?.remove();printLayoutStyle=null;document.body.classList.remove('report-paginated');content.replaceChildren(...printState);printState=null;throw error;}
  };
  const afterPrint=()=>{
+  printLayoutStyle?.remove();printLayoutStyle=null;
+  document.body.classList.remove('report-paginated');
   if(printState){content.replaceChildren(...printState);printState=null;}
  };
  on(window,'beforeprint',beforePrint);on(window,'afterprint',afterPrint);
