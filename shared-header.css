@@ -1,0 +1,39 @@
+/* Shared compact navigation, scoped to avoid affecting page content. */
+header.topbar.unified-header.gro-shared{display:block;height:auto;min-height:76px;padding:0;background:#fff;border-bottom:1px solid #dce5e7;color:#214537;font-family:Inter,"Segoe UI",Arial,sans-serif;position:relative;z-index:30}
+header.topbar.unified-header.gro-shared .topbar-inner{box-sizing:border-box;max-width:1280px;min-height:76px;height:auto;margin:auto;padding:12px 24px;display:flex;flex-wrap:nowrap;align-items:center;gap:24px;position:relative}
+header.topbar.unified-header.gro-shared .brand{display:flex;align-items:center;flex:0 0 auto;gap:8px;color:#124c3e;text-decoration:none}
+header.topbar.unified-header.gro-shared .brand small{display:none}
+header.topbar.unified-header.gro-shared .brand-mark{display:grid;place-items:center;width:32px;height:38px;border:0;background:none;color:#137b68}
+header.topbar.unified-header.gro-shared svg{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+header.topbar.unified-header.gro-shared .brand-mark svg{width:30px;height:30px}
+header.topbar.unified-header.gro-shared .brand strong{display:block;font-size:28px;line-height:1.1;letter-spacing:-1px}
+header.topbar.unified-header.gro-shared nav{position:static;display:flex;order:0;width:auto;min-height:0;flex:1;justify-content:center;gap:6px;flex-wrap:nowrap;align-self:center;overflow:visible}
+header.topbar.unified-header.gro-shared nav a{display:flex;align-items:center;min-height:42px;box-sizing:border-box;padding:10px 12px;border:0;border-radius:8px;font-size:13px;font-weight:600;color:#29483e;text-decoration:none;white-space:nowrap}
+header.topbar.unified-header.gro-shared nav a:hover{background:#f2f6ee}
+header.topbar.unified-header.gro-shared nav .nav-current{background:#eaf2e5;color:#125844}
+header.topbar.unified-header.gro-shared .user-menu{display:flex;align-items:center;position:relative;flex:0 0 auto;margin:0;gap:10px}
+header.topbar.unified-header.gro-shared .profile-toggle{display:flex;align-items:center;gap:10px;border:0;background:transparent;color:#214537;min-height:44px;width:auto;padding:0 4px;border-radius:8px;font:13px "Segoe UI",sans-serif;box-shadow:none;cursor:pointer}
+header.topbar.unified-header.gro-shared .avatar{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:#e6f1ed;color:#286554;font-size:12px;font-weight:750}
+header.topbar.unified-header.gro-shared .profile-chevron{font-size:20px}
+header.topbar.unified-header.gro-shared .profile-panel{position:absolute;right:0;top:calc(100% + 14px);box-sizing:border-box;width:250px;max-width:calc(100vw - 32px);z-index:20;background:#fff;border:1px solid #d8e4d3;border-radius:12px;padding:18px;box-shadow:0 12px 32px #1e382d20}
+header.topbar.unified-header.gro-shared [hidden]{display:none!important}
+header.topbar.unified-header.gro-shared .profile-panel .user-info{display:block;overflow-wrap:anywhere}
+header.topbar.unified-header.gro-shared .user-info strong{display:block;font-size:14px;white-space:normal}
+header.topbar.unified-header.gro-shared .user-info small{display:block;font-size:12px;margin-top:6px;color:#71818a}
+header.topbar.unified-header.gro-shared .sign-out{display:flex;align-items:center;gap:7px;margin:16px 0 0;padding:14px 0 0;border:0;border-radius:0;border-top:1px solid #e0e7dd;width:100%;min-height:44px;color:#315447;background:none;box-shadow:none;font-size:13px;cursor:pointer}
+header.topbar.unified-header.gro-shared .sign-out svg{width:18px;height:18px}
+header.topbar.unified-header.gro-shared .home-menu-toggle{display:none}
+header.topbar.unified-header.gro-shared :focus-visible{outline:3px solid #369d88;outline-offset:3px}
+@media(max-width:1100px){
+ header.topbar.unified-header.gro-shared .topbar-inner{gap:12px;padding:12px 16px}
+ header.topbar.unified-header.gro-shared .home-menu-toggle{display:block;width:auto;margin-left:auto;min-height:44px;padding:8px 12px;background:white;border:1px solid #cfdeca;border-radius:8px;color:#17533f;font-size:13px;box-shadow:none}
+ header.topbar.unified-header.gro-shared nav{display:none;position:absolute;right:16px;top:calc(100% - 2px);box-sizing:border-box;width:min(300px,calc(100vw - 32px));padding:10px;z-index:15;background:white;border:1px solid #d8e4d3;border-radius:10px;box-shadow:0 12px 32px #1e382d20;max-height:calc(100svh - 100px);overflow:auto}
+ header.topbar.unified-header.gro-shared nav.is-open{display:flex;flex-direction:column;align-items:stretch;gap:4px}
+ header.topbar.unified-header.gro-shared nav a{font-size:14px;min-height:44px}
+}
+@media(max-width:760px){
+ header.topbar.unified-header.gro-shared #profile-short-name,header.topbar.unified-header.gro-shared .profile-chevron{display:none}
+ header.topbar.unified-header.gro-shared .profile-toggle{padding:0}
+ header.topbar.unified-header.gro-shared .avatar{width:38px;height:38px}
+}
+@media print{header.topbar.unified-header.gro-shared{display:none!important}}
