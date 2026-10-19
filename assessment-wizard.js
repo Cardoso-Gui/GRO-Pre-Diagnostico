@@ -7,7 +7,7 @@ export function initAssessmentWizard(){
  const management=document.createElement('div');management.id='ghe-management-list';management.className='risk-selection-grid';
  $('#risk-mode-section').append($('#ghe-form'),management);
  const blocks=groups.map(selectors=>selectors.flatMap(s=>[...document.querySelectorAll(s)]));
- const hints=['Escolha um cliente cadastrado para começar.','Informe o número de funcionários e confira o dimensionamento.','Cadastre os setores e os cargos da empresa.','Escolha a organização e configure os grupos e seus vínculos.','Selecione os riscos e preencha seus detalhes.','Confira os equipamentos de proteção de cada risco.','Gere o relatório após conferir as informações. Os campos pendentes serão indicados.'];
+ const hints=['Escolha um cliente cadastrado para começar.','Informe o número de funcionários e confira o dimensionamento.','Cadastre os setores e os cargos da empresa.','Escolha a organização e configure os grupos e seus vínculos.','Abra um grupo para selecionar e detalhar seus riscos.','Confira os equipamentos de proteção de cada risco.','Gere o relatório após conferir as informações. Os campos pendentes serão indicados.'];
  let active=0,ready=false,draftId='',scheduled=false;
  const nav=$('#wizard-steps'),select=$('#wizard-step-select'),save=$('#save-draft-button');
  $('#wizard-save-slot').append(save);save.disabled=true;save.title='Escolha a empresa e continue para salvar o rascunho';
