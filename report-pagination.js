@@ -89,9 +89,17 @@ export function paginateReport(content,title='Relatório do levantamento'){
   const heading=/^H[1-6]$/.test(tag)||tag==='SUMMARY';
   const reserve=heading?38:0;
   let copy=original.cloneNode(true);parent(chain).append(copy);
+  // Screen-only controls must not count as content or detach pending headings.
+  if(getComputedStyle(copy).display==='none'){copy.remove();cleanEmpty();return;}
   const accepted=()=>{hasContent=true;if(heading)pendingHeadings.push({copy,original,chain,ctx});else pendingHeadings=[];};
   if(fits(reserve)){accepted();return;}
   copy.remove();cleanEmpty();
+  if(original.classList.contains('print-risk-pair')&&hasContent){
+   const singles=[...original.children].map(risk=>{const clone=risk.cloneNode(true);clone.classList.remove('print-risk-card');return clone;});
+   const probe=singles[0].cloneNode(true);parent(chain).append(probe);
+   const firstFits=fits();probe.remove();cleanEmpty();
+   if(firstFits){for(const risk of singles)put(risk,chain,ctx);return;}
+  }
   if(hasContent){next(ctx);copy=original.cloneNode(true);parent(chain).append(copy);if(fits(reserve)){accepted();return;}copy.remove();cleanEmpty();}
   // Oversized records are split by their existing fields, preserving all text.
   if(tag==='TR'){
