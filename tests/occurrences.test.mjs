@@ -77,8 +77,8 @@ test('CNPJ and counts use Brazilian formatting with explicit zeros and singular'
 test('occurrences keeps shared header assets, the existing insert scope, and no workflow controls', () => {
  const html = fs.readFileSync(new URL('../occurrences.html', import.meta.url), 'utf8');
  const js = fs.readFileSync(new URL('../occurrences.js', import.meta.url), 'utf8');
- assert.match(html, /shared-header\.css\?v=20261019-menu1/);
- assert.match(html, /shared-header\.js\?v=20261019-menu1/);
+ assert.match(html, /shared-header\.css\?v=20261019-profile2/);
+ assert.match(html, /shared-header\.js\?v=20261019-profile2/);
  assert.match(js, /from '\.\/app-header\.js\?v=20261019-access1'/);
  assert.match(html, /<dialog id="occ-dialog" aria-labelledby="form-heading"/);
  assert.doesNotMatch(js, /\.from\('occurrences'\)\.(delete|update|upsert)/);

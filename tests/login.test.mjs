@@ -6,7 +6,7 @@ import { normalizeUsername, friendlyAuthError } from '../auth-utils.js';
 
 const source = await fs.readFile(new URL('../login.js', import.meta.url), 'utf8');
 const utilities = await fs.readFile(new URL('../auth-utils.js', import.meta.url), 'utf8');
-async function fixture({ signInError = null, member = { display_name: 'Teste' }, memberError = null, reason = 'membership', session = null } = {}) {
+async function fixture({ preferences = {keepConnected: false, username: ''}, signInError = null, member = { display_name: 'Teste' }, memberError = null, reason = 'membership', session = null } = {}) {
   const elements = new Map();
   function element(id) {
     if (!elements.has(id)) elements.set(id, { value: '', hidden: true, type: id === 'password' ? 'password' : 'text', dataset: {}, attrs: {}, handlers: {}, textContent: '', disabled: false,
@@ -14,7 +14,7 @@ async function fixture({ signInError = null, member = { display_name: 'Teste' },
       setAttribute(k, v) { this.attrs[k] = v; }, querySelector() { return element(id + '-span'); }, focus() {}, reportValidity() { return true; } });
     return elements.get(id);
   }
-  const calls = { signins: [], signouts: 0, redirects: [] };
+  const calls = { signins: [], signouts: 0, redirects: [], remembered: [] };
   const client = { auth: {
     async getSession() { return { data: { session } }; },
     async signInWithPassword(input) { calls.signins.push(input); return { error: signInError }; },
@@ -23,8 +23,8 @@ async function fixture({ signInError = null, member = { display_name: 'Teste' },
   const context = vm.createContext({ URL, URLSearchParams, navigator: { onLine: true }, document: { querySelector: s => element(s.slice(1)), getElementById: element },
     location: { href: 'https://example.test/GRO-Pre-Diagnostico/index.html', search: '', replace: url => calls.redirects.push(url) } });
   const auth = new vm.SyntheticModule(['authClient', 'getTeamMember', 'signInWithUsername', 'loginStorage'], function () {
-    this.setExport('loginStorage',{preferences:()=>({keepConnected:false,username:''}),rememberUsername(){}});
-    this.setExport('signInWithUsername', async (username, password) => { calls.signins.push({ username, password }); return { error: signInError }; });
+    this.setExport('loginStorage',{preferences:()=>preferences,rememberUsername(value){calls.remembered.push(value);}});
+    this.setExport('signInWithUsername', async (username, password, keepConnected) => { calls.signins.push({ username, password, keepConnected }); return { error: signInError }; });
     this.setExport('authClient', client); this.setExport('getTeamMember', async () => ({ member, error: memberError, reason }));
   }, { context });
   const utils = new vm.SourceTextModule(utilities, { context });
@@ -71,3 +71,33 @@ test('network and rate limit errors have actionable messages', () => {
   assert.match(friendlyAuthError({ status: 429 }), /Aguarde/);
   assert.match(friendlyAuthError({}, false), /internet/);
 });
+
+test('login preferences remain native labeled checkboxes without custom roles or forced defaults', async () => {
+  const html = await fs.readFile(new URL('../index.html', import.meta.url), 'utf8');
+  for (const [id, label] of [['keep-connected', 'Manter conectado'], ['remember-username', 'Lembrar usuário']]) {
+    const tag = html.match(new RegExp(`<label><input ([^>]*id="${id}"[^>]*)> ${label}</label>`))?.[1];
+    assert.ok(tag, `${id} keeps its accessible label`);
+    assert.match(tag, /type="checkbox"/);
+    assert.doesNotMatch(tag, /\b(?:role|tabindex|checked|disabled)(?:\s|=|$)/);
+  }
+});
+test('login preferences preserve saved independent defaults', async () => {
+  const f = await fixture({preferences: {keepConnected: false, username: 'ana.silva'}});
+  assert.equal(f.element('keep-connected').checked, false);
+  assert.equal(f.element('remember-username').checked, true);
+  assert.equal(f.element('username').value, 'ana.silva');
+  f.element('remember-username').checked = false;
+  f.element('remember-username').handlers.change();
+  assert.deepEqual(f.calls.remembered, ['']);
+  assert.equal(f.element('keep-connected').checked, false);
+});
+for (const keepConnected of [false, true]) for (const rememberUsername of [false, true]) {
+  test(`login preferences remain independent: connected=${keepConnected}, remember=${rememberUsername}`, async () => {
+    const f = await fixture();
+    f.element('keep-connected').checked = keepConnected;
+    f.element('remember-username').checked = rememberUsername;
+    await f.submit();
+    assert.equal(f.calls.signins[0].keepConnected, keepConnected);
+    assert.deepEqual(f.calls.remembered, [rememberUsername ? 'gui.cardoso' : '']);
+  });
+}
