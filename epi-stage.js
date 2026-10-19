@@ -20,7 +20,7 @@ export function renderEpiStage(force=false){
   heading.append(label,el('span',target.risks.length+' riscos · '+pending+' pendente(s)','epi-group-count'));group.append(heading);
   target.risks.forEach(risk=>{
    const value=entries.get(detailKey('epi-data',target.id,risk.code))||{},state=epiState(value);
-   const row=el('div',null,'epi-risk-row'),name=el('div'),info=el('div');
+   const row=el('div',null,'epi-risk-row'),name=el('div'),info=el('div');row.dataset.riskCode=risk.code;
    const category=el('small',risk.group,'epi-category');category.dataset.group=String(risk.group).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
    name.append(category,el('strong',risk.name));info.append(el('span',state,'epi-state '+(state==='Pendente'?'pending':'')));
    if(value.applicable==='Sim') {const chips=el('div',null,'epi-chips');(value.items||[]).forEach(item=>chips.append(el('span',item)));info.append(chips);}
