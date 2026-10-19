@@ -47,6 +47,7 @@ async function verifyAccess() {
     resumeMember=member; updateHeader(member); const name = member.display_name.trim();
     document.querySelector('#user-name').textContent = name;
     document.querySelector('#greeting-name').textContent = name.split(/\s+/)[0];
+    document.querySelector('#profile-short-name').textContent = name.split(/\s+/)[0];
     document.querySelector('#user-avatar').textContent = name.split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
     document.querySelector('#user-role').textContent = member.is_super_admin ? 'Administrador geral' : member.role === 'admin' ? 'Administrador' : 'Equipe';
     document.querySelector('#today').textContent = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
@@ -169,4 +170,29 @@ homeNavigation.addEventListener('keydown', event => {
   homeMenuToggle.setAttribute('aria-expanded', 'false');
   homeMenuToggle.focus();
  }
+});
+
+const profileToggle = document.querySelector('#profile-toggle');
+const profilePanel = document.querySelector('#profile-panel');
+function closeProfile() {
+ profilePanel.hidden = true;
+ profileToggle.setAttribute('aria-expanded', 'false');
+}
+function closeHomeNavigation() {
+ homeNavigation.classList.remove('is-open');
+ homeMenuToggle.setAttribute('aria-expanded', 'false');
+}
+profileToggle.addEventListener('click', () => {
+ const opening = profilePanel.hidden;
+ closeHomeNavigation();
+ profilePanel.hidden = !opening;
+ profileToggle.setAttribute('aria-expanded', String(opening));
+});
+homeMenuToggle.addEventListener('click', closeProfile);
+document.addEventListener('click', event => {
+ if (!event.target.closest('.user-menu')) closeProfile();
+ if (!homeNavigation.contains(event.target) && !homeMenuToggle.contains(event.target)) closeHomeNavigation();
+});
+document.addEventListener('keydown', event => {
+ if (event.key === 'Escape' && !profilePanel.hidden) {closeProfile();profileToggle.focus();}
 });
