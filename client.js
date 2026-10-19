@@ -102,6 +102,7 @@ async function initialize() {
         const row = await readClient();
         if (!row) throw new Error('Cliente não encontrado ou indisponível para sua equipe.');
         populate(row);
+        if(new URLSearchParams(location.search).get('edit')==='1')mode(true);
       } else mode(true);
       initialized = true;
     }
