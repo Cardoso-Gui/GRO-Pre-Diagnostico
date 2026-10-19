@@ -11,6 +11,7 @@ function fixture(){
  return {ctx,detail,epi,check:()=>ctx.getReportMissingFields()};
 }
 test('dados completos e resposta Não permitem gerar',()=>assert.equal(fixture().check().length,0));
+test('pendência de EPI aponta para etapa 6, sem abrir o detalhamento',()=>{const f=fixture();f.epi.applicable='';const missing=f.ctx.getReportMissingFields(true);assert.equal(missing[0].section,'EPIs');assert.equal(missing[0].destination,'#wizard-epi');assert.equal(missing[0].riskTarget,'');});
 test('medição em branco bloqueia; Sim não exige valor quantitativo',()=>{const f=fixture();f.detail.measure='';assert.ok(f.check().some(x=>x.includes('medir/avaliar')));f.detail.measure='Sim';assert.equal(f.check().length,0)});
 test('EPI Sim exige equipamento e fonte em branco bloqueia',()=>{const f=fixture();f.epi.applicable='Sim';f.detail.source=' ';assert.equal(f.check().length,2)});
 test('ausência oficial dispensa detalhamento',()=>{const f=fixture();f.ctx.getRiskSelections=()=>[{risk:{code:'09.01.001'}}];assert.equal(f.check().length,0)});
