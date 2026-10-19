@@ -93,6 +93,29 @@ h1{font-size:32px;line-height:1.15;margin:0 0 8px;letter-spacing:-1px;color:#103
 .reveal{top:4px}
 .login-preferences{display:flex;gap:8px 24px;margin:0;flex-wrap:wrap}
 .login-preferences label{font-size:12px;min-height:32px}
+/* Native independent checkboxes, with a circular visual treatment. */
+.login-preferences input[type="checkbox"]{
+ -webkit-appearance:none;appearance:none;display:grid;place-items:center;flex-shrink:0;
+ width:18px;height:18px;margin:0;border:2px solid #678779;border-radius:50%;
+ background:#fff;color:#fff;cursor:pointer;
+}
+.login-preferences input[type="checkbox"]::before{
+ content:"";width:5px;height:9px;border:solid currentColor;border-width:0 2px 2px 0;
+ transform:translateY(-1px) rotate(45deg) scale(0);
+}
+.login-preferences input[type="checkbox"]:checked{background:#125d49;border-color:#125d49}
+.login-preferences input[type="checkbox"]:checked::before{transform:translateY(-1px) rotate(45deg) scale(1)}
+.login-preferences input[type="checkbox"]:not(:disabled):hover{border-color:#125d49}
+.login-preferences input[type="checkbox"]:focus-visible{outline:3px solid #137b68;outline-offset:3px}
+.login-preferences input[type="checkbox"]:disabled{opacity:.6;cursor:not-allowed}
+@media(forced-colors:active){
+ .login-preferences input[type="checkbox"]{forced-color-adjust:none;background:Canvas;border-color:ButtonText;color:CanvasText}
+ .login-preferences input[type="checkbox"]:checked{background:Highlight;border-color:Highlight;color:HighlightText}
+ .login-preferences input[type="checkbox"]:not(:disabled):hover{border-color:Highlight}
+ .login-preferences input[type="checkbox"]:focus-visible{outline-color:Highlight}
+ .login-preferences input[type="checkbox"]:disabled{border-color:GrayText;opacity:1}
+ .login-preferences input[type="checkbox"]:disabled:checked{background:GrayText;color:Canvas}
+}
 .password-tools{margin:-10px 0 0}
 .password-tools .text-button{font-size:12px;min-height:32px;text-decoration:underline}
 .primary{height:50px;border-radius:8px;background:#125d49;box-shadow:none}

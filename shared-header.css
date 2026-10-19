@@ -12,10 +12,14 @@ header.topbar.unified-header.gro-shared nav a{display:flex;align-items:center;mi
 header.topbar.unified-header.gro-shared nav a:hover{background:#f2f6ee}
 header.topbar.unified-header.gro-shared nav .nav-current{background:#eaf2e5;color:#125844}
 header.topbar.unified-header.gro-shared .user-menu{display:flex;align-items:center;position:relative;flex:0 0 auto;margin:0;gap:10px}
-header.topbar.unified-header.gro-shared .profile-toggle{display:flex;align-items:center;gap:10px;border:0;background:transparent;color:#214537;min-height:44px;width:auto;padding:0 4px;border-radius:8px;font:13px "Segoe UI",sans-serif;box-shadow:none;cursor:pointer}
-header.topbar.unified-header.gro-shared .avatar{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:#e6f1ed;color:#286554;font-size:12px;font-weight:750}
-header.topbar.unified-header.gro-shared .profile-chevron{font-size:20px}
-header.topbar.unified-header.gro-shared .profile-panel{position:absolute;right:0;top:calc(100% + 14px);box-sizing:border-box;width:250px;max-width:calc(100vw - 32px);z-index:20;background:#fff;border:1px solid #d8e4d3;border-radius:12px;padding:18px;box-shadow:0 12px 32px #1e382d20}
+header.topbar.unified-header.gro-shared .profile-toggle{display:flex;align-items:center;gap:9px;box-sizing:border-box;border:1px solid #e0e9e3;background:#f7faf8;color:#214537;min-height:46px;width:auto;padding:4px 11px 4px 5px;border-radius:999px;font:600 13px/1.2 Inter,"Segoe UI",Arial,sans-serif;box-shadow:0 1px 2px #21453705;cursor:pointer;transition:background-color .16s,border-color .16s,box-shadow .16s}
+header.topbar.unified-header.gro-shared .profile-toggle:hover,header.topbar.unified-header.gro-shared .profile-toggle[aria-expanded="true"]{background:#edf5ef;border-color:#bfd5c7;box-shadow:0 2px 8px #2145370a}
+header.topbar.unified-header.gro-shared #profile-short-name{display:block;min-width:0;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+header.topbar.unified-header.gro-shared .avatar{display:grid;place-items:center;box-sizing:border-box;flex:0 0 34px;width:34px;height:34px;border:1px solid #d4e7db;border-radius:50%;background:#e3efe7;color:#286554;font-size:12px;font-weight:750;line-height:1;letter-spacing:.02em}
+header.topbar.unified-header.gro-shared .profile-chevron{display:grid;place-items:center;flex:0 0 16px;width:16px;height:16px;color:#6a8275}
+header.topbar.unified-header.gro-shared .profile-chevron::before{content:"";width:6px;height:6px;border-right:1.75px solid currentColor;border-bottom:1.75px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .16s}
+header.topbar.unified-header.gro-shared .profile-toggle[aria-expanded="true"] .profile-chevron::before{transform:translateY(2px) rotate(225deg)}
+header.topbar.unified-header.gro-shared .profile-panel{position:absolute;right:0;top:calc(100% + 10px);box-sizing:border-box;width:250px;max-width:calc(100vw - 32px);z-index:20;background:#fff;border:1px solid #dce7df;border-radius:16px;padding:18px;box-shadow:0 12px 32px #1e382d18,0 2px 6px #1e382d08}
 header.topbar.unified-header.gro-shared [hidden]{display:none!important}
 header.topbar.unified-header.gro-shared .profile-panel .user-info{display:block;overflow-wrap:anywhere}
 header.topbar.unified-header.gro-shared .user-info strong{display:block;font-size:14px;white-space:normal}
@@ -33,7 +37,8 @@ header.topbar.unified-header.gro-shared :focus-visible{outline:3px solid #369d88
 }
 @media(max-width:760px){
  header.topbar.unified-header.gro-shared #profile-short-name,header.topbar.unified-header.gro-shared .profile-chevron{display:none}
- header.topbar.unified-header.gro-shared .profile-toggle{padding:0}
- header.topbar.unified-header.gro-shared .avatar{width:38px;height:38px}
+ header.topbar.unified-header.gro-shared .profile-toggle{min-height:44px;padding:4px}
+ header.topbar.unified-header.gro-shared .avatar{width:34px;height:34px}
 }
+@media(prefers-reduced-motion:reduce){header.topbar.unified-header.gro-shared .profile-toggle,header.topbar.unified-header.gro-shared .profile-chevron::before{transition:none}}
 @media print{header.topbar.unified-header.gro-shared{display:none!important}}
