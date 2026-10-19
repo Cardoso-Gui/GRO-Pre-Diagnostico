@@ -9,8 +9,8 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <meta name="referrer" content="no-referrer" />
     <script src="vendor/supabase-2.117.2.js?v=20260925-reports2" defer></script>
-    <script type="module" src="workspace.js?v=20261019-accordion1"></script>
-  <link rel="stylesheet" href="dimension.css?v=20260925-reports2"><link rel="stylesheet" href="./app-header.css?v=20260928-occ1"><link rel="stylesheet" href="./client-search.css?v=20260929-inline1"><link rel="stylesheet" href="home.css?v=20260928-occ1"><link rel="stylesheet" href="home-dashboard.css?v=20261019-header2"><link rel="stylesheet" href="assessment-wizard.css?v=20261019-accordion1"></head>
+    <script type="module" src="workspace.js?v=20261019-epi1"></script>
+  <link rel="stylesheet" href="dimension.css?v=20260925-reports2"><link rel="stylesheet" href="./app-header.css?v=20260928-occ1"><link rel="stylesheet" href="./client-search.css?v=20260929-inline1"><link rel="stylesheet" href="home.css?v=20260928-occ1"><link rel="stylesheet" href="home-dashboard.css?v=20261019-header2"><link rel="stylesheet" href="assessment-wizard.css?v=20261019-epi1"></head>
   <body class="home-page wizard-page">
     <section id="session-check" class="session-check" aria-live="polite"><p>Verificando seu acesso…</p><a href="index.html">Voltar ao login</a></section>
     <div id="protected-workspace" hidden>
@@ -271,7 +271,7 @@
           </section>
         </section>
       </section>
-    </main><section id="wizard-epi" hidden><p>Os EPIs são informados junto aos detalhes de cada risco. Confira a aplicabilidade e os equipamentos indicados antes de gerar o relatório.</p><p id="wizard-epi-summary"></p><button id="wizard-open-epi" type="button">Conferir EPIs nos detalhes dos riscos</button></section><p id="wizard-empty" role="status" hidden></p><div class="wizard-footer"><button id="wizard-back" type="button">← Etapa anterior</button><button id="wizard-next" type="button">Continuar →</button></div></div></div></div>
+    </main><section id="wizard-epi" data-wizard-step="5" tabindex="-1" hidden><p>Os equipamentos já cadastrados aparecem aqui. Edite somente o que precisar.</p><div id="epi-stage-content"></div></section><p id="wizard-empty" role="status" hidden></p><div class="wizard-footer"><button id="wizard-back" type="button">← Etapa anterior</button><button id="wizard-next" type="button">Continuar →</button></div></div></div></div>
 
     </div>
     <dialog id="leave-dialog" aria-labelledby="leave-title"><h2 id="leave-title">Alterações não salvas</h2><p>Você pode continuar preenchendo e salvar o rascunho, ou voltar ao início sem guardar estas alterações.</p><div><button id="keep-editing" type="button">Continuar preenchendo</button><button id="leave-without-saving" type="button">Voltar sem salvar</button></div></dialog>
