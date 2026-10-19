@@ -1,0 +1,64 @@
+/* Paper layout is independent of the viewport and of the interactive cards. */
+@media print {
+ body{background:#fff!important;font:9pt/1.4 Arial,sans-serif;color:#203943}
+ .report-viewer-page{width:auto;max-width:none;margin:0;padding:0}
+ #report-shell,.viewer-main,#report-content,.viewer-heading{display:block!important}
+ #report-content{line-height:1.4}
+ #report-content .report-block,#report-content .report-cover,#report-content .report-closing{padding:0;margin:0 0 5mm;border:0;border-radius:0}
+ #report-content .report-cover{padding:4mm;border:1px solid #d6e1da;border-top:3px solid #137b68}
+ #report-content .report-cover h3{font-size:18pt}
+ #report-content .report-cover .report-introduction,#report-content .report-cover .report-objective{font-size:9pt;line-height:1.45;margin:3mm 0;padding-top:2mm}
+ #report-content .report-summary-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:3mm;margin-top:3mm}
+ #report-content .report-summary-item{padding:2mm}
+ #report-content .report-block>h3{font-size:12pt;margin:0 0 3mm;padding:2mm;break-after:avoid}
+ #report-content h4{font-size:10pt;margin:3mm 0 2mm;break-after:avoid}
+ #report-content .viewer-group,#report-content .viewer-risk,#report-content .viewer-inventory,
+ #report-content .viewer-category,#report-content .report-job{break-inside:auto;page-break-inside:auto;overflow:visible;border-radius:0}
+ #report-content .viewer-group{margin:0 0 4mm;border:0;padding:0}
+ #report-content .viewer-group>summary,#report-content .viewer-risk>summary,#report-content .viewer-inventory>summary{
+  display:block;padding:2mm 0;margin:0;break-after:avoid;page-break-after:avoid
+ }
+ #report-content .viewer-group>summary>strong{font-size:10pt}
+ .viewer-count{display:inline-block;font-size:8pt;padding:1mm 2mm;margin-left:3mm}
+ .viewer-risk-heading{display:inline;order:initial;flex-basis:auto}
+ .viewer-risk-heading strong{display:block;font-size:10pt}
+ .viewer-risk-heading small{display:inline;font-size:8pt}
+ .viewer-evaluation{display:inline-block;white-space:normal;font-size:7.5pt;padding:.5mm 1.5mm;margin:1mm 0 0 3mm}
+ #report-content .viewer-category{margin:0;padding:0}
+ #report-content .viewer-risk{margin:0 0 4mm;border:0;border-left:2px solid var(--accent);padding-left:3mm;break-inside:avoid;page-break-inside:avoid}
+ #report-content .viewer-risk:has(.report-long){break-inside:auto;page-break-inside:auto}
+ #report-content .viewer-risk .report-risk-detail{display:block!important;border:0;margin:0;padding:0}
+ #report-content .viewer-risk .report-detail-field{
+  display:block!important;border:0;border-top:1px solid #e5ece9;margin:0;padding:1mm 0;
+  break-inside:avoid;page-break-inside:avoid
+ }
+ #report-content .viewer-risk .report-field-label{display:inline;font:600 8.5pt/1.4 Arial,sans-serif;color:#4f6b5b}
+ #report-content .viewer-risk .report-field-label:after{content:": "}
+ #report-content .viewer-risk .report-detail-field p{display:inline;font:9pt/1.4 Arial,sans-serif;margin:0;white-space:pre-line}
+ #report-content .viewer-inventory{margin:0 0 4mm}
+ #report-content .viewer-inventory>.report-card-list,#report-content .viewer-inventory>p{margin:0}
+ #report-content .report-mini-card,#report-content .viewer-group>.report-mini-card{margin:0 0 2mm;padding:2mm;border-radius:0}
+ #report-content .report-mini-card>small,#report-content .report-mini-card p{font-size:9pt;line-height:1.4}
+ #report-content .report-job,#report-content .viewer-sector>.report-job{margin:0 0 3mm;padding:3mm}
+ #report-content .report-job-heading{margin-bottom:2mm;break-after:avoid}
+ #report-content .report-job p{font-size:9pt;margin:1mm 0}
+ #report-content .report-workstation{
+  margin:3mm 0;padding:2mm;border:1px solid #d8e5e2;
+  break-inside:auto;page-break-inside:auto;overflow:visible
+ }
+ #report-content .report-workstation h4{margin:0 0 2mm;break-after:avoid}
+ #report-content .report-workstation-photos{
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:2mm;align-items:start
+ }
+ #report-content .viewer-photo{
+  display:block;width:100%;height:46mm;min-width:0;max-width:100%;
+  border:0;background:transparent;padding:0;margin:0;overflow:visible;break-inside:avoid
+ }
+ #report-content .viewer-photo img,#report-content .report-workstation-photos img{
+  display:block;width:100%;height:46mm;max-height:46mm;object-fit:contain
+ }
+ #report-content .report-workstation figcaption{font-size:8pt;margin-top:2mm}
+ #report-content .report-signatures{grid-template-columns:1fr 1fr;margin-top:5mm;gap:10mm}
+ #report-content .report-closing{padding-top:3mm;border-top:2px solid #137b68;break-inside:avoid}
+}
