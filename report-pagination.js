@@ -6,13 +6,17 @@ export function paginateReport(content,title='Relatório do levantamento'){
  const source=[...content.children];
  const holder=document.createElement('div');holder.className='report-sheets';
  content.replaceChildren(holder);
- let sheet,body,parents,context,hasContent=false;
+ let sheet,body,parents,context,hasContent=false,pendingHeadings=[];
  const sheets=[];
  function next(ctx=''){
+  const carry=pendingHeadings;pendingHeadings=[];
+  for(const item of carry)item.copy.remove();
+  if(body)cleanEmpty();
   sheet=document.createElement('section');sheet.className='report-sheet';
   context=document.createElement('div');context.className='report-sheet-context';context.textContent=ctx;
   body=document.createElement('div');body.className='report-sheet-body';
   sheet.append(context,body);holder.append(sheet);sheets.push(sheet);parents=new Map();hasContent=false;
+  for(const item of carry)put(item.original,item.chain,item.ctx);
  }
  function parent(chain){
   let result=body;
@@ -45,7 +49,7 @@ export function paginateReport(content,title='Relatório do levantamento'){
    if(low===0){piece.remove();cleanEmpty();if(!hasContent)throw new Error('Não foi possível acomodar um trecho do relatório.');next(ctx);continue;}
    // Prefer a word boundary, but also support long unbroken values.
    const space=remaining.lastIndexOf(' ',low);if(low<remaining.length&&space>low/2)low=space+1;
-   piece.textContent=remaining.slice(0,low);remaining=remaining.slice(low);hasContent=true;
+   piece.textContent=remaining.slice(0,low);remaining=remaining.slice(low);hasContent=true;pendingHeadings=[];
    if(remaining)next(ctx);
   }
  }
@@ -56,6 +60,8 @@ export function paginateReport(content,title='Relatório do levantamento'){
   // Group and section containers may naturally span sheets.
   const container=original.matches('.report-block,.viewer-group,.viewer-category,.report-card-list,.viewer-inventory,table,tbody');
   if(container){
+   // Keep the sector section out of the cover, including its heading.
+   if(original.classList.contains('report-sectors')&&hasContent)next();
    if(original.matches('.viewer-group')&&original.querySelector('.viewer-risk'))ctx=original.querySelector(':scope > summary > strong')?.textContent.trim()||ctx;
    if(original.classList.contains('compact-training'))ctx='Treinamentos sugeridos — continuação';
    for(const child of original.childNodes){if(child.nodeType===1&&child.tagName==='THEAD')continue;put(child,[...chain,original],ctx);}
@@ -64,9 +70,10 @@ export function paginateReport(content,title='Relatório do levantamento'){
   const heading=/^H[1-6]$/.test(tag)||tag==='SUMMARY';
   const reserve=heading?38:0;
   let copy=original.cloneNode(true);parent(chain).append(copy);
-  if(fits(reserve)){hasContent=true;return;}
+  const accepted=()=>{hasContent=true;if(heading)pendingHeadings.push({copy,original,chain,ctx});else pendingHeadings=[];};
+  if(fits(reserve)){accepted();return;}
   copy.remove();cleanEmpty();
-  if(hasContent){next(ctx);copy=original.cloneNode(true);parent(chain).append(copy);if(fits(reserve)){hasContent=true;return;}copy.remove();cleanEmpty();}
+  if(hasContent){next(ctx);copy=original.cloneNode(true);parent(chain).append(copy);if(fits(reserve)){accepted();return;}copy.remove();cleanEmpty();}
   // Oversized records are split by their existing fields, preserving all text.
   if(tag==='TR'){
    // Split a very tall table row into synchronized cell fragments.
@@ -78,7 +85,7 @@ export function paginateReport(content,title='Relatório do levantamento'){
     while(low<high){const mid=Math.ceil((low+high)/2);fragments.forEach((c,i)=>c.textContent=values[i].slice(0,mid));if(fits())low=mid;else high=mid-1;}
     if(!low)throw new Error('Não foi possível acomodar uma linha do relatório.');
     fragments.forEach((c,i)=>{let end=Math.min(low,values[i].length);const space=values[i].lastIndexOf(' ',end);if(end<values[i].length&&space>end/2)end=space+1;c.textContent=values[i].slice(0,end);values[i]=values[i].slice(end);});
-    hasContent=true;first=false;if(values.some(Boolean))next(ctx);
+    hasContent=true;pendingHeadings=[];first=false;if(values.some(Boolean))next(ctx);
    }
   }else if(original.childNodes.length){for(const child of original.childNodes)put(child,[...chain,original],ctx);}
   else{parent(chain).append(original.cloneNode(true));if(!fits())throw new Error('Um elemento do relatório excede o tamanho da página.');hasContent=true;}
