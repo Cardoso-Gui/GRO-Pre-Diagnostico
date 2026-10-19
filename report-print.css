@@ -8,6 +8,9 @@
  #report-content .print-risk-card .compact-risk-fields tbody,#report-content .print-risk-card .compact-risk-fields tr,#report-content .print-risk-card .compact-risk-fields td{display:block;width:auto;border:0;background:none;padding:0}
  #report-content .print-risk-card .compact-risk-fields tr{border-top:1px solid #d7e1db;padding:.6mm 0}
  #report-content .print-risk-card .compact-risk-fields td:first-child{width:auto;margin-bottom:.25mm;background:none;font-weight:600}
+ #report-content .print-category-pair .compact-risk-fields tr{padding:.35mm 0}
+ #report-content .print-category-pair .viewer-risk{padding:1.5mm 2mm 1.5mm 3mm}
+ #report-content .print-category-pair .viewer-category-title{margin:2mm 0}
  .report-paginated .viewer-heading,.report-paginated .report-page::before{display:none!important}
  .report-paginated .report-viewer-page{margin:0!important;padding:0!important}
  #report-content .report-sheets{display:block;width:180mm;margin:0;padding:0}
