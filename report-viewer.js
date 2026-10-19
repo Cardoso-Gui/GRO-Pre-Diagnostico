@@ -25,6 +25,16 @@ export function mountReportViewer(content,data){
  const sectors=Array.isArray(answers.selectedSectors)?answers.selectedSectors.length:content.querySelectorAll('.report-sector').length;
  const jobs=content.querySelectorAll('.report-job').length;
  const byGhe=answers.selectedRiskMode==='ghe'||/Por GHE/i.test(identified?.textContent||'');
+ // Keep sector contents intact so search and printing share the same disclosure behavior.
+ for(const sector of content.querySelectorAll('.report-sector')){
+  const title=sector.querySelector(':scope > .report-sector-title');
+  if(!title)continue;
+  const group=disclosure(title.textContent,'viewer-group viewer-sector',false);
+  const count=sector.querySelectorAll('.report-job').length;
+  group.querySelector('summary').append(make('span',count+' '+(count===1?'cargo':'cargos'),'viewer-count'));
+  for(const child of [...sector.childNodes])if(child!==title)group.append(child);
+  sector.replaceWith(group);
+ }
  // Move the preserved risk inventory into the detail section, retaining legacy-only content.
  if(riskBlock&&identified){
   const inventory=disclosure('Lista de riscos identificados','viewer-inventory');
