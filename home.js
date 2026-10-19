@@ -63,7 +63,7 @@ async function refreshDrafts(){
   const {data,error}=await authClient.from('assessments').select('id,title,updated_at,clients!inner(legal_name,trade_name,archived)').eq('status','draft').eq('clients.archived',false).order('updated_at',{ascending:false}).order('id').limit(10);
   if(ticket!==generation||home.hidden)return;if(error)throw error;
   const make=(tag,text,cls)=>{const el=document.createElement(tag);el.textContent=text;if(cls)el.className=cls;return el;};
-  for(const row of data){const name=row.clients.trade_name||row.clients.legal_name;const card=make('article','','draft-row');const info=make('div','','draft-info');info.append(make('h3',name),make('p',row.title||'Levantamento inicial'));const date=make('div','','draft-updated');date.append(make('span','Última atualização'),make('strong',new Date(row.updated_at).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'})));const link=make('a','Continuar →','secondary-button');link.href='./levantamento.html?id='+encodeURIComponent(row.id);link.setAttribute('aria-label','Continuar levantamento de '+name);card.append(make('span',name.trim().split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase(),'draft-avatar'),info,date,make('span','Rascunho','draft-badge'),link);target.append(card);}
+  for(const row of data){const name=row.clients.trade_name||row.clients.legal_name;const card=make('article','','draft-row');const info=make('div','','draft-info');info.append(make('h3',name),make('p',row.title||'Levantamento inicial'));const date=make('div','','draft-updated');date.append(make('span','Última alteração'),make('strong',new Date(row.updated_at).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'})));const link=make('a','Continuar →','secondary-button');link.href='./levantamento.html?id='+encodeURIComponent(row.id);link.setAttribute('aria-label','Continuar levantamento de '+name);card.append(make('span',name.trim().split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase(),'draft-avatar'),info,date,make('span','Rascunho','draft-badge'),link);target.append(card);}
   count.textContent=`${data.length} ${data.length===1?'rascunho':'rascunhos'}`;count.hidden=false;message.textContent=data.length?'':'Nenhum levantamento em andamento. Comece pelo card Novo levantamento.';
  }catch{if(ticket!==generation||home.hidden)return;message.textContent='Não foi possível carregar os rascunhos. Confira a conexão e tente novamente.';retryButton.hidden=false;}
 }
@@ -155,3 +155,18 @@ await verifyAccess();
 const requestedView=new URLSearchParams(location.search).get('view');if(!home.hidden&&requestedView==='clients')location.replace('./clients.html');if(!home.hidden&&requestedView==='reports')location.replace('./reports.html');
 
 watchPageResume({getMember:getTeamMember,currentMember:()=>resumeMember,onAccessChanged:()=>location.replace('./index.html?reason=expired')});
+
+const homeMenuToggle = document.querySelector('#home-menu-toggle');
+const homeNavigation = document.querySelector('#home-navigation');
+homeMenuToggle.addEventListener('click', () => {
+ const expanded = homeMenuToggle.getAttribute('aria-expanded') !== 'true';
+ homeMenuToggle.setAttribute('aria-expanded', String(expanded));
+ homeNavigation.classList.toggle('is-open', expanded);
+});
+homeNavigation.addEventListener('keydown', event => {
+ if (event.key === 'Escape') {
+  homeNavigation.classList.remove('is-open');
+  homeMenuToggle.setAttribute('aria-expanded', 'false');
+  homeMenuToggle.focus();
+ }
+});
