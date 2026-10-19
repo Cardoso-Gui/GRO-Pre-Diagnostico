@@ -88,9 +88,9 @@ const genericJobSuggestions = [
 
 const riskModeDescriptions = {
   ghe: {
-    title: "Criar GHEs",
+    title: "Organize os GHEs nesta etapa",
     description:
-      "Você vai montar grupos de exposição homogênea e selecionar riscos ocupacionais, conforme a Tabela 24 do eSocial.",
+      "Crie os grupos e selecione seus setores e cargos abaixo. Na próxima etapa, adicione os riscos de cada GHE.",
   },
   job: {
     title: "Riscos por cargo",
@@ -616,6 +616,7 @@ function renderRiskModeSummary() {
 }
 
 function renderRiskSelection() {
+  renderGheManagement();
   riskSelectionGrid.innerHTML = "";
   riskSelectionSection.hidden = !selectedRiskMode;
   riskSourceSection.hidden = !selectedRiskMode;
@@ -631,7 +632,7 @@ function renderRiskSelection() {
   if (selectedRiskMode === "ghe" && targets.length === 0) {
     const emptyCard = document.createElement("article");
     emptyCard.className = "risk-card";
-    emptyCard.innerHTML = "<h3>Nenhum GHE criado</h3><p class=\"risk-card-note\">Crie um GHE para selecionar os riscos ocupacionais aplicáveis.</p>";
+    emptyCard.innerHTML = "<h3>Nenhum GHE criado</h3><p class=\"risk-card-note\">Crie e organize os GHEs na etapa Organização dos riscos. Depois volte aqui para selecionar os riscos ocupacionais.</p>";
     riskSelectionGrid.appendChild(emptyCard);
     renderRiskSourceSection();
     return;
@@ -642,6 +643,31 @@ function renderRiskSelection() {
   });
 
   renderRiskSourceSection();
+}
+
+function renderGheManagement() {
+  const list = document.querySelector("#ghe-management-list");
+  if (!list) return;
+  list.replaceChildren();
+  list.hidden = selectedRiskMode !== "ghe";
+  if (selectedRiskMode !== "ghe") return;
+  if (!gheList.length) {
+    const note = document.createElement("p");
+    note.className = "risk-card-note";
+    note.textContent = "Crie um GHE e selecione os setores e cargos que pertencem a ele.";
+    list.append(note);
+  }
+  gheList.forEach(ghe => {
+    const card = document.createElement("article");
+    card.className = "risk-card";
+    const title = document.createElement("h3");
+    title.textContent = ghe.name;
+    const note = document.createElement("p");
+    note.className = "risk-card-note";
+    note.textContent = ghe.linkedJobs.length ? "Vínculos: " + formatGheLinks(ghe.linkedJobs) : "Nenhum vínculo. Selecione os setores e cargos deste GHE.";
+    card.append(title, note, createGheActions(ghe));
+    list.append(card);
+  });
 }
 
 function getRiskTargets() {
@@ -709,7 +735,7 @@ function createRiskCard(target) {
   card.appendChild(note);
   if (selectedRiskMode === "ghe") {
     const ghe = gheList.find(item => item.id === target.id);
-    if (ghe) card.appendChild(createGheActions(ghe));
+    if (ghe && !document.querySelector("#ghe-management-list")) card.appendChild(createGheActions(ghe));
   }
   const add = document.createElement("button");
   add.type = "button";
