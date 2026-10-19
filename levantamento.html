@@ -9,23 +9,23 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <meta name="referrer" content="no-referrer" />
     <script src="vendor/supabase-2.117.2.js?v=20260925-reports2" defer></script>
-    <script type="module" src="workspace.js?v=20261015-ghe-actions7"></script>
-  <link rel="stylesheet" href="dimension.css?v=20260925-reports2"><link rel="stylesheet" href="./app-header.css?v=20260928-occ1"><link rel="stylesheet" href="./client-search.css?v=20260929-inline1"></head>
-  <body>
+    <script type="module" src="workspace.js?v=20261019-wizard1"></script>
+  <link rel="stylesheet" href="dimension.css?v=20260925-reports2"><link rel="stylesheet" href="./app-header.css?v=20260928-occ1"><link rel="stylesheet" href="./client-search.css?v=20260929-inline1"><link rel="stylesheet" href="home.css?v=20260928-occ1"><link rel="stylesheet" href="home-dashboard.css?v=20261019-header2"><link rel="stylesheet" href="assessment-wizard.css?v=20261019-wizard1"></head>
+  <body class="home-page wizard-page">
     <section id="session-check" class="session-check" aria-live="polite"><p>Verificando seu acesso…</p><a href="index.html">Voltar ao login</a></section>
     <div id="protected-workspace" hidden>
-    <header class="topbar gro-header"><div class="topbar-inner">
-   <a class="brand" href="./inicio.html" aria-label="GRO — página inicial"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 8 9 8 9s8-4.5 8-9V6l-8-3Z"/><path d="m8 12 3 3 5-6"/></svg></span><span><strong>GRO</strong><small>Gestão de riscos ocupacionais</small></span></a>
-   <nav aria-label="Navegação principal"><a class="nav-current session-home" href="./inicio.html">Início</a></nav>
-   <div class="user-menu"><span id="user-avatar" class="avatar" aria-hidden="true"></span><div class="user-info"><strong id="session-name"></strong><small id="user-role"></small></div><button id="sign-out" class="sign-out" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v16h5m5-13 5 5-5 5M8 12h11"/></svg><span>Sair</span></button></div>
+    <header class="topbar"><div class="topbar-inner">
+   <a class="brand session-home" href="./inicio.html" aria-label="GRO — página inicial"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 8 9 8 9s8-4.5 8-9V6l-8-3Z"/><path d="m8 12 3 3 5-6"/></svg></span><span><strong>GRO</strong><small>Gestão de riscos ocupacionais</small></span></a>
+   <button id="home-menu-toggle" class="home-menu-toggle" type="button" aria-expanded="false" aria-controls="home-navigation">☰ Menu</button><nav id="home-navigation" aria-label="Navegação principal"><a class="nav-current" href="./inicio.html" aria-current="page">Início</a></nav>
+   <div class="user-menu"><button id="profile-toggle" class="profile-toggle" type="button" aria-expanded="false" aria-controls="profile-panel" aria-label="Abrir perfil"><span id="user-avatar" class="avatar" aria-hidden="true"></span><span id="profile-short-name"></span><span class="profile-chevron" aria-hidden="true">⌄</span></button><div id="profile-panel" class="profile-panel" hidden><div class="user-info"><strong id="session-name"></strong><small id="user-role"></small></div><button id="sign-out" class="sign-out" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v16h5m5-13 5 5-5 5M8 12h11"/></svg><span>Sair</span></button></div></div>
   </div></header>
 
     <p id="cloud-status" hidden class="session-note" role="status"></p>
-<section id="assessment-picker" class="assessment-picker" hidden>
- <h1>Levantamentos por cliente</h1><p>Selecione uma empresa para iniciar outro levantamento ou continuar um rascunho.</p>
+<div class="wizard-shell"><p class="wizard-breadcrumb"><a href="./inicio.html">Início</a> / Novo levantamento</p><div class="wizard-heading"><div><h1 id="wizard-title">Novo levantamento</h1><p>Organize as informações da empresa, uma etapa por vez.</p></div><div id="wizard-save-slot"></div></div><p id="wizard-save-status" role="status"></p><div class="wizard-layout"><aside class="wizard-sidebar" aria-label="Etapas do levantamento"><h2>Etapas do levantamento</h2><p id="wizard-progress-label">Etapa 1 de 7</p><progress id="wizard-progress" max="7" value="1" aria-labelledby="wizard-progress-label"></progress><label class="wizard-mobile-label" for="wizard-step-select">Ir para etapa</label><select id="wizard-step-select"></select><nav id="wizard-steps" aria-label="Etapas"></nav><p class="wizard-note">Você pode salvar e continuar depois.</p></aside><div class="wizard-content"><h2 id="wizard-step-title" tabindex="-1">Empresa e identificação</h2><p id="wizard-step-hint"></p><section id="assessment-picker" class="assessment-picker" hidden>
+ <h2 class="picker-title">Empresa e identificação</h2><p>Selecione uma empresa para iniciar outro levantamento ou continuar um rascunho.</p>
 <label for="client-select">Empresa cadastrada</label><select id="client-select" disabled><option value="">Carregando empresas…</option></select><button id="retry-clients" type="button" hidden>Tentar novamente</button>
  <a href="./client.html">Cadastrar cliente</a>
- <section id="client-history" hidden><h2 id="selected-client"></h2><form id="create-assessment"><label for="assessment-title">Título do novo levantamento</label><input id="assessment-title" required maxlength="240"><button id="start-assessment">Iniciar novo levantamento</button></form><h3>Histórico do cliente</h3><p id="history-status" role="status"></p><div id="draft-list"></div><button id="more-drafts" hidden>Carregar mais levantamentos</button></section>
+ <section id="client-history" hidden><h2 id="selected-client"></h2><form id="create-assessment"><label for="assessment-title">Título do novo levantamento</label><input id="assessment-title" required maxlength="240"><button id="start-assessment">Continuar para dimensionamento →</button></form><details id="wizard-history"><summary>Ver histórico do cliente</summary><p id="history-status" role="status"></p><div id="draft-list"></div><button id="more-drafts" hidden>Carregar mais levantamentos</button></details></section>
 </section>
 <main id="questionnaire" class="app-shell" hidden>
       <section class="cnpj-panel" aria-labelledby="page-title">
@@ -271,12 +271,10 @@
           </section>
         </section>
       </section>
-    </main>
+    </main><section id="wizard-epi" hidden><p>Os EPIs são informados junto aos detalhes de cada risco. Confira a aplicabilidade e os equipamentos indicados antes de gerar o relatório.</p><p id="wizard-epi-summary"></p><button id="wizard-open-epi" type="button">Conferir EPIs nos detalhes dos riscos</button></section><p id="wizard-empty" role="status" hidden></p><div class="wizard-footer"><button id="wizard-back" type="button">← Etapa anterior</button><button id="wizard-next" type="button">Continuar →</button></div></div></div></div>
 
     </div>
     <dialog id="leave-dialog" aria-labelledby="leave-title"><h2 id="leave-title">Alterações não salvas</h2><p>Você pode continuar preenchendo e salvar o rascunho, ou voltar ao início sem guardar estas alterações.</p><div><button id="keep-editing" type="button">Continuar preenchendo</button><button id="leave-without-saving" type="button">Voltar sem salvar</button></div></dialog>
     <dialog id="delete-dialog" aria-labelledby="delete-title"><h2 id="delete-title">Excluir rascunho?</h2><p id="delete-name"></p><p>As respostas deste rascunho serão excluídas permanentemente. O cliente e os outros levantamentos serão mantidos.</p><p id="delete-status" role="status"></p><div><button id="cancel-delete" type="button">Cancelar</button><button id="confirm-delete" type="button">Excluir rascunho</button></div></dialog>
   </body>
-<link rel="stylesheet" href="validation-dialog.css?v=20261009-1"><script src="validation-dialog.js?v=20261009-1" defer></script></html>
-
-
+<link rel="stylesheet" href="validation-dialog.css?v=20261009-1"><script src="validation-dialog.js?v=20261019-wizard1" defer></script></html>

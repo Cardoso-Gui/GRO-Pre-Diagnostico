@@ -1454,6 +1454,7 @@ function validateReport() {
     action.onclick = () => {
       const target = document.querySelector(destination);
       if (!target) return;
+      globalThis.GRO_WIZARD?.reveal(target);
       if (destination === "#open-risk-details") { target.dataset.target = riskTarget; target.dataset.risk = riskCode; target.click(); return; }
       const field=target.matches('input,select,textarea')?target:[...target.querySelectorAll('input,select,textarea')].find(el=>el.getClientRects().length&&(!el.validity.valid||!el.value.trim()));if(field){field.scrollIntoView({block:'center',behavior:'smooth'});field.setAttribute('aria-invalid','true');field.focus({preventScroll:true});field.addEventListener('input',()=>field.removeAttribute('aria-invalid'),{once:true});return;}target.scrollIntoView({block:"center",behavior:"smooth"});
       if (!target.matches("input,select,button,a,textarea")) target.tabIndex = -1;
