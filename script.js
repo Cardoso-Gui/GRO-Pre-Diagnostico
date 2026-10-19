@@ -1068,7 +1068,7 @@ function renderRiskSourceSection() {
   if(selections.length){
     const note=document.createElement('p');note.textContent='Preencha exposição, danos, medidas existentes e melhorias em uma página dedicada.';
     const button=document.createElement('button');button.type='button';button.id='open-risk-details';button.textContent='Preencher detalhes dos riscos';
-    button.onclick=async()=>{if(!globalThis.GRO_CLOUD)return;if(!GRO_VALIDATE.show(getReportMissingFields(true, { checkEmployeeDistribution: false }).filter(item=>item.section!=='Detalhamento dos riscos').map(item=>({...item,element:document.querySelector(item.destination)}))))return;button.disabled=true;try{const saved=await globalThis.GRO_CLOUD.save(getDraft());if(saved)location.assign('./risk-detail.html?id='+encodeURIComponent(saved.id)+'&target='+encodeURIComponent(button.dataset.target||'')+'&risk='+encodeURIComponent(button.dataset.risk||''));}finally{button.disabled=false}};
+    button.onclick=async()=>{if(!globalThis.GRO_CLOUD)return;if(!GRO_VALIDATE.show(getReportMissingFields(true, { checkEmployeeDistribution: false }).filter(item=>!['Detalhamento dos riscos','EPIs'].includes(item.section)).map(item=>({...item,element:document.querySelector(item.destination)}))))return;button.disabled=true;try{const saved=await globalThis.GRO_CLOUD.save(getDraft());if(saved)location.assign('./risk-detail.html?id='+encodeURIComponent(saved.id)+'&target='+encodeURIComponent(button.dataset.target||'')+'&risk='+encodeURIComponent(button.dataset.risk||''));}finally{button.disabled=false}};
     riskSourceGrid.append(note,button);
   }
   renderEpiSection();
@@ -1459,6 +1459,7 @@ function getReportMissingFields(detailed = false, { checkEmployeeDistribution = 
     Object.entries(fields).forEach(([key, label]) => { if (!filled(data[key])) add(`${prefix}: ${label}.`); });
     if (!["Sim", "Não"].includes(data.measure)) add(`${prefix}: responda se precisa medir/avaliar.`);
     {
+      section = "EPIs"; destination = "#wizard-epi"; riskTarget = ""; riskCode = "";
       const epi = getEpiData(selection.targetId, selection.risk.code);
       if (!["Sim", "Não"].includes(epi.applicable)) add(`${prefix}: informe se EPI é aplicável.`);
       if (epi.applicable === "Sim" && !epi.items?.some(filled)) add(`${prefix}: informe quais EPIs.`);
@@ -2211,4 +2212,9 @@ function setLoading(isLoading) {
   button.textContent = isLoading ? "Consultando..." : "Consultar";
 }
 
-globalThis.GRO_FORM = { restore: restoreDraft, snapshot: getDraft };
+globalThis.GRO_FORM = { restore: restoreDraft, snapshot: getDraft, setEpi(targetId,riskCode,value) {
+  if(!getRiskSelections().some(s=>s.targetId===targetId&&s.risk.code===riskCode))return;
+  epiBySelection.set(createTargetId("epi-data",targetId,riskCode),value);
+  const data=getRiskSourceData(targetId,riskCode);data.controls=[Boolean(data.controls?.[0]),Boolean(data.controls?.[1]),value.applicable==="Sim"];
+  document.querySelector("#questionnaire").dispatchEvent(new Event("change",{bubbles:true}));
+} };
