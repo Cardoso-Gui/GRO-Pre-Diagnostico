@@ -1,4 +1,5 @@
-import {renderEpiStage} from './epi-stage.js?v=20261019-epi1';
+import {renderReviewStage} from './review-stage.js?v=20261019-review1';
+import {renderEpiStage} from './epi-stage.js?v=20261019-review1';
 // Navigation changes presentation only; the original form owns data and validation.
 export function initAssessmentWizard(){
  const $=s=>document.querySelector(s);
@@ -11,7 +12,7 @@ export function initAssessmentWizard(){
  const hints=['Escolha um cliente cadastrado para começar.','Informe o número de funcionários e confira o dimensionamento.','Cadastre os setores e os cargos da empresa.','Escolha a organização e configure os grupos e seus vínculos.','Abra um grupo para selecionar e detalhar seus riscos.','Confira os equipamentos de proteção de cada risco.','Gere o relatório após conferir as informações. Os campos pendentes serão indicados.'];
  let active=0,ready=false,draftId='',scheduled=false;
  const nav=$('#wizard-steps'),select=$('#wizard-step-select'),save=$('#save-draft-button');
- $('#wizard-save-slot').append(save);save.disabled=true;save.title='Escolha a empresa e continue para salvar o rascunho';
+ $('#wizard-save-slot').append(save,$('#load-draft-button'));save.disabled=true;save.title='Escolha a empresa e continue para salvar o rascunho';
  blocks.forEach((items,index)=>items.forEach(el=>el.dataset.wizardStep=String(index)));
  const buttons=steps.map((name,index)=>{const button=document.createElement('button');button.type='button';button.className='wizard-step';const number=document.createElement('span');number.textContent=String(index+1);number.setAttribute('aria-hidden','true');button.append(number,document.createTextNode(name));button.onclick=()=>go(index);nav.append(button);const option=document.createElement('option');option.value=String(index);option.textContent=`${index+1}. ${name}`;select.append(option);return button;});
  function remember(){if(!draftId)return;try{sessionStorage.setItem('gro-wizard-step:'+draftId,String(active));}catch{}}
@@ -27,12 +28,13 @@ export function initAssessmentWizard(){
   $('#wizard-empty').hidden=!empty;
   $('#wizard-empty').textContent=active===3?'Adicione pelo menos um cargo na etapa Setores e cargos para escolher a organização dos riscos.':active===4?'Escolha a organização dos riscos na etapa anterior para continuar.':active===6?'Selecione os riscos da empresa na etapa Riscos e detalhamento para gerar o relatório.':'Preencha as etapas anteriores para continuar.';
   if(ready&&active===5)renderEpiStage();
+  if(ready&&active===6){$('#final-report-section').hidden=false;$('#wizard-empty').hidden=true;renderReviewStage();}
  }
  function go(index,focus=true){if(!Number.isInteger(index)||index<0||index>=steps.length||(!ready&&index!==0))return;active=index;update();remember();if(focus){$('#wizard-step-title').focus({preventScroll:true});$('.wizard-content').scrollIntoView({block:'start',behavior:'smooth'});}}
  select.onchange=()=>go(Number(select.value));$('#wizard-back').onclick=()=>go(active-1);$('#wizard-next').onclick=()=>go(active+1);
 
  function reveal(target){const group=target.closest('[data-wizard-step]');if(group)go(Number(group.dataset.wizardStep),false);}
- globalThis.GRO_WIZARD={reveal};
+ globalThis.GRO_WIZARD={reveal,go};
  // Existing renderers toggle availability; keep their hidden state intact.
  const observer=new MutationObserver(()=>{if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;update();});});
  observer.observe($('#company-card'),{subtree:true,childList:true,attributes:true,attributeFilter:['hidden']});
