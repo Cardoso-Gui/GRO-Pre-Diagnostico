@@ -1,5 +1,5 @@
 import {watchPageResume} from './page-resume.js?v=20260930-resume1';
-import {updateHeader} from './app-header.js?v=20260928-occ1';
+import {updateHeader} from './app-header.js?v=20261019-access1';
 import { authClient, getTeamMember } from './auth-client.js?v=20260928-global1';
 import { lookupCompany } from './cnpj.js';
 const $ = selector => document.querySelector(selector);
@@ -65,8 +65,10 @@ function mode(editing) {
   input('team_id').disabled=!editing||!currentMember?.is_super_admin;
   fields.disabled = !editing; $('#save').hidden = !editing; $('#edit').hidden = editing;
   $('#cancel').hidden = !editing || !saved;
+  $('#leave-client').textContent=saved?'Voltar aos clientes':'Cancelar';
+  $('#client-breadcrumb').textContent=saved?(editing?'Editar cliente':'Cadastro do cliente'):'Novo cliente';
   $('#page-title').textContent = saved ? (editing ? 'Editar cliente' : saved.legal_name) : 'Novo cliente';
-  $('#page-description').textContent = saved ? 'Dados da empresa disponíveis para sua equipe.' : 'Cadastre a empresa para organizar os próximos levantamentos.';
+  $('#page-description').textContent = saved ? 'Dados da empresa disponíveis para sua equipe.' : 'Cadastre a empresa para organizar seus levantamentos.';
 }
 function populate(row) {
   saved = row; input('team_id').value=row.team_id; input('team_id').disabled=true;
@@ -79,6 +81,8 @@ async function verify() {
   if (result.error && result.reason === 'network') throw new Error('Não foi possível verificar seu acesso. Confira a conexão e tente novamente.');
   if (!result.member) { dirty = false; location.replace('./index.html?reason=expired'); throw new Error('Sua sessão terminou. Entre novamente.'); }
   currentMember=result.member; updateHeader(result.member);
+  $('#profile-short-name').textContent=(result.member.display_name||'Equipe').trim().split(/\s+/)[0];
+  const clientsLink=document.querySelector('header nav a[href="./clients.html"]');if(clientsLink){clientsLink.className='nav-current';}
 }
 async function readClient() {
   const { data, error } = await authClient.from('clients').select('*').eq('id', id).eq('archived', false).maybeSingle();
@@ -173,3 +177,44 @@ await initialize();
 
 document.querySelector('#sign-out').addEventListener('click',async()=>{if(busy)return;if(dirty&&!confirm('Sair sem salvar as alterações do cadastro?'))return;dirty=false;await authClient.auth.signOut({scope:'local'});location.assign('./index.html?reason=signedout');});
 watchPageResume({getMember:getTeamMember,currentMember:()=>currentMember,onAccessChanged:()=>location.replace('./index.html?reason=expired')});
+
+
+const homeMenuToggle = document.querySelector('#home-menu-toggle');
+const homeNavigation = document.querySelector('#home-navigation');
+homeMenuToggle.addEventListener('click', () => {
+ const expanded = homeMenuToggle.getAttribute('aria-expanded') !== 'true';
+ homeMenuToggle.setAttribute('aria-expanded', String(expanded));
+ homeNavigation.classList.toggle('is-open', expanded);
+});
+homeNavigation.addEventListener('keydown', event => {
+ if (event.key === 'Escape') {
+  homeNavigation.classList.remove('is-open');
+  homeMenuToggle.setAttribute('aria-expanded', 'false');
+  homeMenuToggle.focus();
+ }
+});
+
+const profileToggle = document.querySelector('#profile-toggle');
+const profilePanel = document.querySelector('#profile-panel');
+function closeProfile() {
+ profilePanel.hidden = true;
+ profileToggle.setAttribute('aria-expanded', 'false');
+}
+function closeHomeNavigation() {
+ homeNavigation.classList.remove('is-open');
+ homeMenuToggle.setAttribute('aria-expanded', 'false');
+}
+profileToggle.addEventListener('click', () => {
+ const opening = profilePanel.hidden;
+ closeHomeNavigation();
+ profilePanel.hidden = !opening;
+ profileToggle.setAttribute('aria-expanded', String(opening));
+});
+homeMenuToggle.addEventListener('click', closeProfile);
+document.addEventListener('click', event => {
+ if (!event.target.closest('.user-menu')) closeProfile();
+ if (!homeNavigation.contains(event.target) && !homeMenuToggle.contains(event.target)) closeHomeNavigation();
+});
+document.addEventListener('keydown', event => {
+ if (event.key === 'Escape' && !profilePanel.hidden) {closeProfile();profileToggle.focus();}
+});
