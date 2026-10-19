@@ -1,3 +1,4 @@
+import {mountDamageEditor} from './risk-damage-editor.js?v=20261019-damage1';
 import {riskDetailStatus} from './risk-detail-status.js?v=20261019-epi1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
@@ -13,6 +14,8 @@ function render(){
  const moveFocus=$('#editor').contains(document.activeElement);
  const target=targets[current];$('#risk-nav').replaceChildren();$('#cards').replaceChildren();
  if(!target){say('Nenhum cargo ou GHE disponível. Volte ao levantamento para organizar os riscos.');$('#next').disabled=true;return;}
+ $('#switch-target').hidden=targets.length<=1;
+ $('#switch-target').textContent=row.answers.selectedRiskMode==='ghe'?'⇄ Trocar GHE':'⇄ Trocar cargo';
  $('#target-title').textContent=target.title;$('#target-description').textContent=target.description;
  $('#next').disabled=saving;
  const hasNextTarget=targets.some((item,i)=>i>current&&item.risks.length>0);
@@ -36,6 +39,7 @@ function render(){
  const article=document.createElement('article');article.append($('#detail-template').content.cloneNode(true));article.querySelector('h2').textContent=risk.name;article.querySelector('.tag').textContent=`${risk.group} · ${risk.code} · ${risk.source}`;article.dataset.group=groupKey(risk.group);
  if(risk.code==='SAN.001') article.querySelector('.hint').textContent='Contato do trabalhador com vírus, bactérias, fungos ou parasitas presentes em alimentos, resíduos, utensílios ou superfícies contaminadas.';
  article.querySelectorAll('[data-field]').forEach(field=>{field.maxLength=4000;field.value=data[field.dataset.field]||'';field.addEventListener('input',()=>{data[field.dataset.field]=field.value;details.set(key,data);say('Alterações ainda não salvas. Você pode alternar entre cargos ou GHEs antes de salvar.');});});
+ mountDamageEditor(article,risk,data,()=>{details.set(key,data);say('Alterações ainda não salvas.');});
  const choices=Array.from(article.querySelectorAll('.choices input'));
  choices.forEach((field,i)=>{field.checked=Boolean(data.controls?.[i]);field.onchange=()=>{data.controls=[...choices.map(el=>el.checked),Boolean(data.controls?.[2])];details.set(key,data);say('Alterações ainda não salvas.');};});
  $('#cards').append(article);updateProgress();
@@ -67,7 +71,7 @@ async function load(){try{
  const result=await authClient.from('assessments').select('*').eq('id',id).maybeSingle();if(result.error||!result.data)throw Error('Não foi possível carregar o levantamento. Recarregue para tentar novamente.');
  row=result.data;if(row.status!=='draft'||(access.member.role!=='admin'&&row.responsible_id!==access.member.user_id))throw Error('Somente o responsável ou administrador pode editar um rascunho.');
  details=new Map(row.answers.riskSourcesBySelection||[]);epis=new Map(row.answers.epiBySelection||[]);baseline=fingerprint();targets=detailTargets(row.answers,catalog);
- $('#back').href='./levantamento.html?id='+encodeURIComponent(id);const label=row.answers.selectedRiskMode==='ghe'?'Selecione o GHE':'Selecione o cargo';$('#target-mode').textContent=label;$('#target-select').setAttribute('aria-label',label);
+ $('#back').href='./levantamento.html?id='+encodeURIComponent(id);const label=row.answers.selectedRiskMode==='ghe'?'GHE atual':'Cargo atual';$('#target-mode').textContent=label;$('#target-select').setAttribute('aria-label',label);
  targets.forEach((t,i)=>{const option=document.createElement('option');option.value=i;option.textContent=t.title;$('#target-select').append(option)});
  const params=new URLSearchParams(location.search);
  const requested=targets.findIndex(t=>t.id===params.get('target'));
@@ -83,7 +87,7 @@ window.addEventListener('pageshow',event=>{if(event.persisted){if(!dirty()&&!sav
 function validateCurrentRisk(){
  const card=$('#cards'),missing=[];
  const labels={source:'Informe a fonte ou situação de exposição.',frequency:'Selecione a frequência.',duration:'Informe o tempo ou circunstância de exposição.',damage:'Descreva os possíveis danos à saúde.',measures:'Descreva as medidas existentes; informe se não houver.',measure:'Informe se precisa medir ou avaliar.'};
- for(const [key,text] of Object.entries(labels)){const el=card.querySelector('[data-field="'+key+'"]');if(el&&!el.value.trim())missing.push({text,element:el});}
+ for(const [key,text] of Object.entries(labels)){const el=card.querySelector('[data-field="'+key+'"]');if(el&&!el.value.trim())missing.push({text,element:key==='damage'?(card.querySelector('.damage-other:not([hidden]) textarea')||card.querySelector('#damage-editor')):el});}
  return GRO_VALIDATE.show(missing);
 }
 
@@ -98,3 +102,21 @@ function updateProgress(){
  Array.from($('#mobile-risk-select').options).forEach((option,i)=>{option.textContent=target.risks[i].name+' — '+stateFor(target,target.risks[i]);});
  const status=$('#cards .status');if(status&&target.risks[index])status.textContent=stateFor(target,target.risks[index]);
 }
+
+$('#switch-target').onclick=()=>{
+ if(saving)return;
+ const dialog=document.createElement('dialog');dialog.className='target-dialog';dialog.setAttribute('aria-labelledby','target-dialog-title');
+ const header=document.createElement('div');header.className='target-dialog-header';const title=document.createElement('h2');title.id='target-dialog-title';title.textContent=row.answers.selectedRiskMode==='ghe'?'Trocar GHE':'Trocar cargo';
+ const close=document.createElement('button');close.type='button';close.textContent='×';close.setAttribute('aria-label','Fechar');close.onclick=()=>dialog.close();header.append(title,close);dialog.append(header);
+ const intro=document.createElement('p');intro.textContent='Escolha o grupo que deseja detalhar.';dialog.append(intro);
+ targets.forEach((target,i)=>{
+  const button=document.createElement('button');button.type='button';button.className='target-option';button.classList.toggle('current',i===current);button.setAttribute('aria-pressed',String(i===current));
+  const name=document.createElement('strong');name.textContent=target.title+(i===current?' · Atual':'');const desc=document.createElement('small');desc.textContent=target.description;
+  const count=target.risks.filter(r=>stateFor(target,r)==='Preenchido').length,caption=document.createElement('span');caption.textContent=target.risks.length?count+' de '+target.risks.length+' riscos preenchidos':'Sem riscos para detalhar';
+  const bar=document.createElement('progress');bar.max=Math.max(1,target.risks.length);bar.value=count;bar.setAttribute('aria-label',caption.textContent);button.append(name,desc,caption,bar);
+  button.onclick=()=>{current=i;index=0;$('#target-select').value=String(i);dialog.close();render();};dialog.append(button);
+ });
+ const note=document.createElement('p');note.className='hint';note.textContent='Ao trocar de grupo, suas edições continuam nesta página. Use Salvar e continuar para guardá-las.';
+ const cancel=document.createElement('button');cancel.type='button';cancel.className='target-cancel';cancel.textContent='Cancelar';cancel.onclick=()=>dialog.close();dialog.append(note,cancel);
+ dialog.addEventListener('close',()=>{dialog.remove();$('#switch-target').focus();});document.body.append(dialog);dialog.showModal();
+};
