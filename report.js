@@ -33,7 +33,7 @@ async function load(){
  const doc=data.final_snapshot?.answers?.report_document;
  if(doc?.version!==1||!Array.isArray(doc.children))throw Error('Este relatório não possui uma versão de visualização compatível.');
  const fragment=document.createDocumentFragment();doc.children.forEach(node=>fragment.append(renderNode(node)));
- content.replaceChildren(fragment);content.querySelectorAll(".report-mini-card").forEach(card=>card.classList.toggle("report-long",card.textContent.length>1400));document.title=data.title+' · GRO';document.querySelector('#report-title').textContent=data.title;
+ content.replaceChildren(fragment);content.querySelectorAll(".report-mini-card").forEach(card=>card.classList.toggle("report-long",card.textContent.length>1400));document.title='GRO';document.querySelector('#report-title').textContent=data.title;
  content.querySelectorAll('.report-summary-item').forEach(item=>{
    if(item.querySelector('span')?.textContent.trim()!=='CNPJ')return;
    const value=item.querySelector('strong');if(!value)return;
