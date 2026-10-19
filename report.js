@@ -4,6 +4,7 @@ import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
 import {organizeReport} from './report-layout.js?v=20260929-update1';
 import {addReuseButton} from './reuse-report.js?v=20260929-update1';
+import {mountReportViewer,reportVisitDate} from './report-viewer.js?v=20261019-viewer1';
 const message=document.querySelector('#report-status'),content=document.querySelector('#report-content'),print=document.querySelector('#report-print');
 const tags=new Set(['section','div','article','h2','h3','h4','p','span','strong','small','ul','li']);
 function renderNode(node,depth=0){
@@ -14,13 +15,18 @@ function renderNode(node,depth=0){
  el.className=String(node.className||'').split(/\s+/).filter(c=>/^(report-[a-z-]+|nr-status|is-warning|is-neutral|is-ok)$/.test(c)).join(' ');
  node.children.forEach(child=>el.append(renderNode(child,depth+1)));return el;
 }
-let resumeMember;
+let resumeMember,viewer,loading=false;
 async function load(){
+ if(loading)return;loading=true;document.querySelector('#report-retry').disabled=true;
+ viewer?.destroy();viewer=null;
+ document.querySelector('#report-shell').hidden=true;document.querySelector('#report-overview').hidden=true;
+ document.querySelector('.report-toolbar .reuse-report')?.remove();
  for(const img of content.querySelectorAll('img'))if(img.src.startsWith('blob:'))URL.revokeObjectURL(img.src);
  content.hidden=true;print.disabled=true;message.textContent='Carregando relatório…';
  try{
  const access=await getTeamMember();if(!access.member){if(access.reason==='network')throw Error('Não foi possível verificar seu acesso. Tente novamente.');location.replace('./index.html?reason=expired');return;}
  resumeMember=access.member; updateHeader(access.member);
+ const reportsLink=document.querySelector('header nav a[href="./reports.html"]');reportsLink?.classList.add('nav-current');reportsLink?.setAttribute('aria-current','page');
  const id=new URLSearchParams(location.search).get('id');if(!/^[0-9a-f-]{36}$/i.test(id||''))throw Error('Endereço de relatório inválido.');
  const {data,error}=await authClient.from('assessments').select('client_id,title,report_revision,final_snapshot,completed_at,team_members!assessments_responsible_id_fkey(display_name)').eq('id',id).eq('status','completed').maybeSingle();
  if(error||!data)throw Error('Relatório indisponível. Volte à lista ou tente novamente.');
@@ -35,6 +41,7 @@ async function load(){
    if(digits.length===14)value.textContent=digits.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,'$1.$2.$3/$4-$5');
  });
  const date=new Date(data.completed_at).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'});
+ const visitDate=reportVisitDate(data.final_snapshot?.answers||{});
  const responsible=data.team_members?.display_name?.trim();
  const company=data.final_snapshot?.client;
  const companyName=company?.trade_name?.trim()||company?.legal_name||content.querySelector('.report-cover h3')?.textContent||'empresa';
@@ -67,7 +74,7 @@ async function load(){
      riskCard.append(...Array.from(staffCard.childNodes));
    }
    const revisionCard=document.createElement('div');revisionCard.className='report-summary-item';
-   for(const [label,value] of [['Revisão',Number.isInteger(data.report_revision)?'Rev '+String(data.report_revision).padStart(2,'0'):'Não informada'],['Data da visita',date]]){
+   for(const [label,value] of [['Revisão',Number.isInteger(data.report_revision)?'Rev '+String(data.report_revision).padStart(2,'0'):'Não informada'],['Data da visita',visitDate]]){
      const caption=document.createElement('span');caption.textContent=label;if(label==='Data da visita')caption.className='report-second-label';
      const strong=document.createElement('strong');strong.textContent=value;revisionCard.append(caption,strong);
    }
@@ -79,7 +86,7 @@ async function load(){
  const sectorsBlock=Array.from(content.querySelectorAll('.report-block')).find(block=>block.querySelector('h3')?.textContent.trim()==='Setores e cargos');
  if(sectorsBlock)sectorsBlock.classList.add('report-sectors');
  const introduction=document.createElement('p');introduction.className='report-introduction';
- introduction.textContent=`Em visita realizada em ${date}${responsible?', por '+responsible:''}, à empresa ${identity}${cnpj?', inscrita no CNPJ sob o nº '+cnpj:''}${fullAddress?', localizada em '+fullAddress:''}, foram levantadas informações sobre os setores, as atividades e as condições de trabalho. Este relatório apresenta os riscos identificados, as medidas de prevenção informadas e as necessidades de avaliação complementar, conforme as condições observadas na ocasião.`;
+ introduction.textContent=`Em visita realizada${visitDate==='Não informada'?' (data não informada)':' em '+visitDate}${responsible?', por '+responsible:''}, à empresa ${identity}${cnpj?', inscrita no CNPJ sob o nº '+cnpj:''}${fullAddress?', localizada em '+fullAddress:''}, foram levantadas informações sobre os setores, as atividades e as condições de trabalho. Este relatório apresenta os riscos identificados, as medidas de prevenção informadas e as necessidades de avaliação complementar, conforme as condições observadas na ocasião.`;
  const cover=content.querySelector('.report-cover');
  if(cover&&sizingBlock){
    const grid=document.createElement('div');grid.className='report-dimension-grid';
@@ -117,15 +124,18 @@ async function load(){
  organizeReport(content,data.final_snapshot?.answers||{});
  await hydrateReportPhotos(content,authClient,data.client_id);
  message.textContent='Concluído em '+new Date(data.completed_at).toLocaleString('pt-BR')+'. Versão preservada no histórico.';
+ viewer=mountReportViewer(content,data);
+ document.querySelector('#report-shell').hidden=false;document.querySelector('#report-overview').hidden=false;
  content.hidden=false;print.disabled=false;
  document.querySelector('.report-toolbar .reuse-report')?.remove();
  addReuseButton(document.querySelector('.report-toolbar'),id,authClient,getTeamMember,text=>{message.textContent=text;});
  if(new URLSearchParams(location.search).get('print')==='1'){history.replaceState(null,'','./report.html?id='+encodeURIComponent(id));await document.fonts.ready;window.print();}
  }catch(error){message.textContent=error.message;}
+ finally{loading=false;document.querySelector('#report-retry').disabled=false;}
 }
 print.onclick=()=>window.print();document.querySelector('#report-retry').onclick=load;
-document.querySelector('#sign-out').onclick=async()=>{content.hidden=true;await authClient.auth.signOut({scope:'local'});location.replace('./index.html');};
-authClient.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){content.replaceChildren();content.hidden=true;print.disabled=true;location.replace('./index.html');}});
+document.querySelector('#sign-out').onclick=async()=>{content.hidden=true;document.querySelector('#report-shell').hidden=true;document.querySelector('#report-overview').hidden=true;await authClient.auth.signOut({scope:'local'});location.replace('./index.html');};
+authClient.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){viewer?.destroy();content.replaceChildren();content.hidden=true;document.querySelector('#report-shell').hidden=true;document.querySelector('#report-overview').hidden=true;print.disabled=true;location.replace('./index.html');}});
 
 await load();
 
