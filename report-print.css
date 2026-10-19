@@ -1,8 +1,9 @@
 /* Paper layout is independent of the viewport and of the interactive cards. */
 @media print{
  #report-content .print-risk-measure{position:absolute;left:-10000px;top:0;width:180mm;display:flow-root;visibility:hidden}
- #report-content .print-risk-pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:5mm;align-items:start;margin:0 0 4mm;break-inside:avoid}
- #report-content .print-risk-pair .viewer-risk{box-sizing:border-box;min-width:0;margin:0;padding:2mm 2mm 2mm 3mm;border:1px solid #d7e1db;border-left:2px solid var(--accent)}
+ #report-content .print-risk-columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:5mm;align-items:start;margin:0 0 4mm;break-inside:avoid}
+ #report-content .print-risk-column{display:flow-root;min-width:0}
+ #report-content .print-risk-columns .viewer-risk{box-sizing:border-box;min-width:0;margin:0 0 2mm;padding:2mm 2mm 2mm 3mm;border:1px solid #d7e1db;border-left:2px solid var(--accent)}
  #report-content .print-risk-card .compact-risk-fields{display:block!important;font-size:8.5pt}
  #report-content .print-risk-card .compact-risk-fields tbody,#report-content .print-risk-card .compact-risk-fields tr,#report-content .print-risk-card .compact-risk-fields td{display:block;width:auto;border:0;background:none;padding:0}
  #report-content .print-risk-card .compact-risk-fields tr{border-top:1px solid #d7e1db;padding:.6mm 0}
@@ -93,7 +94,7 @@
  #report-content .compact-risk-fields td:first-child{width:29%;font-weight:600;background:#f0f5f1}
  #report-content .compact-risk-fields td{padding:.6mm 2mm}
  #report-content .viewer-risk>summary{padding:1mm 0}
- #report-content .viewer-risk,#report-content .print-risk-pair{margin-bottom:2mm}
+ #report-content .viewer-risk,#report-content .print-risk-columns{margin-bottom:2mm}
  #report-content .compact-recommendations-table th:first-child{width:7%}
  #report-content .compact-recommendations-table th:nth-child(2){width:40%}
  #report-content .viewer-risk.compact-long{break-inside:auto;page-break-inside:auto}
