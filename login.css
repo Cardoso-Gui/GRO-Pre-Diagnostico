@@ -9,3 +9,63 @@
 .login-preferences{display:flex;flex-wrap:wrap;gap:12px 24px;margin:8px 0 18px}.login-preferences label{display:flex;align-items:center;gap:8px;font-size:13px;color:#46616b;cursor:pointer}.login-preferences input{width:17px;height:17px;margin:0;accent-color:#137b68}
 
 @media(max-width:760px){.mobile-brand>div{display:flex;align-items:center;gap:12px;min-width:0}.mobile-brand .brand-name{flex-shrink:0}.mobile-brand .brand-subtitle{display:block;white-space:normal;margin:0;padding-left:12px;border-left:1px solid #cbdcde;font-size:11px;letter-spacing:.3px;line-height:1.5;max-width:180px}.mobile-brand .brand-mark{flex-shrink:0}}
+
+/* Login: identidade e acesso */
+body{background:#edf2ef}
+.login-layout{min-height:min(820px,calc(100svh - 64px));width:min(1240px,calc(100% - 64px));margin:32px auto;grid-template-columns:minmax(0,1.04fr) minmax(0,1fr);border:1px solid #d4e0da;border-radius:28px;overflow:hidden;box-shadow:0 24px 70px #173f3020}
+.brand-panel{background:#103e38;padding:44px 48px;gap:48px}
+.brand-panel:before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 0% 90%,#21846b50,transparent 65%);z-index:-1}
+.brand-panel:after{width:480px;height:480px;right:-330px;bottom:-180px;border-color:#b6dcb52b;box-shadow:0 0 0 55px #ffffff03,0 0 0 56px #d7edc512,0 0 0 112px #ffffff02,0 0 0 113px #d7edc50a}
+.brand-mark{width:46px;height:46px;border-radius:14px;background:#ffffff0a;color:#d5edc4}
+.brand-name{font-size:30px;letter-spacing:-1px}
+.brand-subtitle{font-size:10px;letter-spacing:1.2px;color:#bdd2c9}
+.brand-story{max-width:100%;margin:auto 0}
+.eyebrow{font-size:10px;letter-spacing:1.8px;color:#d5e4bd}
+.brand-story h2{font-size:clamp(38px,4.1vw,58px);font-weight:600;letter-spacing:-2.4px;line-height:1.08;margin:26px 0}
+.brand-story h2 em{color:#c6dfa9}
+.brand-story p{max-width:345px;font-size:15px;line-height:1.8;color:#c0d4cd}
+.brand-path{display:flex;align-items:center;gap:12px;margin-top:36px;flex-wrap:wrap}
+.brand-path span{display:grid;gap:8px;font-size:11px;color:#d4e3dc}
+.brand-path b{font-size:11px;letter-spacing:1px;color:#d0e5b9;font-weight:500}
+.brand-path i{width:23px;height:1px;background:#c6dfa94a}
+.brand-caption{font-size:12px;color:#c4d7ce;border-color:#d3e4dc25;padding-top:22px}
+.form-panel{background:#fffefb;padding:48px 44px}
+.form-card{max-width:380px}
+.login-welcome-icon{width:48px;height:48px;display:grid;place-items:center;color:#237a65;background:#eaf2e8;border:1px solid #dce8d8;border-radius:15px;margin-bottom:26px}
+.login-welcome-icon svg{width:27px;height:27px}
+.section-label{font-size:10px;letter-spacing:1.6px;margin-bottom:13px;color:#367762}
+h1{font-size:33px;line-height:1.16;font-weight:650;letter-spacing:-1.3px;color:#203d35}
+.intro{font-size:14px;color:#62756c;margin-bottom:28px}
+#login-form{gap:18px}
+.field label{font-size:13px;color:#304a40}
+.field input{height:54px;border-radius:11px;border-color:#d4dfd8;background:#fff;font-size:16px}
+.field input::placeholder{color:#829187}
+.reveal{top:6px;right:6px}
+.login-preferences{margin:0;gap:6px 20px}
+.login-preferences label{min-height:32px;font-size:12px;color:#536b5e}
+.login-preferences input{width:18px;height:18px}
+.password-tools{margin:-4px 0 0}
+.password-tools .text-button{min-height:32px;font-size:12px}
+.primary{height:54px;border-radius:11px;background:#176c57;box-shadow:0 6px 16px #176c571c;font-size:14px}
+.primary:hover{background:#105843}
+.access-help{margin-top:26px;padding-top:24px;font-size:13px;gap:6px;border-color:#e2e8e1}
+.access-help .text-button{font-size:13px;min-height:36px}
+.form-footer{margin:26px 0 0;font-size:11px;color:#687c70;line-height:1.8}
+@media(min-width:1500px){.brand-panel{padding:48px 56px}.form-panel{padding:48px}}
+@media(max-width:1000px) and (min-width:761px){.brand-panel{padding:36px 28px}.form-panel{padding:40px 28px}.brand-story h2{font-size:42px}.brand-path{gap:8px}.brand-path i{width:12px}}
+@media(max-width:760px){
+ body{background:#f2f5f0}
+ .login-layout{display:block;width:100%;margin:0;border:0;border-radius:0;box-shadow:none;min-height:100svh}
+ .brand-panel{display:none}
+ .form-panel{min-height:100svh;padding:32px 24px;background:#fffefb}
+ .form-card{max-width:420px;margin:auto 0}
+ .mobile-brand{margin-bottom:38px}
+ .mobile-brand .brand-mark{background:#edf3e9;color:#176c57;border-color:#d9e5d4}
+ .mobile-brand .brand-subtitle{font-size:10px;letter-spacing:.3px;color:#60746a}
+ .login-welcome-icon{display:none}
+ h1{font-size:32px}
+ .form-footer{margin-top:26px}
+ .login-preferences label{min-height:44px}
+ .password-tools .text-button{min-height:44px}
+}
+@media(max-width:360px){.form-panel{padding:24px 20px}h1{font-size:28px}.mobile-brand{margin-bottom:30px}.brand-name{font-size:26px}}
