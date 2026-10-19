@@ -616,6 +616,7 @@ function renderRiskModeSummary() {
 }
 
 function renderRiskSelection() {
+  const expandedTarget = riskSelectionGrid.querySelector("details[open]")?.dataset.target;
   renderGheManagement();
   riskSelectionGrid.innerHTML = "";
   riskSelectionSection.hidden = !selectedRiskMode;
@@ -639,7 +640,9 @@ function renderRiskSelection() {
   }
 
   targets.forEach((target) => {
-    riskSelectionGrid.appendChild(createRiskCard(target));
+    const card = createRiskCard(target);
+    card.open = expandedTarget ? target.id === expandedTarget : target.id === targets[0].id;
+    riskSelectionGrid.appendChild(card);
   });
 
   renderRiskSourceSection();
@@ -696,7 +699,9 @@ function getRiskTargets() {
 }
 
 function createRiskCard(target) {
-  const card = document.createElement("article");
+  const card = document.createElement("details");
+  card.dataset.target = target.id;
+  card.addEventListener("toggle", () => { if (card.open) riskSelectionGrid.querySelectorAll("details.risk-accordion[open]").forEach(other => { if (other !== card) other.open = false; }); });
   const title = document.createElement("h3");
   const note = document.createElement("p");
   const tools = document.createElement("div");
@@ -705,7 +710,7 @@ function createRiskCard(target) {
   const riskList = document.createElement("div");
   const selectedList = document.createElement("div");
 
-  card.className = "risk-card";
+  card.className = "risk-card risk-accordion";
   note.className = "risk-card-note";
   tools.className = "risk-tools";
   riskList.className = "risk-list";
@@ -731,7 +736,9 @@ function createRiskCard(target) {
 
   tools.appendChild(searchInput);
   tools.appendChild(groupSelect);
-  card.appendChild(title);
+  const summary = document.createElement("summary");
+  const count = document.createElement("span");count.className="risk-accordion-count";
+  summary.append(title,count);card.append(summary);
   card.appendChild(note);
   if (selectedRiskMode === "ghe") {
     const ghe = gheList.find(item => item.id === target.id);
@@ -770,7 +777,26 @@ function createRiskCard(target) {
     card.append(add, selectedList, dialog);
   }
 
+  const detailFooter=document.createElement("div");detailFooter.className="risk-detail-footer";
+  const detailStatus=document.createElement("span");detailStatus.className="risk-detail-status";
+  const detailButton=document.createElement("button");detailButton.type="button";detailButton.className="target-risk-details";
+  detailButton.textContent=selectedRiskMode==="ghe"?"Preencher detalhes deste GHE →":"Preencher detalhes deste cargo →";
+  detailButton.onclick=()=>{const open=document.querySelector("#open-risk-details");if(open){open.dataset.target=target.id;open.dataset.risk="";open.click();}};
+  detailFooter.append(detailStatus,detailButton);card.append(detailFooter);
+  updateRiskCardSummary(card,target.id);
   return card;
+}
+
+function updateRiskCardSummary(card,targetId) {
+  if(!card?.classList.contains("risk-accordion"))return;
+  const selected=getSelectableRisks().filter(risk=>getSelectedRiskCodes(targetId).has(risk.code));
+  const count=card.querySelector(".risk-accordion-count");
+  if(count)count.textContent=selected.length?selected.length+(selected.length===1?" risco":" riscos"):"Nenhum risco";
+  const detailed=selected.filter(risk=>risk.code!=="09.01.001");
+  const action=card.querySelector(".target-risk-details");
+  if(action)action.disabled=detailed.length===0;
+  const status=card.querySelector(".risk-detail-status");
+  if(status)status.textContent=!selected.length?"Adicione os riscos deste grupo.":!detailed.length?"Sem riscos que exijam detalhamento.":getReportMissingFields(true).some(item=>item.riskTarget===targetId)?"Detalhes pendentes":"Detalhes preenchidos";
 }
 
 
@@ -969,6 +995,7 @@ function renderSelectedRisks(targetId, container) {
     if (!groups.has(groupName)) {
       const section = document.createElement("section");
       section.className = "selected-risk-group";
+      section.dataset.riskGroup = normalizeSectorName(groupName);
       const heading = document.createElement("h4");
       heading.textContent = groupName;
       section.appendChild(heading);
@@ -980,7 +1007,7 @@ function renderSelectedRisks(targetId, container) {
     const remove = document.createElement("button");
     remove.type = "button";
     remove.className = "remove-selected-risk";
-    remove.textContent = "×";
+    remove.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7"/></svg>';
     remove.setAttribute("aria-label", `Remover ${risk.name}`);
     remove.title = `Remover ${risk.name}`;
     remove.addEventListener("click", () => {
@@ -994,9 +1021,11 @@ function renderSelectedRisks(targetId, container) {
     });
     const name = document.createElement("span");
     name.textContent = `${risk.code} - ${risk.name}`;
-    pill.append(remove, name);
+    pill.append(name, remove);
     groups.get(groupName).appendChild(pill);
   });
+  groups.forEach((section,name)=>{section.querySelector("h4").textContent=name+" · "+section.querySelectorAll(".selected-risk-pill").length;});
+  updateRiskCardSummary(container.closest(".risk-card"),targetId);
 }
 
 function toggleRiskSelection(targetId, riskCode, checked) {
