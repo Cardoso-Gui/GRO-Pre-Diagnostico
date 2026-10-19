@@ -1,8 +1,10 @@
+import {initAssessmentWizard} from './assessment-wizard.js?v=20261019-wizard1';
+const assessmentWizard=initAssessmentWizard();
 import {watchPageResume} from './page-resume.js?v=20260930-resume1';
 import {addClientPickerSearch} from './client-search.js?v=20260929-button1';
 addClientPickerSearch(document.querySelector('#client-select'));
 import {uploadPhoto,photoUrl} from './workstation-photos.js?v=20260928-photos1';
-import {updateHeader} from './app-header.js?v=20260928-occ1';
+import {updateHeader} from './app-header.js?v=20261019-access1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {companyFromClient,saveAssessment,clientOptionLabel,deleteDraft,completeAssessment} from './assessment-data.js?v=20260925-reports1';
 const $=s=>document.querySelector(s);
@@ -10,7 +12,7 @@ const workspace=$('#protected-workspace'), notice=$('#session-check');
 let member, row, selected, saving=false, dirty=false, loading=false, loaded=false, sequence=0, offset=0, historyOffset=0;
 const login=()=>location.replace('./index.html?reason=expired');
 const say=(text,error=false)=>{ $('#cloud-status').textContent=text; $('#cloud-status').hidden=!error; $('#cloud-status').classList.toggle('error',error); };
-async function access(){const result=await getTeamMember();if(result.reason==='network')throw Error('Não foi possível verificar seu acesso. Mantenha esta página aberta para preservar o preenchimento, confira a conexão e tente a ação novamente.');if(!result.member){dirty=false;login();throw Error('Sua sessão terminou.');}member=result.member;updateHeader(member);$('#session-name').textContent=member.display_name;}
+async function access(){const result=await getTeamMember();if(result.reason==='network')throw Error('Não foi possível verificar seu acesso. Mantenha esta página aberta para preservar o preenchimento, confira a conexão e tente a ação novamente.');if(!result.member){dirty=false;login();throw Error('Sua sessão terminou.');}member=result.member;updateHeader(member);$('#session-name').textContent=member.display_name;$('#profile-short-name').textContent=(member.display_name||'Equipe').trim().split(/\s+/)[0];}
 const clientChoices = new Map();
 async function clientList(){
  const ticket=++sequence;const select=$('#client-select');select.disabled=true;select.replaceChildren();clientChoices.clear();selected=null;$('#client-history').hidden=true;$('#retry-clients').hidden=true;say('Carregando empresas cadastradas…');
@@ -72,10 +74,10 @@ async function loadForm(){
  row=data;
  globalThis.GRO_CLOUD={uploadPhoto:async file=>{await access();return uploadPhoto(authClient,file,row.client_id,member.user_id);},photoUrl:path=>photoUrl(authClient,path,row.client_id),save:async answers=>{
  if(globalThis.GRO_POSTS?.busy()){say('Aguarde o envio das fotos terminar antes de salvar.',true);return null;}
- if(saving)return;saving=true;$('#save-draft-button').disabled=true;
+ if(saving)return;saving=true;$('#save-draft-button').disabled=true;$('#wizard-save-status').textContent='Salvando rascunho…';
  const version=fingerprint(); const snapshot=JSON.parse(JSON.stringify(answers));
- try{await access();row=await saveAssessment(authClient,row,snapshot);history.replaceState(null,'',`./levantamento.html?id=${encodeURIComponent(row.id)}`);cleanState=version;dirty=fingerprint()!==cleanState;say(dirty?'Rascunho salvo. Há alterações novas nesta tela; salve novamente.':'',dirty);}
- catch(error){say(error.message,true);return null;}finally{saving=false;$('#save-draft-button').disabled=false;}
+ try{await access();row=await saveAssessment(authClient,row,snapshot);history.replaceState(null,'',`./levantamento.html?id=${encodeURIComponent(row.id)}`);cleanState=version;dirty=fingerprint()!==cleanState;$('#wizard-save-status').textContent=dirty?'Rascunho salvo; há novas alterações para salvar.':'Rascunho salvo.';say(dirty?'Rascunho salvo. Há alterações novas nesta tela; salve novamente.':'',dirty);}
+ catch(error){$('#wizard-save-status').textContent='Não foi possível salvar. Confira o aviso acima.';say(error.message,true);return null;}finally{saving=false;$('#save-draft-button').disabled=false;}
  return row;
  },complete:async answers=>{
  if(globalThis.GRO_POSTS?.busy()){say('Aguarde o envio das fotos terminar.',true);return false;}
@@ -86,15 +88,16 @@ async function loadForm(){
  catch(error){say(error.message,true);return false;}
  finally{saving=false;fields.forEach((field,i)=>field.disabled=states[i]);$('#generate-report-button').disabled=false;}
 },reload:()=>{if(!dirty||confirm('Descartar alterações não salvas e recarregar o rascunho?')){dirty=false;location.reload();}}};
- for(const file of ['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js', 'workstation-editor.js','script.js'])await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=file+'?v=20261015-ghe-actions7';script.onload=resolve;script.onerror=reject;document.body.append(script);});
+ for(const file of ['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js', 'workstation-editor.js','script.js'])await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=file+'?v=20261019-wizard1';script.onload=resolve;script.onerror=reject;document.body.append(script);});
  globalThis.GRO_FORM.restore(row.answers);
  cleanState=fingerprint();dirty=Boolean(row.unsaved);
  $('#questionnaire').hidden=false;$('#page-title').textContent=row.title;$('#cnpj-form').hidden=true;$('#clear-draft-button').hidden=true;$('#load-draft-button').textContent='Recarregar rascunho';
+ assessmentWizard.loaded({id:row.id,title:row.title,isNew:Boolean(row.unsaved)});
  say(row.unsaved?'Novo levantamento ainda não salvo. Use Salvar rascunho para incluí-lo no histórico.':'Rascunho carregado. Clique em Salvar rascunho para guardar suas alterações no sistema.');
 }
 let cleanState='';
 function fingerprint(){return JSON.stringify({answers:globalThis.GRO_FORM?.snapshot(),inputs:Array.from($('#questionnaire').querySelectorAll('input,select,textarea'),field=>[field.name||field.id,field.value,field.checked])});}
-function refreshDirty(){if(row?.status==='completed'){dirty=false;return;}if(row&&globalThis.GRO_FORM)dirty=Boolean(row.unsaved)||fingerprint()!==cleanState;}
+function refreshDirty(){if(row?.status==='completed'){dirty=false;return;}if(row&&globalThis.GRO_FORM)dirty=Boolean(row.unsaved)||fingerprint()!==cleanState;if(dirty&&!saving)$('#wizard-save-status').textContent='Alterações não salvas';}
 for(const event of ['input','change','submit','click'])$('#questionnaire').addEventListener(event,()=>queueMicrotask(refreshDirty));
 const leaveDialog=$('#leave-dialog');
 document.querySelector('.session-home').addEventListener('click',event=>{
@@ -123,6 +126,47 @@ await initialize();
 
 
 watchPageResume({getMember:getTeamMember,currentMember:()=>member,onAccessChanged:()=>location.replace('./index.html?reason=expired')});
+
+const homeMenuToggle = document.querySelector('#home-menu-toggle');
+const homeNavigation = document.querySelector('#home-navigation');
+homeMenuToggle.addEventListener('click', () => {
+ const expanded = homeMenuToggle.getAttribute('aria-expanded') !== 'true';
+ homeMenuToggle.setAttribute('aria-expanded', String(expanded));
+ homeNavigation.classList.toggle('is-open', expanded);
+});
+homeNavigation.addEventListener('keydown', event => {
+ if (event.key === 'Escape') {
+  homeNavigation.classList.remove('is-open');
+  homeMenuToggle.setAttribute('aria-expanded', 'false');
+  homeMenuToggle.focus();
+ }
+});
+
+const profileToggle = document.querySelector('#profile-toggle');
+const profilePanel = document.querySelector('#profile-panel');
+function closeProfile() {
+ profilePanel.hidden = true;
+ profileToggle.setAttribute('aria-expanded', 'false');
+}
+function closeHomeNavigation() {
+ homeNavigation.classList.remove('is-open');
+ homeMenuToggle.setAttribute('aria-expanded', 'false');
+}
+profileToggle.addEventListener('click', () => {
+ const opening = profilePanel.hidden;
+ closeHomeNavigation();
+ profilePanel.hidden = !opening;
+ profileToggle.setAttribute('aria-expanded', String(opening));
+});
+homeMenuToggle.addEventListener('click', closeProfile);
+document.addEventListener('click', event => {
+ if (!event.target.closest('.user-menu')) closeProfile();
+ if (!homeNavigation.contains(event.target) && !homeMenuToggle.contains(event.target)) closeHomeNavigation();
+});
+document.addEventListener('keydown', event => {
+ if (event.key === 'Escape' && !profilePanel.hidden) {closeProfile();profileToggle.focus();}
+});
+
 
 // Browser Back can restore an obsolete draft after editing on the dedicated page.
 window.addEventListener('pageshow',event=>{if(event.persisted){refreshDirty();if(!dirty&&!saving)location.reload();else say('Esta tela pode estar desatualizada. Preserve suas alterações e use Recarregar rascunho para buscar a versão salva antes de continuar.',true);}});
