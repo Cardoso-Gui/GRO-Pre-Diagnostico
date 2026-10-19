@@ -9,8 +9,8 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <meta name="referrer" content="no-referrer" />
     <script src="vendor/supabase-2.117.2.js?v=20260925-reports2" defer></script>
-    <script type="module" src="workspace.js?v=20261019-epi1"></script>
-  <link rel="stylesheet" href="dimension.css?v=20260925-reports2"><link rel="stylesheet" href="./app-header.css?v=20260928-occ1"><link rel="stylesheet" href="./client-search.css?v=20260929-inline1"><link rel="stylesheet" href="home.css?v=20260928-occ1"><link rel="stylesheet" href="home-dashboard.css?v=20261019-header2"><link rel="stylesheet" href="assessment-wizard.css?v=20261019-epi1"></head>
+    <script type="module" src="workspace.js?v=20261019-review1"></script>
+  <link rel="stylesheet" href="dimension.css?v=20260925-reports2"><link rel="stylesheet" href="./app-header.css?v=20260928-occ1"><link rel="stylesheet" href="./client-search.css?v=20260929-inline1"><link rel="stylesheet" href="home.css?v=20260928-occ1"><link rel="stylesheet" href="home-dashboard.css?v=20261019-header2"><link rel="stylesheet" href="assessment-wizard.css?v=20261019-review1"></head>
   <body class="home-page wizard-page">
     <section id="session-check" class="session-check" aria-live="polite"><p>Verificando seu acesso…</p><a href="index.html">Voltar ao login</a></section>
     <div id="protected-workspace" hidden>
@@ -254,13 +254,13 @@
             <div class="epi-grid" id="epi-grid"></div>
           </section>
 
-<section class="final-report-section" id="final-report-section" hidden>
+<section class="final-report-section" id="final-report-section" hidden><div id="review-stage-content"></div>
             <div class="dimension-heading">
               <p class="eyebrow">Etapa 08</p>
               <h2>Relatório final</h2><p>Os treinamentos sugeridos serão incluídos automaticamente conforme os dados do levantamento.</p>
             </div>
 
-            <button type="button" id="generate-report-button">
+            <p id="review-generation-hint" role="status"></p><button type="button" id="generate-report-button" aria-describedby="review-generation-hint">
               Gerar relatório
             </button>
             <button type="button" id="print-report-button" hidden>
