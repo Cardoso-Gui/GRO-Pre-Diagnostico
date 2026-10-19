@@ -149,8 +149,20 @@ export function mountReportViewer(content,data){
   image.replaceWith(button);button.append(image);
   on(button,'click',()=>{large.src=image.src;large.alt=image.alt;$('#report-photo-title').textContent=image.alt;dialog.showModal();});
  }
- const beforePrint=()=>{if(printState)return;printState=new Map([...content.querySelectorAll('details')].map(el=>[el,el.open]));content.querySelectorAll('details').forEach(el=>el.open=true);};
- const afterPrint=()=>{if(printState){for(const [el,open] of printState)el.open=open;printState=null;}};
+ // Native details create fragmentation containers in Chromium printing. Temporarily
+ // flatten them, moving (not copying) nodes so photos and all saved text stay intact.
+ const beforePrint=()=>{
+  if(printState)return;printState=[];
+  for(const original of [...content.querySelectorAll('details')]){
+   const replacement=make('div');
+   for(const attribute of original.attributes)if(attribute.name!=='open')replacement.setAttribute(attribute.name,attribute.value);
+   replacement.append(...original.childNodes);original.replaceWith(replacement);
+   printState.push({original,replacement});
+  }
+ };
+ const afterPrint=()=>{
+  if(printState){for(const {original,replacement} of printState.reverse()){original.append(...replacement.childNodes);replacement.replaceWith(original);}printState=null;}
+ };
  on(window,'beforeprint',beforePrint);on(window,'afterprint',afterPrint);
  return {destroy(){controls.abort();afterPrint();closePhoto();printStyle.remove();index.replaceChildren();select.replaceChildren();overview.replaceChildren();input.value='';searchStatus.textContent='';content.classList.remove('viewer-searching');}};
 }
