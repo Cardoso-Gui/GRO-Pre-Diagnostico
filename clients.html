@@ -5,16 +5,27 @@
  <meta name="referrer" content="no-referrer">
  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://vjtzragdciexixjzeann.supabase.co wss://vjtzragdciexixjzeann.supabase.co; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
  <title>Clientes · GRO</title><link rel="icon" href="./favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="./home.css?v=20260928-occ1">
- <script src="./vendor/supabase-2.117.2.js?v=20260928-occ1" defer></script><script type="module" src="./clients.js?v=20260928-occ1"></script>
-<link rel="stylesheet" href="./clients.css?v=20260928-occ1"></head>
-<body><section id="session-check" class="session-check"><p>Carregando clientes…</p><button id="retry-session" type="button" hidden>Tentar novamente</button><a href="./index.html">Voltar ao login</a></section><div id="clients-page" hidden>  <header class="topbar"><div class="topbar-inner">
+ <script src="./vendor/supabase-2.117.2.js?v=20260928-occ1" defer></script><script type="module" src="./clients.js?v=20261019-clients2"></script>
+<link rel="stylesheet" href="./home-dashboard.css?v=20261019-header2"><link rel="stylesheet" href="./clients.css?v=20261019-clients2"></head>
+<body class="home-page clients-page"><section id="session-check" class="session-check"><p>Carregando clientes…</p><button id="retry-session" type="button" hidden>Tentar novamente</button><a href="./index.html">Voltar ao login</a></section><div id="clients-page" hidden>  <header class="topbar"><div class="topbar-inner">
    <a class="brand" href="./inicio.html" aria-label="GRO — página inicial"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 8 9 8 9s8-4.5 8-9V6l-8-3Z"/><path d="m8 12 3 3 5-6"/></svg></span><span><strong>GRO</strong><small>Gestão de riscos ocupacionais</small></span></a>
-   <nav aria-label="Navegação principal"><a class="nav-current" href="./inicio.html" aria-current="page">Início</a></nav>
-   <div class="user-menu"><span id="user-avatar" class="avatar" aria-hidden="true"></span><div class="user-info"><strong id="user-name"></strong><small id="user-role"></small></div><button id="sign-out" class="sign-out" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v16h5m5-13 5 5-5 5M8 12h11"/></svg><span>Sair</span></button></div>
+   <button id="home-menu-toggle" class="home-menu-toggle" type="button" aria-expanded="false" aria-controls="home-navigation">☰ Menu</button><nav id="home-navigation" aria-label="Navegação principal"><a class="nav-current" href="./inicio.html" aria-current="page">Início</a></nav>
+   <div class="user-menu"><button id="profile-toggle" class="profile-toggle" type="button" aria-expanded="false" aria-controls="profile-panel" aria-label="Abrir perfil"><span id="user-avatar" class="avatar" aria-hidden="true"></span><span id="profile-short-name"></span><span class="profile-chevron" aria-hidden="true">⌄</span></button><div id="profile-panel" class="profile-panel" hidden><div class="user-info"><strong id="user-name"></strong><small id="user-role"></small></div><button id="sign-out" class="sign-out" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v16h5m5-13 5 5-5 5M8 12h11"/></svg><span>Sair</span></button></div></div>
   </div></header>
-<main class="home-main"><a class="record-link" href="./inicio.html">← Voltar ao início</a><div class="page-heading"><div><p class="eyebrow">Área da equipe</p><h1>Clientes</h1><p class="intro">Consulte e atualize as empresas atendidas pela equipe.</p></div><a class="primary-button" href="./client.html">+ Novo cliente</a></div><section class="clients-panel">  <form id="client-search" class="client-search" role="search" aria-label="Buscar clientes">
-   <label>Nome da empresa<input id="search-name" type="search" maxlength="240" placeholder="Razão social ou nome fantasia"></label>
-   <label>CNPJ<input id="search-cnpj" type="search" maxlength="18" placeholder="Completo ou parte do CNPJ" pattern="[A-Za-z0-9.\/\s\-]*" title="Informe letras, números ou a pontuação do CNPJ."></label>
-   <div class="search-actions"><button type="submit" class="primary-button">Buscar</button><button id="clear-search" type="button" class="secondary-button">Limpar filtros</button></div>
+<main class="home-main" id="main">
+ <p class="breadcrumb"><a href="./inicio.html">Início</a> / Clientes</p>
+ <div class="page-heading"><div><h1>Clientes</h1><p class="intro">Organize suas empresas e acompanhe os levantamentos.</p></div><a class="primary-button" href="./client.html">+ Novo cliente</a></div>
+ <section class="clients-panel" aria-label="Clientes cadastrados">
+  <form id="client-search" class="client-search" role="search" aria-label="Buscar clientes">
+   <label class="search-field"><span class="sr-only">Buscar por nome ou CNPJ</span><input id="search-name" type="search" maxlength="240" placeholder="Buscar por nome ou CNPJ"></label>
+   <button type="submit" class="primary-button">Buscar</button>
+   <label><span class="sr-only">Ordenar clientes</span><select id="client-sort"><option value="asc">Nome: A–Z</option><option value="desc">Nome: Z–A</option></select></label>
+   <button id="clear-search" type="button" class="clear-search" hidden>Limpar busca</button>
   </form>
-<div id="records-list" class="records-list"></div><p id="records-status" class="records-status" role="status"></p><button id="retry-records" class="secondary-button" hidden>Tentar novamente</button><button id="more-records" class="secondary-button" hidden>Carregar mais</button></section></main></div></body></html>
+  <p id="client-count" class="client-count" aria-live="polite"></p>
+  <div class="list-head" aria-hidden="true"><span>Empresa</span><span>Cidade / UF</span><span>Levantamentos</span><span>Ações</span></div>
+  <div id="records-list" class="records-list"></div>
+  <div class="list-footer"><p id="records-status" role="status"></p><p id="records-summary"></p><button id="retry-records" class="secondary-button" hidden>Tentar novamente</button><button id="more-records" class="secondary-button" hidden>Carregar mais</button></div>
+ </section>
+ <dialog id="assessments-dialog" aria-labelledby="assessments-title"><div class="dialog-heading"><h2 id="assessments-title">Levantamentos</h2><button id="close-assessments" type="button" class="secondary-button">Fechar</button></div><p id="assessments-client"></p><div id="assessments-list"></div><p id="assessments-status" role="status"></p><button id="assessments-retry" class="secondary-button" hidden>Tentar novamente</button><button id="assessments-more" class="secondary-button" hidden>Carregar mais</button></dialog>
+</main></div></body></html>
