@@ -96,3 +96,36 @@
  .home-page .draft-row .secondary-button{grid-row:3}
  .home-page .draft-badge{align-self:center}
 }
+
+/* Cabeçalho compacto */
+.home-page .topbar-inner{max-width:1280px;min-height:76px;padding:12px 24px;flex-wrap:nowrap;gap:24px;position:relative}
+.home-page .topbar .brand{flex:0 0 auto;gap:8px}
+.home-page .topbar .brand small{display:none}
+.home-page .topbar .brand-mark{width:32px;height:38px}
+.home-page .topbar .brand-mark svg{width:30px;height:30px}
+.home-page .topbar .brand strong{font-size:28px}
+.home-page .topbar nav{order:0;width:auto;min-height:0;flex:1;justify-content:center;gap:6px;flex-wrap:nowrap;align-self:center}
+.home-page .topbar nav a{min-height:42px;padding:10px 12px;border:0;border-radius:8px;font-size:13px;color:#29483e}
+.home-page .topbar nav a:hover{background:#f2f6ee}
+.home-page .topbar nav .nav-current{background:#eaf2e5;color:#125844}
+.home-page .user-menu{position:relative;flex:0 0 auto;margin-left:0}
+.profile-toggle{display:flex;align-items:center;gap:10px;border:0;background:transparent;color:#214537;min-height:44px;padding:0 4px;border-radius:8px;font-size:13px}
+.profile-chevron{font-size:20px}
+.profile-panel{position:absolute;right:0;top:calc(100% + 14px);width:250px;max-width:calc(100vw - 32px);z-index:20;background:#fff;border:1px solid #d8e4d3;border-radius:12px;padding:18px;box-shadow:0 12px 32px #1e382d20}
+.home-page .profile-panel .user-info{display:block;overflow-wrap:anywhere}
+.home-page .profile-panel .user-info strong{font-size:14px}
+.home-page .profile-panel .user-info small{font-size:12px;margin-top:6px}
+.home-page .profile-panel .sign-out{margin:16px 0 0;padding:14px 0 0;border:0;border-top:1px solid #e0e7dd;width:100%;min-height:44px;color:#315447}
+@media(max-width:1100px){
+ .home-page .topbar-inner{gap:12px;padding:12px 16px}
+ .home-menu-toggle{display:block;margin-left:auto;min-height:44px;padding:8px 12px;background:white;border:1px solid #cfdeca;border-radius:8px;color:#17533f;font-size:13px}
+ .home-page .topbar nav{display:none;position:absolute;right:16px;top:calc(100% - 2px);width:min(300px,calc(100vw - 32px));padding:10px;z-index:15;background:white;border:1px solid #d8e4d3;border-radius:10px;box-shadow:0 12px 32px #1e382d20;max-height:calc(100svh - 100px);overflow:auto}
+ .home-page .topbar nav.is-open{display:flex;flex-direction:column;align-items:stretch;gap:4px}
+ .home-page .topbar nav a{font-size:14px;min-height:44px}
+}
+@media(max-width:760px){
+ .home-page #profile-short-name,.profile-chevron{display:none}
+ .home-page .profile-toggle{padding:0}
+ .home-page .profile-toggle .avatar{display:grid;width:38px;height:38px}
+ .home-page .user-menu{margin:0}
+}
