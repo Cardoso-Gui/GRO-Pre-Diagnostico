@@ -1,8 +1,9 @@
+import {renderEpiStage} from './epi-stage.js?v=20261019-epi1';
 // Navigation changes presentation only; the original form owns data and validation.
 export function initAssessmentWizard(){
  const $=s=>document.querySelector(s);
  const steps=['Empresa','Dimensionamento','Setores e cargos','Organização dos riscos','Riscos e detalhamento','EPIs','Revisão e relatório'];
- const titles=['Empresa e identificação',...steps.slice(1)];
+ const titles=['Empresa e identificação',...steps.slice(1)];titles[5]='Equipamentos de proteção individual';
  const groups=[['#company-card > .company-header','#company-card > .details-grid'],['#dimension-form','#dimension-results'],['.sectors-section','#jobs-section'],['#risk-mode-section'],['#risk-selection-section','#risk-source-section'],[],['#final-report-section']];
  const management=document.createElement('div');management.id='ghe-management-list';management.className='risk-selection-grid';
  $('#risk-mode-section').append($('#ghe-form'),management);
@@ -25,12 +26,11 @@ export function initAssessmentWizard(){
   const empty=ready&&active!==5&&!blocks[active].some(el=>!el.hidden);
   $('#wizard-empty').hidden=!empty;
   $('#wizard-empty').textContent=active===3?'Adicione pelo menos um cargo na etapa Setores e cargos para escolher a organização dos riscos.':active===4?'Escolha a organização dos riscos na etapa anterior para continuar.':active===6?'Selecione os riscos da empresa na etapa Riscos e detalhamento para gerar o relatório.':'Preencha as etapas anteriores para continuar.';
-  const details=$('#open-risk-details');$('#wizard-open-epi').disabled=!details;
-  if(ready&&active===5){const data=globalThis.GRO_FORM?.snapshot();const entries=data?.epiBySelection||[];const risks=(data?.selectedRisksByTarget||[]).flatMap(([,codes])=>codes).filter(code=>code!=='09.01.001').length;const filled=entries.filter(([,value])=>value.applicable==='Não'||(value.applicable==='Sim'&&value.items?.some(x=>String(x).trim()))).length;$('#wizard-epi-summary').textContent=details?`${filled} registro(s) de EPI preenchido(s) para ${risks} risco(s) selecionado(s).`:'Selecione os riscos na etapa anterior para conferir os EPIs.';}
+  if(ready&&active===5)renderEpiStage();
  }
  function go(index,focus=true){if(!Number.isInteger(index)||index<0||index>=steps.length||(!ready&&index!==0))return;active=index;update();remember();if(focus){$('#wizard-step-title').focus({preventScroll:true});$('.wizard-content').scrollIntoView({block:'start',behavior:'smooth'});}}
  select.onchange=()=>go(Number(select.value));$('#wizard-back').onclick=()=>go(active-1);$('#wizard-next').onclick=()=>go(active+1);
- $('#wizard-open-epi').onclick=()=>{$('#open-risk-details')?.click();};
+
  function reveal(target){const group=target.closest('[data-wizard-step]');if(group)go(Number(group.dataset.wizardStep),false);}
  globalThis.GRO_WIZARD={reveal};
  // Existing renderers toggle availability; keep their hidden state intact.
