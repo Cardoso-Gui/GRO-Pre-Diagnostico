@@ -4,16 +4,52 @@
  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
  <meta name="referrer" content="no-referrer">
  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://vjtzragdciexixjzeann.supabase.co wss://vjtzragdciexixjzeann.supabase.co; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
- <title>GRO</title><link rel="stylesheet" href="./shared-header.css?v=20261019-menu1"><script type="module" src="./shared-header.js?v=20261019-menu1"></script><link rel="icon" href="./favicon.svg?v=20261019-brand1" type="image/svg+xml"><link rel="stylesheet" href="./home.css?v=20260928-occ1">
- <script src="./vendor/supabase-2.117.2.js?v=20260928-occ1" defer></script><script type="module" src="./occurrences.js?v=20260929-search2"></script>
-<link rel="stylesheet" href="./admin.css?v=20260928-occ1"><link rel="stylesheet" href="./occurrences.css?v=20260929-update1"><link rel="stylesheet" href="./client-search.css?v=20260929-inline1"></head>
-<body><section id="session-check" class="session-check"><p>Verificando acesso…</p><button id="retry-session" type="button" hidden>Tentar novamente</button><a href="./index.html">Voltar ao login</a></section><div id="team-page" hidden>  <header class="topbar unified-header gro-shared"><div class="topbar-inner">
+ <title>Ocorrências · GRO</title>
+ <link rel="icon" href="./favicon.svg?v=20261019-brand1" type="image/svg+xml">
+ <link rel="stylesheet" href="./home.css?v=20260928-occ1">
+ <link rel="stylesheet" href="./shared-header.css?v=20261019-menu1">
+ <link rel="stylesheet" href="./occurrences.css?v=20261019-occ2">
+ <script type="module" src="./shared-header.js?v=20261019-menu1"></script>
+ <script src="./vendor/supabase-2.117.2.js?v=20260928-occ1" defer></script>
+ <script type="module" src="./occurrences.js?v=20261019-occ2"></script>
+</head>
+<body class="occurrences-page">
+ <section id="session-check" class="session-check"><p>Verificando acesso…</p><button id="retry-session" type="button" hidden>Tentar novamente</button><a href="./index.html">Voltar ao login</a></section>
+ <div id="team-page" hidden>
+  <header class="topbar unified-header gro-shared"><div class="topbar-inner">
    <a class="brand" href="./inicio.html" aria-label="GRO — página inicial"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 8 9 8 9s8-4.5 8-9V6l-8-3Z"/><path d="m8 12 3 3 5-6"/></svg></span><span><strong>GRO</strong><small>Gestão de riscos ocupacionais</small></span></a>
    <nav aria-label="Navegação principal"><a href="./inicio.html">Início</a></nav>
    <div class="user-menu"><span id="user-avatar" class="avatar" aria-hidden="true"></span><div class="user-info"><strong id="user-name"></strong><small id="user-role"></small></div><button id="sign-out" class="sign-out" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v16h5m5-13 5 5-5 5M8 12h11"/></svg><span>Sair</span></button></div>
   </div></header>
-<main class="home-main"><p class="eyebrow">Histórico do cliente</p><h1>Ocorrências</h1><p class="intro">Registre acidentes, incidentes e observações da empresa.</p>
-<section class="admin-panel"><label for="client-picker">Cliente</label><select id="client-picker"><option value="">Selecione uma empresa</option></select><p id="status" role="status"></p></section>
-<div id="client-content" hidden><div class="occ-heading"><h2>Histórico de ocorrências</h2><button id="new-occurrence" class="primary-button">+ Nova ocorrência</button></div>
-<form id="occ-form" class="admin-panel" hidden><h2>Nova ocorrência</h2><fieldset id="occ-fields"><div class="occ-grid"><label>Tipo *<select name="kind" required><option value="">Selecione</option><option>Acidente</option><option>Incidente</option><option>Observação</option></select></label><label>Data da ocorrência *<input name="occurred_on" type="date" required></label></div><label>Descrição *<textarea name="description" rows="5" maxlength="5000" required placeholder="Descreva o que aconteceu, o local e as providências tomadas."></textarea></label><label>Foto (opcional)<input name="photo" type="file" accept="image/jpeg,image/png,image/webp"></label><small>JPG, PNG ou WebP · até 20 MB</small><div class="occ-actions"><button class="primary-button" type="submit">Salvar ocorrência</button><button id="cancel-occurrence" type="button" class="secondary-button">Cancelar</button></div></fieldset><p id="save-status" role="status"></p></form>
-<div id="occ-list"></div><button id="more" class="secondary-button" hidden>Carregar mais</button><button id="retry-list" class="secondary-button" hidden>Tentar novamente</button></div></main></div></body></html>
+ <main id="main-content" class="home-main">
+  <p class="occ-breadcrumb"><a href="./inicio.html">Início</a><span aria-hidden="true"> / </span>Ocorrências</p>
+  <div class="occ-page-heading"><div><h1>Ocorrências</h1><p id="page-intro" class="intro">Selecione uma empresa para consultar ou registrar ocorrências.</p></div><button id="new-occurrence" class="primary-button" type="button" hidden><span aria-hidden="true">＋</span> Nova ocorrência</button></div>
+  <p id="status" class="occ-status" role="status"></p>
+  <section id="company-selector" class="occ-panel" aria-labelledby="company-heading">
+   <div class="occ-panel-heading"><h2 id="company-heading">Selecione uma empresa</h2><p>Busque pelo nome ou CNPJ e escolha uma empresa abaixo.</p></div>
+   <form id="company-search" class="occ-search" role="search"><label class="occ-search-field"><span class="sr-only">Buscar empresa por nome ou CNPJ</span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6.5"/><path d="m15 15 5 5"/></svg><input id="search-company" name="company" type="search" placeholder="Buscar empresa por nome ou CNPJ" autocomplete="off"></label><button class="primary-button" type="submit">Buscar</button><button id="clear-search" class="quiet-button" type="button" hidden>Limpar busca</button></form>
+   <p id="company-summary" class="occ-list-summary" role="status"></p>
+   <div class="occ-company-columns" aria-hidden="true"><span>Empresa</span><span>Total de ocorrências</span><span></span></div>
+   <div id="company-list" aria-busy="false"></div>
+   <div class="occ-list-footer"><p id="company-status" role="status"></p><button id="more-companies" class="secondary-button" type="button" hidden>Carregar mais empresas</button><button id="retry-companies" class="secondary-button" type="button" hidden>Tentar novamente</button></div>
+   <p class="occ-hint"><span aria-hidden="true">ⓘ</span> Após selecionar uma empresa, você poderá ver o histórico e registrar uma nova ocorrência.</p>
+  </section>
+  <div id="client-content" hidden>
+   <section class="occ-panel occ-selected" aria-labelledby="selected-company-name"><div class="occ-company-info"><span class="occ-company-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M6 27V8l14-3v22M20 13h6v14M3 27h26M11 12h3m-3 5h3m-3 5h3m9-4h1m-1 4h1"/></svg></span><div><p class="occ-label">Empresa selecionada</p><h2 id="selected-company-name" tabindex="-1"></h2><p id="selected-company-cnpj"></p></div></div><button id="change-company" class="secondary-button" type="button">⇄ Trocar empresa</button></section>
+   <section class="occ-panel occ-history" aria-labelledby="history-heading">
+    <div class="occ-history-heading"><h2 id="history-heading">Histórico de ocorrências</h2><span id="company-total" class="occ-count" role="status"></span><button id="retry-total" class="quiet-button" type="button" hidden>Atualizar total</button><p>Mais recentes primeiro</p></div>
+    <form id="history-filters" class="occ-filters"><label>Tipo<select name="kind"><option value="">Todos os tipos</option><option>Acidente</option><option>Incidente</option><option>Observação</option></select></label><label>De<input name="from" type="date"></label><label>Até<input name="to" type="date"></label><button class="primary-button" type="submit">Filtrar</button><button id="clear-filters" class="quiet-button" type="button">Limpar</button></form>
+    <p id="filter-error" class="occ-error" role="alert"></p><p id="history-summary" class="occ-list-summary" role="status"></p>
+    <div id="occ-list" aria-busy="false"></div>
+    <div class="occ-list-footer"><p id="history-status" role="status"></p><button id="more" class="secondary-button" type="button" hidden>Carregar mais</button><button id="retry-list" class="secondary-button" type="button" hidden>Tentar novamente</button></div>
+   </section>
+  </div>
+ </main>
+ </div>
+ <dialog id="occ-dialog" aria-labelledby="form-heading" aria-describedby="form-company">
+  <div class="occ-dialog-heading"><div><p class="occ-label">Registro de ocorrência</p><h2 id="form-heading">Nova ocorrência</h2></div><button id="close-occurrence" type="button" class="icon-button" aria-label="Fechar nova ocorrência">✕</button></div>
+  <p id="form-company"></p>
+  <form id="occ-form"><fieldset id="occ-fields"><legend class="sr-only">Dados da ocorrência</legend><p class="occ-required">Os campos com * são obrigatórios.</p><div class="occ-grid"><label>Tipo *<select name="kind" required><option value="">Selecione</option><option>Acidente</option><option>Incidente</option><option>Observação</option></select></label><label>Data da ocorrência *<input name="occurred_on" type="date" required></label></div><label>Descrição *<textarea name="description" rows="6" maxlength="5000" required placeholder="Descreva o que aconteceu, o local e as providências tomadas."></textarea></label><label>Foto (opcional)<input name="photo" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="photo-help photo-status"></label><p id="photo-help" class="occ-help">Uma foto JPG, PNG ou WebP · até 20 MB</p><p id="photo-status" class="occ-error" role="status"></p><div id="photo-preview" hidden><img id="preview-image" alt="Prévia da foto selecionada"><button id="remove-photo" class="quiet-button" type="button">Remover foto</button></div><div class="occ-actions"><button class="primary-button" type="submit">Salvar ocorrência</button><button id="cancel-occurrence" type="button" class="secondary-button">Cancelar</button></div></fieldset><p id="save-status" class="occ-status" role="status"></p></form>
+ </dialog>
+</body>
+</html>
