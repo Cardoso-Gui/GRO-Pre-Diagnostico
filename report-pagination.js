@@ -3,6 +3,25 @@
 export function paginateReport(content,title='Relatório do levantamento'){
  for(const el of content.querySelectorAll('[data-search-hidden]'))el.removeAttribute('data-search-hidden');
  for(const el of content.querySelectorAll('.viewer-section'))el.setAttribute('data-active','true');
+ // Measure the real wrapped cards at the printable width. Pair only adjacent
+ // risks within the same category/group, and only when it saves vertical space.
+ const measure=document.createElement('div');measure.className='print-risk-measure';content.append(measure);
+ for(const category of content.querySelectorAll('.viewer-category')){
+  const risks=[...category.children].filter(el=>el.classList.contains('viewer-risk'));
+  for(let i=0;i<risks.length-1;i++){
+   const first=risks[i],second=risks[i+1];
+   measure.replaceChildren(first.cloneNode(true),second.cloneNode(true));
+   const fullHeight=measure.getBoundingClientRect().height;
+   const row=document.createElement('div');row.className='print-risk-pair';
+   for(const risk of [first,second]){const copy=risk.cloneNode(true);copy.classList.add('print-risk-card');row.append(copy);}
+   measure.replaceChildren(row);
+   const pairedHeight=row.getBoundingClientRect().height;
+   if(pairedHeight<=540&&pairedHeight<=fullHeight){
+    first.before(row);row.replaceChildren(first,second);first.classList.add('print-risk-card');second.classList.add('print-risk-card');i++;
+   }
+  }
+ }
+ measure.remove();
  const source=[...content.children];
  const holder=document.createElement('div');holder.className='report-sheets';
  content.replaceChildren(holder);
