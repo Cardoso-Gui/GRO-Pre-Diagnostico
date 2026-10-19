@@ -1,5 +1,12 @@
 /* Paper layout is independent of the viewport and of the interactive cards. */
 @media print{
+ #report-content .print-risk-measure{position:absolute;left:-10000px;top:0;width:180mm;display:flow-root;visibility:hidden}
+ #report-content .print-risk-pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:5mm;align-items:start;margin:0 0 4mm;break-inside:avoid}
+ #report-content .print-risk-pair .viewer-risk{box-sizing:border-box;min-width:0;margin:0;padding:2mm 2mm 2mm 3mm;border:1px solid #d7e1db;border-left:2px solid var(--accent)}
+ #report-content .print-risk-card .compact-risk-fields{display:block!important;font-size:8.5pt}
+ #report-content .print-risk-card .compact-risk-fields tbody,#report-content .print-risk-card .compact-risk-fields tr,#report-content .print-risk-card .compact-risk-fields td{display:block;width:auto;border:0;background:none;padding:0}
+ #report-content .print-risk-card .compact-risk-fields tr{border-top:1px solid #d7e1db;padding:1.5mm 0}
+ #report-content .print-risk-card .compact-risk-fields td:first-child{width:auto;margin-bottom:.5mm;background:none;font-weight:600}
  .report-paginated .viewer-heading,.report-paginated .report-page::before{display:none!important}
  .report-paginated .report-viewer-page{margin:0!important;padding:0!important}
  #report-content .report-sheets{display:block;width:180mm;margin:0;padding:0}
