@@ -4,32 +4,27 @@
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="Acesso da equipe ao GRO — Gestão de Riscos Ocupacionais."><meta name="referrer" content="no-referrer">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://vjtzragdciexixjzeann.supabase.co wss://vjtzragdciexixjzeann.supabase.co; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
-<title>Entrar · GRO</title><link rel="icon" href="./favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="./login.css?v=20261019-login1">
-<script src="./vendor/supabase-2.117.2.js" defer></script><script type="module" src="./login.js?v=20260928-occ1"></script>
+<title>Entrar · GRO</title><link rel="icon" href="./favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="./login.css?v=20261019-centered2">
+<script src="./vendor/supabase-2.117.2.js" defer></script><script type="module" src="./login.js?v=20261019-centered2"></script>
 <script type="module" src="./help-contact.js?v=20260928-access1"></script>
 <link rel="stylesheet" href="./recovery.css?v=20260928-access1"></head>
 <body>
 <a class="skip-link" href="#username">Ir para o login</a>
 <main class="login-layout">
-<aside class="brand-panel" aria-label="GRO — Gestão de Riscos Ocupacionais">
-<div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3 4 6v6c0 4.5 8 9 8 9s8-4.5 8-9V6l-8-3Z"/><path d="m8 12 3 3 5-6"/></svg></span><div><span class="brand-name">GRO</span><span class="brand-subtitle">Gestão de riscos ocupacionais</span></div></div>
-<div class="brand-story"><div class="eyebrow">Gestão que cuida de pessoas</div><h2>Prevenir começa<br>com um olhar<br><em>mais atento.</em></h2><p>Organize seus levantamentos, identifique riscos e transforme informação em cuidado.</p><div class="brand-path" aria-label="Do levantamento ao relatório"><span><b>01</b> Levantamento</span><i aria-hidden="true"></i><span><b>02</b> Riscos</span><i aria-hidden="true"></i><span><b>03</b> Relatório</span></div></div>
-<div class="brand-caption"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Área de trabalho da equipe</div>
-</aside>
+<header class="login-brand" aria-label="GRO — Gestão de riscos ocupacionais"><div class="login-brand-row"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3 4 6v6c0 4.5 8 9 8 9s8-4.5 8-9V6l-8-3Z"/><path d="m8 12 3 3 5-6"/></svg><span>GRO</span></div><p>Gestão de riscos ocupacionais</p></header>
 <section class="form-panel" aria-labelledby="login-title"><div class="form-card">
-<div class="brand mobile-brand" aria-label="GRO"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3 4 6v6c0 4.5 8 9 8 9s8-4.5 8-9V6l-8-3Z"/><path d="m8 12 3 3 5-6"/></svg></span><div><span class="brand-name">GRO</span><span class="brand-subtitle">Gestão de riscos ocupacionais</span></div></div>
-<div class="login-welcome-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3 4 6v6c0 4.5 8 9 8 9s8-4.5 8-9V6l-8-3Z"/><path d="m8 12 3 3 5-6"/></svg></div><p class="section-label">Seu espaço de trabalho</p><h1 id="login-title">Bem-vindo de volta.</h1><p class="intro">Entre na sua conta para continuar.</p>
+<p class="section-label">Acesso da equipe</p><h1 id="login-title">Acesse sua conta</h1><p class="intro">Entre para continuar seu trabalho.</p>
 <form id="login-form" aria-describedby="login-message">
 <div class="field"><label for="username">Usuário</label><input id="username" name="username" type="text" placeholder="seu.usuario" autocomplete="username" autocapitalize="none" spellcheck="false" minlength="3" maxlength="40" required aria-describedby="username-hint"><span id="username-hint" class="screen-reader">Use o usuário fornecido pelo administrador.</span></div>
 <div class="field"><label for="password">Senha</label><div class="password-wrap"><input id="password" name="password" type="password" placeholder="Digite sua senha" autocomplete="current-password" required><button class="reveal" id="reveal-password" type="button" aria-label="Mostrar senha" aria-pressed="false" aria-controls="password"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><p class="caps-hint" id="caps-hint" hidden>Caps Lock está ativado.</p></div>
 <div class="login-preferences"><label><input id="keep-connected" type="checkbox"> Manter conectado</label><label><input id="remember-username" type="checkbox"> Lembrar usuário</label></div><div class="password-tools"><button type="button" class="text-button" id="password-help" aria-haspopup="dialog" aria-controls="contact-dialog">Esqueceu a senha?</button></div>
 <p id="login-message" class="message" role="status" aria-live="polite" hidden></p>
-<button class="primary" id="submit-login" type="submit"><span>Entrar na minha conta</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
+<button class="primary" id="submit-login" type="submit"><span>Entrar</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
 <noscript><p class="message">Ative o JavaScript no navegador para entrar na sua conta.</p></noscript>
 </form>
-<div class="access-help"><span>Quer usar o GRO?</span><button type="button" class="text-button" id="request-access" aria-haspopup="dialog" aria-controls="contact-dialog">Solicite seu acesso</button></div>
-<p class="form-footer">Acesso exclusivo para pessoas autorizadas.<br>Ao terminar, saia da sua conta.</p>
-</div></section></main>
+<div class="access-help"><span>Ainda não tem acesso?</span><button type="button" class="text-button" id="request-access" aria-haspopup="dialog" aria-controls="contact-dialog">Solicitar acesso</button></div>
+
+</div></section><p class="form-footer">GRO · Cuidado em cada etapa</p></main>
 <dialog id="contact-dialog" class="contact-dialog" aria-labelledby="contact-title" aria-describedby="contact-description">
  <button id="contact-close" class="dialog-close" type="button" aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
  <span class="contact-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 10 10 0 0 1-4-.8L3 21l1.8-5.5a10 10 0 0 1-.8-4A8.5 8.5 0 0 1 12.5 3 8.5 8.5 0 0 1 21 11.5Z"/><path d="M8 11.5h9M8 8.5h6"/></svg></span>
