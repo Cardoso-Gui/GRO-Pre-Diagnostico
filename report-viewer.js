@@ -1,5 +1,5 @@
-import {paginateReport} from './report-pagination.js?v=20261019-category1';
-import {compactPrintReport} from './report-print-compact.js?v=20261019-category1';
+import {paginateReport} from './report-pagination.js?v=20261019-categoryfix1';
+import {compactPrintReport} from './report-print-compact.js?v=20261019-categoryfix1';
 const make=(tag,text='',className='')=>{const el=document.createElement(tag);el.textContent=text;el.className=className;return el;};
 const normalized=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 export function reportVisitDate(answers){
