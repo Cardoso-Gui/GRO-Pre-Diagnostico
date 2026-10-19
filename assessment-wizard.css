@@ -21,3 +21,33 @@
 .wizard-heading{position:sticky;top:0;z-index:9;background:#f6f8f3;padding:12px 0}
 @media(max-width:760px){.wizard-heading{position:static}.wizard-heading #wizard-save-slot{position:fixed;inset:auto 0 0;z-index:12;padding:10px 14px;background:#f6f8f3f5;border-top:1px solid #dce5df}.wizard-shell{padding-bottom:100px}.wizard-page #dimension-form .dimension-controls{grid-template-columns:minmax(0,1fr)}.wizard-content{scroll-margin-top:12px}}
 @media print{#wizard-save-slot{display:none!important}}
+
+/* One risk group at a time, with labelled category colors. */
+.wizard-page #risk-source-section{display:none!important}
+.wizard-page #risk-selection-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.wizard-page .risk-accordion{padding:0;min-width:0;border:1px solid #dce5df;border-radius:10px;background:white;box-shadow:none;overflow:visible}
+.risk-accordion>summary{display:flex;align-items:center;gap:14px;padding:18px 20px;cursor:pointer;list-style:none;min-height:60px;background:#fafcfb;border-radius:10px}
+.risk-accordion>summary::-webkit-details-marker{display:none}
+.risk-accordion>summary:after{content:"⌄";margin-left:auto;font-size:22px;color:#49665a}
+.risk-accordion[open]>summary:after{content:"⌃"}
+.risk-accordion>summary h3{margin:0;font-size:19px;min-width:0;overflow-wrap:anywhere;color:#173e34}
+.risk-accordion-count{flex-shrink:0;background:#edf1ef;color:#5a7064;border-radius:20px;font-size:12px;padding:6px 10px}
+.risk-accordion>.risk-card-note{margin:16px 20px 8px;font-size:13px;color:#6c7e73}
+.wizard-page .risk-accordion>.add-risks-button{margin:6px 20px 12px;background:white;color:#108578;border:1px solid #108578;box-shadow:none;min-height:44px;padding:10px 16px;width:auto}
+.risk-accordion>.selected-risk-list{margin:0;padding:0 20px 20px}
+.risk-accordion .risk-selection-count{font-size:12px;color:#63786a}
+.risk-accordion .selected-risk-group{--risk-color:#687b70;gap:7px}
+.risk-accordion .selected-risk-group[data-risk-group="fisicos"]{--risk-color:#27854f}
+.risk-accordion .selected-risk-group[data-risk-group="quimicos"]{--risk-color:#c64a40}
+.risk-accordion .selected-risk-group[data-risk-group="biologicos"]{--risk-color:#94643d}
+.risk-accordion .selected-risk-group[data-risk-group="ergonomicos"]{--risk-color:#d3a920}
+.risk-accordion .selected-risk-group[data-risk-group="acidentes"]{--risk-color:#397ac7}
+.risk-accordion .selected-risk-group h4{display:flex;align-items:center;gap:9px;font-size:14px;color:#294b3c;margin:18px 0 5px}
+.risk-accordion .selected-risk-group h4:before{content:"";width:10px;height:10px;border-radius:50%;background:var(--risk-color);flex-shrink:0}
+.wizard-page .risk-accordion .selected-risk-pill{display:flex;justify-content:space-between;gap:12px;align-items:center;background:#f4f7f5;border-left:3px solid var(--risk-color);border-radius:6px;color:#365243;font-size:13px;font-weight:400;padding:7px 10px;min-width:0}
+.risk-accordion .selected-risk-pill>span{min-width:0;overflow-wrap:anywhere}
+.wizard-page .risk-accordion .remove-selected-risk{background:transparent;color:#b64237;border:0;box-shadow:none;display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;margin:0;padding:10px}
+.remove-selected-risk svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7}
+.risk-detail-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 20px;padding:18px 0;border-top:1px solid #e0e8e2}
+.risk-detail-status{font-size:12px;color:#6a7b70}.wizard-page .target-risk-details{font-size:13px;padding:12px 16px;border:0;background:#108578;color:white;border-radius:8px;box-shadow:none;min-height:44px;width:auto}
+@media(max-width:760px){.risk-accordion>summary{padding:16px 12px;gap:8px}.risk-accordion>summary h3{font-size:16px}.risk-accordion-count{font-size:11px;padding:5px 7px}.risk-accordion>.selected-risk-list{padding:0 12px 16px}.risk-accordion>.risk-card-note{margin-inline:12px}.wizard-page .risk-accordion>.add-risks-button{margin-left:12px}.risk-detail-footer{flex-direction:column;align-items:stretch;margin:0 12px}.wizard-page .target-risk-details{width:100%}}
