@@ -1,0 +1,96 @@
+/* Access management only: shared navigation/profile and all other pages are unchanged. */
+body.access-management-page{background:#f1f7f4}
+.access-management{max-width:1340px;padding-top:44px}
+.access-management .access-heading{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:28px}
+.access-management .eyebrow,.access-dialog .eyebrow{font-size:11px;letter-spacing:1.3px;color:#637d87;margin:0 0 12px}
+.access-management h1{color:#102f3c;font-size:36px;font-weight:700;letter-spacing:-1px}
+.access-management .access-intro{font-size:16px;color:#607783;line-height:1.6;margin:10px 0 0}
+.access-management .access-scope{font-size:12px;color:#5c7480;line-height:1.6;margin:8px 0 0}
+.access-management .access-create-actions{flex-shrink:0}
+.access-management .primary-button,.access-dialog .primary-button{background:#08614f;border-color:#08614f;color:#fff}
+.access-management .access-create-actions button{display:flex;align-items:center;justify-content:center;gap:12px;padding:12px 20px;min-height:47px;font-size:14px}
+.access-management .access-create-actions button span{font-size:27px;font-weight:400;line-height:20px}
+.access-management .access-tabs{display:flex;gap:22px;border-bottom:1px solid #cddfdd;margin:0 0 22px}
+.access-management .access-tabs button{padding:14px 19px;border:0;border-bottom:3px solid transparent;margin-bottom:-1px;background:none;color:#627c8a;font-size:14px;font-weight:650}
+.access-management .access-tabs button[aria-selected=true]{border-bottom-color:#08715b;color:#163c45}
+.access-management .access-panel{background:#fff;border:1px solid #cddfdf;border-radius:12px;overflow:hidden;box-shadow:0 4px 16px #163e3e04}
+.access-management .access-filters{display:grid;grid-template-columns:minmax(0,1.9fr) repeat(3,minmax(0,1fr));gap:19px;padding:23px 22px;border-bottom:1px solid #d9e4e7}
+.access-management .access-team-filters{grid-template-columns:minmax(0,2.4fr) minmax(0,1fr)}
+.access-management .access-filters label,.access-dialog label{display:grid;gap:9px;min-width:0;font-size:13px;font-weight:650;color:#465f6e}
+.access-management .access-filters input,.access-management .access-filters select,.access-dialog input,.access-dialog select{width:100%;min-width:0;min-height:44px;border:1px solid #cbd8df;border-radius:8px;background:#fff;color:#203f4b;font:inherit;font-weight:400;padding:10px 12px}
+.access-management .access-filters input::placeholder{color:#647b8a;opacity:1}
+.access-management .access-search-field{position:relative;display:block}
+.access-management .access-search-field svg{position:absolute;width:22px;height:22px;left:14px;top:11px;color:#6a8191;pointer-events:none}
+.access-management .access-search-field input{padding-left:46px}
+.access-management .access-list-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:19px 22px;border-bottom:1px solid #dfe8e9}
+.access-management .access-list-heading h2{font-size:20px;line-height:1.4;letter-spacing:-.4px;color:#173b4a}
+.access-management .access-list-heading p{margin:0;color:#5b7583;font-size:12px;line-height:1.5;text-align:right}
+.access-management .access-table{width:100%;border-collapse:collapse;table-layout:fixed;text-align:left;font-size:13px}
+.access-management .access-table th{background:#fbfdfc;color:#607887;font-size:12px;font-weight:650;padding:13px 18px}
+.access-management .access-table td{padding:15px 18px;border-top:1px solid #e1e9ec;line-height:1.5;vertical-align:middle;overflow-wrap:anywhere}
+.access-management .access-table th:first-child,.access-management .access-table td:first-child{padding-left:22px}
+.access-management .access-users-table th:nth-child(1){width:25%}
+.access-management .access-users-table th:nth-child(2){width:18%}
+.access-management .access-users-table th:nth-child(3){width:16%}
+.access-management .access-users-table th:nth-child(4){width:18%}
+.access-management .access-users-table th:nth-child(5){width:12%}
+.access-management .access-users-table th:nth-child(6){width:11%}
+.access-management .access-teams-table th:nth-child(1){width:39%}
+.access-management .access-teams-table th:nth-child(2){width:27%}
+.access-management .access-teams-table th:nth-child(3){width:19%}
+.access-management .access-teams-table th:nth-child(4){width:15%}
+.access-management .access-person{display:flex;align-items:center;gap:12px;min-width:0}
+.access-management .access-person strong{font-weight:650;color:#203e4e}
+.access-management .access-avatar{width:38px;height:38px;flex-shrink:0;border-radius:50%;display:grid;place-items:center;background:#dbecea;color:#235f56;font-size:12px;font-weight:700}
+.access-management .access-avatar[data-tone="1"]{background:#dce8fa;color:#285b8b}
+.access-management .access-avatar[data-tone="2"]{background:#eee0f7;color:#724a90}
+.access-management .access-avatar[data-tone="3"]{background:#fae0e3;color:#914b58}
+.access-management .access-avatar[data-tone="4"]{background:#fbead2;color:#865e29}
+.access-management .access-contact{font-size:11px;color:#607887;display:block;margin-top:3px}
+.access-management .access-team-icon{width:48px;height:48px;border-radius:12px;background:#e3f2e9;color:#12644f;display:grid;place-items:center;flex-shrink:0}
+.access-management .access-team-icon svg{width:27px;height:27px}
+.access-management .access-team-icon.inactive{background:#edf0ef;color:#657571}
+.access-management .access-badge{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border-radius:9px;font-size:11px;line-height:1.35;font-weight:600;max-width:100%}
+.access-management .access-role{background:#eaf0f5;color:#486073}
+.access-management .access-status{background:#e8f4ea;color:#16634c;white-space:nowrap}
+.access-management .access-status::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0}
+.access-management .access-status.inactive{background:#f0f1f2;color:#5e656d}
+.access-management .access-edit{display:inline-flex;align-items:center;gap:8px;border:0;background:none;color:#08614f;padding:10px 0;font-size:13px;font-weight:600;min-height:40px}
+.access-management .access-edit svg{width:17px;height:17px;flex-shrink:0}
+.access-management .access-readonly{font-size:11px;color:#5b7583}
+.access-management .access-empty{padding:26px 22px;color:#607887;font-size:14px;line-height:1.6;margin:0}
+.access-management .access-list-note{border-top:1px solid #e1e9ec;padding:13px 22px;color:#607887;font-size:11px;line-height:1.6;margin:0}
+.access-management .access-note{display:flex;align-items:flex-start;gap:9px;color:#597382;font-size:12px;line-height:1.6;margin:19px 0 0}
+.access-management .access-note svg{width:18px;height:18px;flex-shrink:0;margin-top:1px}
+.access-management .access-feedback,.access-dialog .access-feedback{padding:14px 17px;border:1px solid #d6e5df;border-radius:9px;background:#edf5f2;color:#265f51;font-size:14px;line-height:1.6;margin:0 0 19px}
+.access-management .access-feedback.error,.access-dialog .access-feedback.error{background:#fff3ef;border-color:#f1d5cc;color:#8f4030}
+.access-management .access-feedback:empty,.access-dialog .access-feedback:empty{display:none}
+.access-management .access-retry{margin:0 0 19px}
+.access-management .access-mobile-label{display:none}
+.access-management .access-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.access-management :is(input,select,button):focus-visible,.access-dialog :is(input,select,button):focus-visible{outline:3px solid #238a74;outline-offset:3px}
+.access-dialog{width:min(720px,calc(100vw - 32px));max-height:calc(100svh - 40px);padding:28px;border:1px solid #cddfdf;border-radius:16px;color:#203943;background:#fff}
+.access-dialog::backdrop{background:#102f3c99;backdrop-filter:blur(3px)}
+.access-team-dialog{width:min(580px,calc(100vw - 32px))}
+.access-dialog .access-dialog-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.access-dialog .access-dialog-heading h2{font-size:25px;line-height:1.3;color:#173b4a}
+.access-dialog .access-close{width:36px;height:36px;border:0;border-radius:50%;background:#f0f5f3;color:#4c6c70;display:grid;place-items:center;flex-shrink:0}
+.access-dialog .access-close svg{width:18px;height:18px}
+.access-dialog .access-dialog-description{font-size:13px;color:#607783;line-height:1.6;margin:12px 0 23px}
+.access-dialog .access-form-section{border:1px solid #dae5e3;border-radius:10px;padding:19px;margin:0 0 18px}
+.access-dialog .access-form-section h3{font-size:15px;font-weight:700;color:#2a5059;margin:0 0 17px}
+.access-dialog .access-form-section h4{font-size:13px;margin:0 0 10px}
+.access-dialog .access-form-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:17px 18px}
+.access-dialog .access-field-wide{grid-column:1/-1}
+.access-dialog .access-checkbox{display:flex;align-items:center;gap:10px;font-weight:500;margin-top:18px}
+.access-dialog .access-checkbox input{width:18px;height:18px;min-height:0;flex-shrink:0;accent-color:#08614f}
+.access-dialog .access-form-note,.access-dialog label small{font-size:12px;font-weight:400;color:#607783;line-height:1.6;margin:12px 0 0}
+.access-dialog label small{margin:0}
+.access-dialog #reset-password-button{margin-top:16px}
+.access-dialog .access-form-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:12px;padding-top:5px}
+.access-dialog :is(input,select):disabled{background:#f1f4f3;color:#667c83;opacity:1}
+@media(max-width:1050px){.access-management .access-filters{grid-template-columns:repeat(3,minmax(0,1fr))}.access-management .access-search{grid-column:1/-1}.access-management .access-team-filters{grid-template-columns:minmax(0,2fr) minmax(0,1fr)}.access-management .access-team-filters .access-search{grid-column:auto}.access-management .access-table th,.access-management .access-table td{padding-left:12px;padding-right:12px}.access-management .access-users-table th:first-child{width:24%}.access-management .access-person{gap:9px}.access-management .access-avatar{width:32px;height:32px}}
+@media(max-width:760px){
+ .access-management{padding-top:30px}.access-management .access-heading{align-items:flex-start;flex-direction:column;gap:19px;margin-bottom:19px}.access-management h1{font-size:30px}.access-management .access-intro{font-size:14px}.access-management .access-scope{font-size:11px}.access-management .access-create-actions{width:100%}.access-management .access-create-actions button{width:100%}.access-management .access-tabs{gap:10px}.access-management .access-filters{grid-template-columns:1fr 1fr;gap:16px 12px;padding:18px 17px}.access-management .access-team-filters{grid-template-columns:1fr}.access-management .access-list-heading{padding:17px;align-items:flex-start;flex-direction:column;gap:7px}.access-management .access-list-heading h2{font-size:19px}.access-management .access-list-heading p{text-align:left;font-size:11px}.access-management .access-table,.access-management .access-table tbody{display:block}.access-management .access-table thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}.access-management .access-table tr{display:grid;grid-template-columns:1fr 1fr;padding:18px 17px;gap:15px 18px;border-top:1px solid #e1e9ec}.access-management .access-table tr:first-child{border-top:0}.access-management .access-table td,.access-management .access-table td:first-child{display:block;border:0;padding:0;min-width:0}.access-management .access-table td:first-child{grid-column:1/-1}.access-management .access-mobile-label{display:block;font-size:10px;font-weight:650;color:#627987;letter-spacing:.3px;margin-bottom:6px}.access-management .access-avatar{width:38px;height:38px}.access-management .access-person{gap:12px}.access-management .access-badge{font-size:12px}.access-management .access-edit{padding:0}.access-management .access-list-note{padding:13px 17px}.access-dialog{padding:21px;max-height:calc(100svh - 24px)}.access-dialog .access-form-section{padding:16px}.access-dialog .access-form-grid{grid-template-columns:1fr}.access-dialog .access-form-actions button{flex:1}
+}
+@media(max-width:380px){.access-management{padding-left:16px;padding-right:16px}.access-management .access-filters{grid-template-columns:1fr}}

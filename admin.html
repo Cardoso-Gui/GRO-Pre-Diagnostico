@@ -5,18 +5,68 @@
  <meta name="referrer" content="no-referrer">
  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://vjtzragdciexixjzeann.supabase.co wss://vjtzragdciexixjzeann.supabase.co; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
  <title>GRO</title><link rel="stylesheet" href="./shared-header.css?v=20261019-profile2"><script type="module" src="./shared-header.js?v=20261019-profile2"></script><link rel="icon" href="./favicon.svg?v=20261019-brand1" type="image/svg+xml"><link rel="stylesheet" href="./home.css?v=20260928-occ1">
- <script src="./vendor/supabase-2.117.2.js?v=20260928-occ1" defer></script><script type="module" src="./admin.js?v=20260928-phone2"></script>
-<link rel="stylesheet" href="./admin.css?v=20260928-occ1"></head>
-<body><section id="session-check" class="session-check"><p>Verificando acesso…</p><button id="retry-session" type="button" hidden>Tentar novamente</button><a href="./index.html">Voltar ao login</a></section><div id="admin-page" hidden>  <header class="topbar unified-header gro-shared"><div class="topbar-inner">
+ <script src="./vendor/supabase-2.117.2.js?v=20260928-occ1" defer></script><script type="module" src="./admin.js?v=20261020-access1"></script>
+<link rel="stylesheet" href="./access-management.css?v=20261020-access1"></head>
+<body class="access-management-page"><section id="session-check" class="session-check"><p>Verificando acesso…</p><button id="retry-session" type="button" hidden>Tentar novamente</button><a href="./index.html">Voltar ao login</a></section><div id="admin-page" hidden>  <header class="topbar unified-header gro-shared"><div class="topbar-inner">
    <a class="brand" href="./inicio.html" aria-label="GRO — página inicial"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 8 9 8 9s8-4.5 8-9V6l-8-3Z"/><path d="m8 12 3 3 5-6"/></svg></span><span><strong>GRO</strong><small>Gestão de riscos ocupacionais</small></span></a>
    <nav aria-label="Navegação principal"><a href="./inicio.html">Início</a></nav>
    <div class="user-menu"><span id="user-avatar" class="avatar" aria-hidden="true"></span><div class="user-info"><strong id="user-name"></strong><small id="user-role"></small></div><button id="sign-out" class="sign-out" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v16h5m5-13 5 5-5 5M8 12h11"/></svg><span>Sair</span></button></div>
   </div></header>
-<main class="home-main"><a href="./inicio.html" class="record-link">← Voltar ao início</a>
-<div class="admin-heading"><div><p class="eyebrow">Controle de acesso</p><h1>Usuários e equipes</h1><p id="access-summary"></p></div></div>
-<div class="admin-tabs" role="tablist" aria-label="Gestão de acessos"><button id="tab-users" role="tab" aria-selected="true" aria-controls="users-section">Usuários</button><button id="tab-teams" role="tab" aria-selected="false" aria-controls="teams-section">Equipes</button></div>
-<p id="admin-status" class="admin-status" role="status" aria-live="polite"></p><button id="reload-list" class="secondary-button" hidden>Tentar carregar novamente</button>
-<section id="users-section" role="tabpanel" class="admin-layout"><div class="admin-panel"><h2>Usuários cadastrados</h2><label>Buscar usuário<input id="user-search" type="search" placeholder="Nome ou usuário"></label><div id="users-list"></div></div>
-<form id="user-form" class="admin-panel"><h2 id="user-form-title">Novo usuário</h2><input name="user_id" type="hidden"><label>Nome completo<input name="display_name" required maxlength="160" autocomplete="name"></label><label>Usuário de acesso<input name="username" required minlength="3" maxlength="40" pattern="[a-z0-9][a-z0-9._\-]{2,39}" autocomplete="off" placeholder="Ex.: ana.silva"></label><label>Telefone de contato (opcional)<input name="contact_phone" type="tel" maxlength="15" autocomplete="tel-national" placeholder="(11) 99999-9999"></label><label>Equipe<select name="team_id" required></select></label><label>Perfil<select name="role"><option value="editor">Colaborador</option><option value="admin">Administrador da equipe</option></select></label><label id="password-label">Senha de acesso<input name="password" type="password" minlength="6" maxlength="128" autocomplete="new-password" required><small>De 6 a 128 caracteres. Informe a senha ao usuário por um canal seguro.</small></label><section id="reset-password-section" hidden><h3>Alterar senha</h3><label>Nova senha<input id="reset-password" type="password" minlength="6" maxlength="128" autocomplete="new-password"></label><label>Confirmar nova senha<input id="reset-password-confirm" type="password" minlength="6" maxlength="128" autocomplete="new-password"></label><button id="reset-password-button" class="secondary-button" type="button">Alterar senha deste usuário</button><p id="reset-password-status" role="status"></p></section><label class="checkbox" id="active-label" hidden><input name="active" type="checkbox" checked> Acesso ativo</label><p class="admin-note" id="user-note">O usuário terá acesso apenas aos dados da equipe escolhida.</p><div class="admin-actions"><button class="primary-button" type="submit">Criar usuário</button><button class="secondary-button" id="cancel-user" type="button" hidden>Cancelar edição</button></div></form></section>
-<section id="teams-section" role="tabpanel" class="admin-layout" hidden><div class="admin-panel"><h2>Equipes cadastradas</h2><div id="teams-list"></div></div><form id="team-form" class="admin-panel"><h2 id="team-form-title">Nova equipe</h2><input name="id" type="hidden"><label>Nome da equipe<input name="name" required maxlength="120" placeholder="Ex.: Equipe Catanduva"></label><label class="checkbox" id="team-active-label" hidden><input name="active" type="checkbox" checked> Equipe ativa</label><p class="admin-note">Cada equipe possui seus próprios clientes, levantamentos e relatórios. Desativar bloqueia o acesso dos integrantes e preserva o histórico.</p><div class="admin-actions"><button class="primary-button" type="submit">Criar equipe</button><button id="cancel-team" class="secondary-button" type="button" hidden>Cancelar edição</button></div></form></section>
-</main></div></body></html>
+<main class="home-main access-management" id="main-content">
+ <div class="access-heading">
+  <div><p class="eyebrow">Controle de acesso</p><h1>Gestão de acessos</h1><p class="access-intro">Organize os usuários e as equipes em um só lugar.</p><p id="access-summary" class="access-scope"></p></div>
+  <div class="access-create-actions"><button id="new-user" class="primary-button" type="button" disabled><span aria-hidden="true">+</span> Novo usuário</button><button id="new-team" class="primary-button" type="button" hidden disabled><span aria-hidden="true">+</span> Nova equipe</button></div>
+ </div>
+ <div class="access-tabs" role="tablist" aria-label="Gestão de acessos"><button id="tab-users" type="button" role="tab" aria-selected="true" aria-controls="users-section">Usuários</button><button id="tab-teams" type="button" role="tab" aria-selected="false" aria-controls="teams-section" tabindex="-1">Equipes</button></div>
+ <p id="admin-status" class="access-feedback" role="status" aria-live="polite"></p><button id="reload-list" type="button" class="secondary-button access-retry" hidden>Tentar carregar novamente</button>
+ <section id="users-section" role="tabpanel" aria-labelledby="tab-users" class="access-panel" aria-busy="true">
+  <div class="access-filters">
+   <label class="access-search">Buscar usuário<span class="access-search-field"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="m15 15 6 6"/></svg><input id="user-search" type="search" placeholder="Nome ou usuário" aria-describedby="users-filter-note"></span></label>
+   <label>Equipe<select id="user-team-filter"><option value="">Todas as equipes</option></select></label>
+   <label>Função<select id="user-role-filter"><option value="">Todas as funções</option><option value="global">Administrador geral</option><option value="admin">Administrador</option><option value="editor">Colaborador</option></select></label>
+   <label>Status<select id="user-status-filter"><option value="">Todos os status</option><option value="active">Ativo</option><option value="inactive">Inativo</option></select></label>
+  </div>
+  <div class="access-list-heading"><h2>Usuários cadastrados</h2><p id="users-count" aria-live="polite"></p></div>
+  <div id="users-list"><p class="access-empty">Carregando usuários…</p></div>
+  <p id="users-filter-note" class="access-list-note">Busca, filtros e contagens consideram os registros carregados que você tem permissão para consultar.</p>
+ </section>
+ <section id="teams-section" role="tabpanel" aria-labelledby="tab-teams" class="access-panel" aria-busy="true" hidden>
+  <div class="access-filters access-team-filters">
+   <label class="access-search">Buscar equipe<span class="access-search-field"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="m15 15 6 6"/></svg><input id="team-search" type="search" placeholder="Nome da equipe" aria-describedby="teams-filter-note"></span></label>
+   <label>Status<select id="team-status-filter"><option value="">Todos os status</option><option value="active">Ativa</option><option value="inactive">Inativa</option></select></label>
+  </div>
+  <div class="access-list-heading"><h2>Equipes cadastradas</h2><p id="teams-count" aria-live="polite"></p></div>
+  <div id="teams-list"><p class="access-empty">Carregando equipes…</p></div>
+  <p id="teams-filter-note" class="access-list-note">Integrantes: quantidade de usuários desta equipe na lista carregada, incluindo inativos. Não representa um total geral.</p>
+ </section>
+ <p id="access-form-hint" class="access-note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/></svg><span>O formulário aparece apenas ao clicar em Novo usuário ou Editar.</span></p>
+</main>
+<dialog id="user-dialog" class="access-dialog" aria-labelledby="user-form-title" aria-describedby="user-dialog-description">
+ <form id="user-form">
+  <div class="access-dialog-heading"><div><p class="eyebrow">Gestão de acessos</p><h2 id="user-form-title">Novo usuário</h2></div><button id="close-user" type="button" class="access-close" aria-label="Fechar formulário de usuário"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></button></div>
+  <p id="user-dialog-description" class="access-dialog-description">Preencha os dados e confira o acesso antes de salvar.</p>
+  <input name="user_id" type="hidden">
+  <section class="access-form-section" aria-labelledby="user-details-title"><h3 id="user-details-title">Dados do usuário</h3><div class="access-form-grid">
+   <label class="access-field-wide">Nome completo<input name="display_name" required maxlength="160" autocomplete="name"></label>
+   <label>Usuário de acesso<input name="username" required minlength="3" maxlength="40" pattern="[a-z0-9][a-z0-9._\-]{2,39}" autocomplete="off" placeholder="Ex.: ana.silva"></label>
+   <label>Telefone de contato (opcional)<input name="contact_phone" type="tel" maxlength="15" autocomplete="tel-national" placeholder="(11) 99999-9999"></label>
+  </div></section>
+  <section class="access-form-section" aria-labelledby="user-access-title"><h3 id="user-access-title">Acesso</h3><div class="access-form-grid"><label>Equipe<select name="team_id" required></select></label><label>Perfil<select name="role"><option value="editor">Colaborador</option><option value="admin">Administrador da equipe</option></select></label></div><label class="access-checkbox" id="active-label" hidden><input name="active" type="checkbox" checked> Acesso ativo</label><p class="access-form-note" id="user-note">O usuário terá acesso apenas aos dados da equipe escolhida.</p></section>
+  <section id="password-section" class="access-form-section" aria-labelledby="user-password-title"><h3 id="user-password-title">Senha</h3>
+   <label id="password-label">Senha de acesso<input name="password" type="password" minlength="6" maxlength="128" autocomplete="new-password" required><small>De 6 a 128 caracteres. Informe a senha ao usuário por um canal seguro.</small></label>
+   <section id="reset-password-section" hidden><h4>Alterar senha</h4><p class="access-form-note">Esta ação altera a senha separadamente. Salvar os dados do usuário não altera a senha.</p><div class="access-form-grid"><label>Nova senha<input id="reset-password" type="password" minlength="6" maxlength="128" autocomplete="new-password"></label><label>Confirmar nova senha<input id="reset-password-confirm" type="password" minlength="6" maxlength="128" autocomplete="new-password"></label></div><button id="reset-password-button" class="secondary-button" type="button">Alterar senha deste usuário</button><p id="reset-password-status" class="access-form-note" role="status" aria-live="polite"></p></section>
+  </section>
+  <p id="user-form-status" class="access-feedback" role="status" aria-live="polite"></p>
+  <div class="access-form-actions"><button class="primary-button" type="submit">Criar usuário</button><button class="secondary-button" id="cancel-user" type="button">Cancelar</button></div>
+ </form>
+</dialog>
+<dialog id="team-dialog" class="access-dialog access-team-dialog" aria-labelledby="team-form-title" aria-describedby="team-dialog-description">
+ <form id="team-form">
+  <div class="access-dialog-heading"><div><p class="eyebrow">Gestão de acessos</p><h2 id="team-form-title">Nova equipe</h2></div><button id="close-team" type="button" class="access-close" aria-label="Fechar formulário de equipe"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></button></div>
+  <p id="team-dialog-description" class="access-dialog-description">Organize a equipe sem alterar o histórico dos integrantes.</p><input name="id" type="hidden">
+  <section class="access-form-section" aria-labelledby="team-details-title"><h3 id="team-details-title">Dados da equipe</h3><label>Nome da equipe<input name="name" required maxlength="120" placeholder="Ex.: Equipe Catanduva"></label><label class="access-checkbox" id="team-active-label" hidden><input name="active" type="checkbox" checked> Equipe ativa</label><p class="access-form-note">Cada equipe possui seus próprios clientes, levantamentos e relatórios. Desativar bloqueia o acesso dos integrantes e preserva o histórico.</p></section>
+  <p id="team-form-status" class="access-feedback" role="status" aria-live="polite"></p>
+  <div class="access-form-actions"><button class="primary-button" type="submit">Criar equipe</button><button id="cancel-team" class="secondary-button" type="button">Cancelar</button></div>
+ </form>
+</dialog>
+</div></body></html>
