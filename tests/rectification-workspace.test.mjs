@@ -34,7 +34,7 @@ async function workspace(t,{state=fixture(),write,preflight,interruptDuringRunti
 }
 
 test('cancelar, reabrir e motivo vazio não escrevem no banco',async t=>{
- const f=await workspace(t);f.editDate();await f.click('#save-draft-button');assert.equal(f.win.document.querySelector('#rectification-review').open,true);assert.match(f.win.document.querySelector('#rectification-diff').textContent,/2024-02-29/);
+ const f=await workspace(t);f.editDate();await f.click('#save-draft-button');assert.equal(f.win.document.querySelector('#rectification-review').open,true);assert.match(f.win.document.querySelector('#rectification-diff').textContent,/29\/02\/2024/);
  await f.click('#rectification-confirm');assert.equal(f.writes().length,0);assert.match(f.win.document.querySelector('#rectification-save-status').textContent,/motivo/);
  await f.click('#rectification-back');assert.equal(f.win.document.querySelector('#rectification-review').open,false);assert.equal(f.win.document.querySelector('#visit-date').value,'2024-02-29');await f.click('#save-draft-button');assert.equal(f.win.document.querySelector('#rectification-review').open,true);assert.equal(f.writes().length,0);
 });
@@ -78,4 +78,39 @@ test('retificação de data não é bloqueada por pendências antigas na etapa f
 
 test('sair durante carregamento inicial não revela questionário depois',async t=>{
  const f=await workspace(t,{interruptDuringRuntime:true});assert.equal(f.win.document.querySelector('#protected-workspace').hidden,true);assert.equal(f.win.document.querySelector('#session-check').hidden,false);assert.match(f.win.document.querySelector('#session-check p').textContent,/acesso mudou/);
+});
+
+test('detalhamento inline fica visível só na etapa de riscos da retificação, sem escrever',async t=>{
+ const f=await workspace(t),doc=f.win.document;
+ for(const file of ['styles.css','workspace.css','assessment-wizard.css','rectification.css']){const style=doc.createElement('style');style.textContent=read(file);doc.head.append(style);}
+ const section=doc.querySelector('#risk-source-section'),card=doc.querySelector('.rectification-risk');
+ assert.equal(f.win.getComputedStyle(section).display,'none');
+ f.win.GRO_WIZARD.go(4);assert.equal(f.win.getComputedStyle(section).display,'block');assert.equal(section.hidden,false);
+ await f.click('.target-risk-details');assert.equal(card.open,true);assert.equal(doc.activeElement,card.querySelector('summary'));assert.equal(f.writes().length,0);
+ f.win.GRO_WIZARD.go(5);assert.equal(f.win.getComputedStyle(section).display,'none');
+ f.win.GRO_WIZARD.go(4);section.hidden=true;assert.equal(f.win.getComputedStyle(section).display,'none');section.hidden=false;
+ doc.body.classList.remove('rectification-page');assert.equal(f.win.getComputedStyle(section).display,'none');
+ assert.match(read('rectify.html'),/rectification\.css\?v=20261020-review1/);
+});
+
+test('revisão usa rótulo amigável, data brasileira e referência técnica sem mudar o payload',async t=>{
+ const f=await workspace(t),doc=f.win.document;f.editDate();await f.click('#save-draft-button');
+ assert.equal(doc.querySelector('.rectification-diff-item h3').textContent,'Data da visita');
+ assert.equal(doc.querySelector('.rectification-diff-values .before p').textContent,'Não informado');
+ assert.equal(doc.querySelector('.rectification-diff-values .after p').textContent,'29/02/2024');
+ assert.equal(doc.querySelector('.rectification-field-reference code').textContent,'answers.visitDate');
+ assert.equal(doc.querySelector('#rectification-change-count').textContent,'1 alteração para conferir');
+ assert.equal(doc.querySelector('#rectification-reason').required,true);assert.equal(doc.querySelector('#rectification-reason').maxLength,1000);
+ assert.equal(doc.querySelector('#rectification-review').getAttribute('aria-describedby'),'rectification-review-description');
+ doc.querySelector('#rectification-reason').value='Justificativa sintética preservada';await f.click('#rectification-confirm');
+ assert.equal(f.writes()[0].args.p_changes.answers.visitDate,'2024-02-29');assert.equal(f.writes()[0].args.p_reason,'Justificativa sintética preservada');
+});
+
+test('texto da comparação permanece literal e botões têm hierarquia visual distinta',async t=>{
+ const f=await workspace(t),doc=f.win.document;const title=doc.querySelector('#rectification-identity input');
+ const value='<img src=x onerror=alert(1)> & texto completo';title.value=value;title.dispatchEvent(new f.win.Event('input',{bubbles:true}));await f.click('#save-draft-button');
+ assert.equal(doc.querySelector('.rectification-diff-values .after p').textContent,value);assert.equal(doc.querySelector('#rectification-diff img'),null);assert.equal(f.writes().length,0);
+ for(const file of ['styles.css','rectification.css']){const style=doc.createElement('style');style.textContent=read(file);doc.head.append(style);}
+ assert.notEqual(f.win.getComputedStyle(doc.querySelector('#rectification-back')).backgroundColor,f.win.getComputedStyle(doc.querySelector('#rectification-confirm')).backgroundColor);
+ assert.equal(f.win.getComputedStyle(doc.querySelector('#rectification-back')).minHeight,'44px');
 });

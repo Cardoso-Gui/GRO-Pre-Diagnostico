@@ -1,1 +1,38 @@
 .rectification-page .wizard-heading>div>p{max-width:760px}.rectification-page .wizard-note{color:#526b62}.rectification-page #save-draft-button,.rectification-page #generate-report-button{background:#176750;color:white}.rectification-page #rectification-identity{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}.rectification-page #rectification-identity label,.rectification-risk label{display:flex;flex-direction:column;gap:6px;font-weight:600}.rectification-page #rectification-identity input,.rectification-risk textarea,.rectification-risk select,#rectification-reason{box-sizing:border-box;width:100%;padding:10px;border:1px solid #c5d4cd;border-radius:8px;background:#fff;color:#203c31;font:inherit}.rectification-risk{padding:16px;background:#fff;border:1px solid #dce5df;border-radius:12px}.rectification-risk summary{cursor:pointer;font-weight:700}.rectification-risk label{margin-top:12px}.rectification-risk input[type=checkbox]{width:auto}.rectification-page #risk-source-grid{display:grid;grid-template-columns:1fr}.rectification-page #print-report-button,.rectification-page #clear-draft-button{display:none!important}#rectification-review{width:min(900px,calc(100vw - 40px));max-height:85vh;box-sizing:border-box;border:1px solid #c5d4cd;border-radius:16px;padding:24px}#rectification-review::backdrop{background:#102d246b}#rectification-diff{max-height:40vh;overflow:auto;margin:16px 0}.rectification-diff-item{border:1px solid #dce5df;border-radius:10px;padding:12px;margin-bottom:10px;overflow-wrap:anywhere}.rectification-diff-item p{white-space:pre-wrap}.rectification-diff-item .before{color:#865044}.rectification-diff-item .after{color:#145b42}.rectification-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:16px}.rectification-history{padding:16px;background:#f4f8f5;border:1px solid #dce5df;border-radius:12px;margin:16px 0}.rectification-history summary{cursor:pointer;font-weight:600}.rectification-history article{border-top:1px solid #dce5df;padding:12px 0}.rectification-history pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}.rectification-banner{padding:10px 14px;background:#edf5ef;border-left:4px solid #35755c}.report-toolbar a{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;padding:10px 14px;border:1px solid #c5d4cd;border-radius:8px;color:#176750;font-weight:600}@media print{.rectification-history,.rectification-banner{display:none!important}}
+.rectification-page #risk-source-section:not(.wizard-inactive):not([hidden]){display:block!important}
+
+/* The review dialog is a comparison, not another questionnaire section. */
+#rectification-review{width:min(780px,calc(100vw - 32px));max-height:90dvh;padding:28px;border-color:#d9e4de;border-radius:18px;color:#203c31;box-shadow:0 24px 80px #12372b33}
+#rectification-review .rectification-review-heading{display:block;margin:0;padding:0;background:none;border:0;box-shadow:none}
+#rectification-review .rectification-eyebrow{margin:0 0 6px;color:#557168;font-size:11px;font-weight:700;letter-spacing:.1em}
+#rectification-review h2{margin:0;font-size:25px;line-height:1.25;letter-spacing:-.02em}
+#rectification-review-description{margin:9px 0 0;color:#5c7067;font-size:14px;line-height:1.5;max-width:64ch}
+#rectification-review .rectification-change-count{margin:22px 0 10px;color:#526b60;font-size:12px;font-weight:700}
+#rectification-diff{max-height:38vh;margin:0 0 22px;padding:0 3px 0 0;overscroll-behavior:contain}
+#rectification-review .rectification-diff-item{padding:16px;margin:0 0 12px;border-color:#dae5df;border-radius:12px;background:#fff}
+#rectification-review .rectification-diff-item:last-child{margin-bottom:0}
+#rectification-review .rectification-diff-item h3{margin:0 0 12px;font-size:16px;line-height:1.4;color:#203c31}
+#rectification-review .rectification-diff-context{margin:-7px 0 12px;color:#65776e;font-size:12px}
+#rectification-review .rectification-diff-values{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+#rectification-review .rectification-diff-values>div{min-width:0;border-radius:8px;padding:12px;background:#f5f7f6;color:#4b6055}
+#rectification-review .rectification-diff-values>.after{background:#edf7f0;color:#175e40;border:1px solid #cee6d5}
+#rectification-review .rectification-diff-values span{display:block;margin-bottom:6px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+#rectification-review .rectification-diff-values p{margin:0;font-size:14px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
+#rectification-review .rectification-field-reference{margin-top:12px;color:#6b7b72;font-size:11px}
+#rectification-review .rectification-field-reference summary{cursor:pointer;width:fit-content;padding:3px 0}
+#rectification-review .rectification-field-reference code{display:block;padding:7px 0 0;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere}
+#rectification-review .rectification-reason-field label{display:block;margin-bottom:8px;font-size:14px;font-weight:700}
+#rectification-review .rectification-reason-field label span{font-size:12px;font-weight:400;color:#65776e}
+#rectification-reason{display:block;min-height:90px;padding:12px 14px;border-color:#cbd9d1;border-radius:10px;font-size:14px;line-height:1.5;resize:vertical}
+#rectification-reason-hint{margin:7px 0 0;font-size:12px;color:#65776e;line-height:1.4}
+#rectification-save-status{margin:10px 0 0;font-size:13px;line-height:1.5;color:#8b463b}
+#rectification-save-status:empty{display:none}
+#rectification-review .rectification-actions{align-items:center;margin-top:22px;padding-top:18px;border-top:1px solid #e2e9e5;gap:10px}
+#rectification-review .rectification-actions button{min-height:44px;width:auto;margin:0;padding:11px 17px;border-radius:9px;font-size:14px;font-weight:650;line-height:1.3;box-shadow:none;transform:none}
+#rectification-back{background:#fff;color:#466052;border:1px solid #cbd8d0}
+#rectification-back:hover{background:#f4f7f5}
+#rectification-confirm{background:#176750;color:#fff;border:1px solid #176750}
+#rectification-confirm:hover{background:#12583f}
+#rectification-review button:disabled{opacity:.55;cursor:wait}
+#rectification-review :is(button,textarea,summary):focus-visible{outline:3px solid #89ba9d;outline-offset:3px}
+@media(max-width:560px){#rectification-review{padding:20px;width:calc(100vw - 24px)}#rectification-review h2{font-size:22px}#rectification-review .rectification-diff-values{grid-template-columns:1fr}#rectification-review .rectification-actions{flex-direction:column-reverse;align-items:stretch}#rectification-review .rectification-actions button{width:100%}}
