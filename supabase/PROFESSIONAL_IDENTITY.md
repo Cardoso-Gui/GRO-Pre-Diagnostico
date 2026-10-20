@@ -2,8 +2,10 @@
 
 ## Estado e escopo
 
-Implementação preparada localmente. Não ativa, publica nem altera usuários reais por si só.
-A migração `20261020015128_professional_identity.sql` foi criada com `supabase migration new professional_identity` (CLI 2.121.0 já disponível, sem nova instalação).
+Backend ativado em 20/10/2026 após autorização específica, revisão independente e CI aprovado. Nenhuma função profissional ou registro foi atribuído a usuários reais; nenhum levantamento real foi modificado para testar a mudança.
+A migração foi criada com `supabase migration new professional_identity` (CLI 2.121.0) e aplicada uma única vez. O nome `20261020100630_professional_identity.sql` foi alinhado à versão efetivamente registrada pelo Supabase, sem alterar seu conteúdo nem reaplicar o SQL. SHA-256: `1db678b54d7c8fd95b7c77f45e3dd5d13f3f50f51269651a82a8d79063e3245c`.
+
+`gro-admin` foi publicada como versão 6, preservando `verify_jwt=false`, sua autenticação explícita existente e a lista de origens. A leitura posterior confirmou o código exato revisado. A publicação estática está coordenada pela PR #50.
 
 A ativação da migração e a publicação da Edge Function dependem de autorização específica. Publicar apenas os arquivos estáticos antes da migração não basta: o cliente passa a consultar os novos campos. Não aplicar scripts de fixtures em um projeto conectado.
 
@@ -73,7 +75,7 @@ Antes da ativação, repetir a verificação de catálogo e confirmar que as def
 4. Publicar `gro-admin` revisada; confirmar campos omitidos e leitura das novas colunas. Não atribuir profissão ou registro a uma pessoa sem instrução/dado fornecido pelo usuário.
 5. Publicar os arquivos estáticos coordenados. Administradores cadastram os dados profissionais conhecidos; o bloqueio de conclusão sem responsável informado é intencional.
 6. Conferir em uma base de homologação com dados sintéticos: auxiliar salva rascunho, auxiliar não é selecionável, técnico/engenheiro elegível conclui, relatório mantém nome/registro após alterar o cadastro, relatório legado não recebe registro retroativo.
-7. Conferir advisors de segurança/performance do Supabase e os grants/RLS após a ativação. Não houve execução de advisors ou migração de produção neste trabalho local.
+7. Conferir advisors de segurança/performance do Supabase e os grants/RLS após a ativação. As verificações após ativação devem ser comparadas à linha de base, sem corrigir configurações não relacionadas silenciosamente.
 
 ## Testes e limitação local
 
@@ -81,7 +83,7 @@ Antes da ativação, repetir a verificação de catálogo e confirmar que as def
 - `tests/admin-endpoint.test.mjs`: validação independente de payload, não promoção, campos omitidos e limpeza explícita, sem contas externas.
 - `supabase/tests/professional-identity-concurrency.mjs`: PostgreSQL real multissessão em diretório temporário e socket Unix local. Cobre congelamento durante edição concorrente e revalidação após desativar membro, retirar registro/UF, alterar profissional para auxiliar, transferir profissional/cliente, desativar equipe e revogar permissão administrativa/acesso global. Não aceita URL de banco e não estabelece conexão externa.
 
-A execução local multissessão neste executor foi bloqueada pela criação de socket Unix; a tentativa de execução elevada falhou na preparação do sandbox, antes de executar o teste. Nenhuma asserção de concorrência passou localmente. O runner está integrado em `npm run test:concurrency` e no CI; exigir resultado verde real antes da publicação/ativação, não tratar a existência do script como prova de aprovação.
+A execução local multissessão neste executor foi bloqueada pela criação de socket Unix; a tentativa de execução elevada falhou na preparação do sandbox, antes de executar o teste. Nenhuma asserção de concorrência passou localmente. O runner está integrado em `npm run test:concurrency` e no CI. A execução GitHub Actions `39356933801` confirmou os 317 testes e os 11 cenários profissionais reais, além da concorrência da retificação, no código aprovado; exigir resultado verde no head final antes da publicação.
 
 ## Reversão
 

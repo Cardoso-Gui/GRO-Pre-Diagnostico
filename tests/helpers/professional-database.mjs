@@ -6,7 +6,7 @@ export const ids={
  client:'40000000-0000-4000-8000-000000000001',otherClient:'40000000-0000-4000-8000-000000000002',legacy:'50000000-0000-4000-8000-000000000001',draft:'50000000-0000-4000-8000-000000000002'
 };
 export const sessionFor=id=>id?.replace(/^30000000/,'70000000');
-export const migrationPath='supabase/migrations/20261020015128_professional_identity.sql';
+export const migrationPath='supabase/migrations/20261020100630_professional_identity.sql';
 export const source=path=>readFile(new URL(path,root),'utf8');
 export async function baseline(exec,query){
  await exec(await source('supabase/tests/rectification-fixture.sql'));
