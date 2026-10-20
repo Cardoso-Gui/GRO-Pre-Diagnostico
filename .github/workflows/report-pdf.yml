@@ -1,0 +1,63 @@
+name: Real Chromium PDF (synthetic only)
+
+on:
+  pull_request:
+    paths:
+      - 'report*.js'
+      - 'report*.css'
+      - 'workstation-photos.js'
+      - 'professional-identity.js'
+      - 'visit-date.js'
+      - 'tests/browser/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/report-pdf.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: report-pdf-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  chromium-pdf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out proposed code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Check out baseline for the same synthetic fixture
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha || 'ade1b517bf4912b7d97719d2b04fecb92c374a18' }}
+          path: .pdf-baseline
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install pinned test dependencies
+        run: npm ci
+      - name: Install official Chromium and PDF inspection tools
+        run: |
+          npx playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install -y poppler-utils
+      - name: Export and inspect actual PDFs
+        run: npm run test:pdf
+        env:
+          REPORT_BASELINE_ROOT: ${{ github.workspace }}/.pdf-baseline
+      - name: Preserve synthetic PDF evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: synthetic-report-pdf
+          path: test-results/report-pdf/
+          if-no-files-found: error
+          retention-days: 7
