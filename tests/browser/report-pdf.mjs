@@ -67,8 +67,8 @@ function validate(result){
   const redundantObjective='O levantamento tem como objetivo apoiar a identificação dos perigos e o planejamento das ações de prevenção, considerando as atividades desenvolvidas e as informações fornecidas pela empresa.';
   assert.equal(normalize(pdf.text).includes(redundantObjective),false,'neither version reintroduces the removed objective');
   const dimensions=snap.sheets[0].cover.find(entry=>entry.className==='report-dimension-grid');
-  assert.equal(dimensions.text.includes('formalizadas anualmente pela organização (NR-5, item 5.4.14).'),result.label==='current','current CIPA includes approved annual formalization');
-  assert.equal(dimensions.text.includes('Sem comissão nesta faixa'),result.label==='baseline','only recognized legacy CIPA copy is replaced');
+  assert.equal(dimensions.text.includes('formalizadas anualmente pela organização (NR-5, item 5.4.14).'),true,'both versions retain approved CIPA annual formalization');
+  assert.equal(dimensions.text.includes('Sem comissão nesta faixa'),false,'neither version restores legacy CIPA copy');
   assert.equal(snap.sheets[0].dimensions.length,2,'both dimension cards remain on the cover');
   for(const card of snap.sheets[0].dimensions){
    for(const [i,paragraph] of card.paragraphs.entries()){
@@ -80,9 +80,19 @@ function validate(result){
    }
   }
   const cipa=snap.sheets[0].dimensions[0],sesmt=snap.sheets[0].dimensions[1];
-  assert.equal(cipa.title,result.label==='current'?'CIPA — Resultado do dimensionamento':'CIPA');
-  assert.equal(cipa.paragraphs.length,result.label==='current'?2:1);
-  assert.deepEqual(sesmt.paragraphs.map(p=>p.text),['Sem equipe mínima nesta faixa','Pelo Anexo II da NR-4 não há profissionais mínimos para essa faixa.']);
+  assert.equal(cipa.title,'CIPA — Resultado do dimensionamento');
+  assert.equal(cipa.paragraphs.length,2);
+  assert.equal(sesmt.title,result.label==='current'?'SESMT — Resultado do dimensionamento':'SESMT');
+  assert.equal(sesmt.paragraphs.length,2);
+  const legacySesmt=['Sem equipe mínima nesta faixa','Pelo Anexo II da NR-4 não há profissionais mínimos para essa faixa.'];
+  if(result.label==='baseline')assert.deepEqual(sesmt.paragraphs.map(p=>p.text),legacySesmt);
+  else{
+   assert.ok(sesmt.paragraphs[0].text.startsWith('O Serviço Especializado em Segurança e em Medicina do Trabalho (SESMT) reúne profissionais'));
+   assert.ok(sesmt.paragraphs[0].text.endsWith('não indica um quantitativo mínimo de profissionais para compor esse serviço.'));
+   assert.ok(sesmt.paragraphs[1].text.startsWith('Esse resultado deve ser analisado em conjunto com a estrutura da organização'));
+   assert.ok(sesmt.paragraphs[1].text.endsWith('cumprir as demais exigências aplicáveis à segurança e à saúde no trabalho.'));
+   for(const text of legacySesmt)assert.ok(!dimensions.text.includes(text),'recognized legacy SESMT copy is replaced');
+  }
   for(const sheet of snap.sheets){
    for(const [i,entry] of sheet.cover.entries()){
     assert.ok(entry.rect.bottom<=sheet.rect.bottom+1,'cover entry does not overflow the page');

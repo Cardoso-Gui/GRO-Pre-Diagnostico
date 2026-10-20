@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import '../report-cipa.js';
+import '../report-sesmt.js';
 import {installDOM,el} from './helpers/report-dom.mjs';
 const read=file=>fs.readFileSync(new URL('../'+file,import.meta.url),'utf8');
 const legacy='Sem comissão nesta faixa - Sem atendimento pelo SESMT, nomear um representante entre os empregados. MEI é dispensado dessa nomeação (NR-5, 5.4.13).';
@@ -56,7 +57,7 @@ test('geração PDF usa os mesmos parágrafos sem alterar resultados CIPA ou SES
  for(const text of [legacy,...otherBranches]){
   const [summary,note]=text.split(' - '),dimensionFields={cipaSummary:{textContent:summary},cipaNote:{textContent:note},sesmtSummary:{textContent:'SESMT preservado'},sesmtList:el('ul','', '',el('li','Detalhe SESMT preservado'))};
   const saved=JSON.stringify([summary,note]);
-  const context=vm.createContext({document:globalThis.document,GRO_REPORT_CIPA:globalThis.GRO_REPORT_CIPA,dimensionFields,employeeCountInput:{value:'4'},riskGradeOutput:{textContent:'Grau 1'},createReportBlock:title=>el('section','', 'report-block',el('h3',title)),addReportItem:(list,text)=>list.append(el('li',text))});
+  const context=vm.createContext({document:globalThis.document,GRO_REPORT_CIPA:globalThis.GRO_REPORT_CIPA,GRO_REPORT_SESMT:globalThis.GRO_REPORT_SESMT,dimensionFields,employeeCountInput:{value:'4'},riskGradeOutput:{textContent:'Grau 1'},createReportBlock:title=>el('section','', 'report-block',el('h3',title)),addReportItem:(list,text)=>list.append(el('li',text))});
   const source=read('script.js');vm.runInContext(source.slice(source.indexOf('function createDimensionReportBlock()'),source.indexOf('function createSectorJobReportBlock()')),context);
   const lines=context.createDimensionReportBlock().querySelectorAll('li').map(node=>node.textContent);
   assert.deepEqual(lines.filter(line=>line.startsWith('CIPA: ')),(text===legacy?approved:[text]).map(line=>'CIPA: '+line));
@@ -67,8 +68,8 @@ test('geração PDF usa os mesmos parágrafos sem alterar resultados CIPA ou SES
 
 test('carregamento compartilhado atualiza apresentação e script sem envolver persistência ou cálculo',()=>{
  for(const file of ['workspace.js','report-generator.js']){
-  const source=read(file);assert.match(source,/'report-opening\.js','report-cipa\.js','visit-date\.js','script\.js'/);
-  assert.ok(source.includes("['report-cipa.js','script.js'].includes(file)?'20261020-cipa1'"));
+  const source=read(file);assert.match(source,/'report-opening\.js','report-cipa\.js','report-sesmt\.js','visit-date\.js','script\.js'/);
+  assert.ok(source.includes("['report-sesmt.js','script.js'].includes(file)?'20261020-sesmt1'"));
  }
  assert.match(read('report.js'),/import '\.\/report-cipa\.js\?v=20261020-cipa1'/);assert.match(read('report.js'),/GRO_REPORT_CIPA\.apply\(cover\)/);
  const source=read('script.js'),dimension=source.slice(source.indexOf('function renderDimension('),source.indexOf('function addSectorOption('));

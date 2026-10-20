@@ -9,7 +9,8 @@ const content=document.querySelector('#report-content');
 const parameters=new URLSearchParams(location.search);
 const scenario=parameters.get('scenario')||'full';
 const current=parameters.get('version')!=='baseline';
-if(current)await import('/report-cipa.js');
+await import('/report-cipa.js');
+if(current)await import('/report-sesmt.js');
 const make=(tag,text='',className='')=>{const el=document.createElement(tag);el.textContent=text;el.className=className;return el;};
 const block=(title)=>{const el=make('section','','report-block');el.append(make('h3',title));return el;};
 const types=['Físicos','Químicos','Biológicos','Ergonômicos','Acidentes'];
@@ -30,7 +31,7 @@ if(scenario==='full'){
  for(const pairs of [[['CNAE principal','0000-0/00 · Atividade fictícia para teste']],[['Grau de risco','2'],['Funcionários','3']],[['Revisão','Rev 01'],['Data da visita','01/01/2026']]]){const item=make('div','','report-summary-item');for(const [i,[label,value]] of pairs.entries())item.append(make('span',label,i?'report-second-label':''),make('strong',value));summary.append(item);}
  const dimensions=make('div','','report-dimension-grid');
  for(const [label,details] of [['CIPA',['Sem comissão nesta faixa - Sem atendimento pelo SESMT, nomear um representante entre os empregados. MEI é dispensado dessa nomeação (NR-5, 5.4.13).']],['SESMT',['Sem equipe mínima nesta faixa','Pelo Anexo II da NR-4 não há profissionais mínimos para essa faixa.']]]){const card=make('section','','report-dimension-card');card.append(make('h4',label),...details.map(text=>make('p',text)));dimensions.append(card);}
- cover.append(summary,dimensions);globalThis.GRO_REPORT_OPENING.apply(cover);if(current)globalThis.GRO_REPORT_CIPA.apply(cover);content.append(cover);
+ cover.append(summary,dimensions);globalThis.GRO_REPORT_OPENING.apply(cover);globalThis.GRO_REPORT_CIPA.apply(cover);if(current)globalThis.GRO_REPORT_SESMT.apply(cover);content.append(cover);
  const sectors=block('Setores e cargos');sectors.classList.add('report-sectors');sectors.append(make('div','','report-card-list'));content.append(sectors);
 }
 const details=block('Detalhamento dos riscos'),list=make('div','','report-card-list');details.append(list);content.append(details);

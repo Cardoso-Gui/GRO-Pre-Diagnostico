@@ -6,7 +6,7 @@ import {JSDOM} from 'jsdom';
 import {fixture} from './helpers/rectification-fixture.mjs';
 import {ANSWER_FIELDS,correctionChanges,applyBusinessChanges,changedValues,readAssessmentReport,saveRectification} from '../report-rectification.js';
 const read=file=>fs.readFileSync(new URL('../'+file,import.meta.url),'utf8');
-const runtimeFiles=['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js','report-opening.js','report-cipa.js','visit-date.js','script.js'];
+const runtimeFiles=['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js','report-opening.js','report-cipa.js','report-sesmt.js','visit-date.js','script.js'];
 function runtime(t){const dom=new JSDOM(read('levantamento.html'),{url:'https://synthetic.example.test/levantamento.html',runScripts:'outside-only'});t.after(()=>dom.window.close());const context=dom.getInternalVMContext();context.GRO_CLOUD={rectification:true};for(const file of runtimeFiles)vm.runInContext(read(file),context,{filename:file});return dom.window;}
 
 test('retificação por data preserva respostas legadas, conclusão, revisão e identidade',()=>{
