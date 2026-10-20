@@ -73,7 +73,9 @@ function validate(result){
   for(const card of snap.sheets[0].dimensions){
    for(const [i,paragraph] of card.paragraphs.entries()){
     assert.ok(paragraph.rect.bottom<=card.rect.bottom+1,'dimension paragraph stays inside card');
-    assert.ok(normalize(pdf.rawText).includes(normalize(paragraph.text)),'all dimension prose remains extractable');
+    // Poppler preserves a newline after a wrapped literal hyphen (e.g. NR-\n5).
+    const extracted=normalize(pdf.rawText.replace(/-[ \t]*\r?\n[ \t]*/g,'-'));
+    assert.equal(extracted.split(normalize(paragraph.text)).length-1,1,'each complete dimension paragraph remains extractable exactly once');
     for(const next of card.paragraphs.slice(i+1))assert.ok(paragraph.rect.bottom<=next.rect.y+1,'dimension paragraphs do not overlap');
    }
   }
