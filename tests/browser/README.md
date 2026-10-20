@@ -32,3 +32,8 @@ against old production modules/CSS first. Baseline validation failures are recor
 not assumed; the current checkout must pass. `summary.json` distinguishes image
 readiness during synchronous `beforeprint` from raster images actually embedded
 in the final PDF, so a suspected image-loading race is not asserted without proof.
+
+The full fixture also renders the production cover opening and visit introduction,
+with synthetic identification and dimension cards. It checks that the complete
+cover stays on the first sheet without overlap or cutoff. Baseline exports retain
+the previous visit wording; current exports use the shared production renderer.
