@@ -9,8 +9,8 @@
     
     <meta name="referrer" content="no-referrer" />
     <script src="vendor/supabase-2.117.2.js?v=20260925-reports2" defer></script>
-    <script type="module" src="workspace.js?v=20261019-review1"></script>
-  <link rel="stylesheet" href="dimension.css?v=20260925-reports2"><link rel="stylesheet" href="./app-header.css?v=20260928-occ1"><link rel="stylesheet" href="./client-search.css?v=20260929-inline1"><link rel="stylesheet" href="home.css?v=20260928-occ1"><link rel="stylesheet" href="home-dashboard.css?v=20261019-header2"><link rel="stylesheet" href="assessment-wizard.css?v=20261019-review1"></head>
+    <script type="module" src="workspace.js?v=20261019-visit1"></script>
+  <link rel="stylesheet" href="dimension.css?v=20260925-reports2"><link rel="stylesheet" href="./app-header.css?v=20260928-occ1"><link rel="stylesheet" href="./client-search.css?v=20260929-inline1"><link rel="stylesheet" href="home.css?v=20260928-occ1"><link rel="stylesheet" href="home-dashboard.css?v=20261019-header2"><link rel="stylesheet" href="assessment-wizard.css?v=20261019-visit1"></head>
   <body class="home-page wizard-page">
     <section id="session-check" class="session-check" aria-live="polite"><p>Verificando seu acesso…</p><a href="index.html">Voltar ao login</a></section>
     <div id="protected-workspace" hidden>
@@ -25,7 +25,7 @@
  <h2 class="picker-title">Empresa e identificação</h2><p>Selecione uma empresa para iniciar outro levantamento ou continuar um rascunho.</p>
 <label for="client-select">Empresa cadastrada</label><select id="client-select" disabled><option value="">Carregando empresas…</option></select><button id="retry-clients" type="button" hidden>Tentar novamente</button>
  <a href="./client.html">Cadastrar cliente</a>
- <section id="client-history" hidden><h2 id="selected-client"></h2><form id="create-assessment"><label for="assessment-title">Título do novo levantamento</label><input id="assessment-title" required maxlength="240"><button id="start-assessment">Continuar para dimensionamento →</button></form><details id="wizard-history"><summary>Ver histórico do cliente</summary><p id="history-status" role="status"></p><div id="draft-list"></div><button id="more-drafts" hidden>Carregar mais levantamentos</button></details></section>
+ <section id="client-history" hidden><h2 id="selected-client"></h2><form id="create-assessment"><label for="assessment-title">Título do novo levantamento</label><input id="assessment-title" required maxlength="240"><button id="start-assessment">Continuar com esta empresa →</button></form><details id="wizard-history"><summary>Ver histórico do cliente</summary><p id="history-status" role="status"></p><div id="draft-list"></div><button id="more-drafts" hidden>Carregar mais levantamentos</button></details></section>
 </section>
 <main id="questionnaire" class="app-shell" hidden>
       <section class="cnpj-panel" aria-labelledby="page-title">
@@ -97,6 +97,13 @@
               <strong id="contact">-</strong>
             </article>
           </div>
+
+          <section id="assessment-visit-details" class="assessment-visit-details" aria-labelledby="visit-details-title">
+            <h3 id="visit-details-title">Identificação da visita</h3>
+            <label for="visit-date">Data da visita <span>(opcional)</span></label>
+            <input id="visit-date" name="visitDate" type="date" aria-describedby="visit-date-help" />
+            <p id="visit-date-help">Informe a data em que a visita foi realizada. Se não souber, deixe em branco; o relatório mostrará “Não informada”.</p>
+          </section>
 
           <form class="dimension-form" id="dimension-form">
             <div class="dimension-heading">

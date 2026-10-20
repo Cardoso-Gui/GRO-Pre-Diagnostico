@@ -1,0 +1,41 @@
+name: Rectification security (synthetic only)
+
+on:
+  pull_request:
+    paths:
+      - '**.js'
+      - '**.mjs'
+      - '**.html'
+      - 'supabase/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/rectification-security.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rectification-security-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  isolated-security-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check out reviewed code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install pinned test dependencies
+        run: npm ci
+      - name: Run unit, DOM, and embedded PostgreSQL authorization tests
+        run: npm test
+      - name: Prove independent-session locking and revocation
+        run: npm run test:concurrency

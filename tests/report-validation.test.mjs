@@ -2,11 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import '../visit-date.js';
 const source=fs.readFileSync(new URL('../script.js',import.meta.url),'utf8');
 function fixture(){
  const detail={source:'Máquina',frequency:'Diária',duration:'2h',damage:'Dano',measures:'Nenhuma',measure:'Não'};
  const epi={applicable:'Não',items:[]};
- const ctx=vm.createContext({currentCompany:{},employeeCountInput:{value:'1'},selectedSectorNames:new Set(['A']),jobsBySector:new Map([['A',[{name:'Cargo',quantity:1,activities:'Atividade'}]]]),selectedRiskMode:'job',gheList:[],getRiskTargets:()=>[{id:'a',title:'Cargo'}],getSelectedRiskCodes:()=>new Set(['x']),dimensionFields:{cipaSummary:{textContent:'Sem comissão'},sesmtSummary:{textContent:'Sem equipe'}},getRiskSelections:()=>[{targetId:'a',targetTitle:'Cargo',risk:{code:'x',name:'Risco'}}],getRiskSourceData:()=>detail,getEpiData:()=>epi});
+ const ctx=vm.createContext({visitDateInput:{value:'',validity:{badInput:false}},GRO_VISIT_DATE:globalThis.GRO_VISIT_DATE,currentCompany:{},employeeCountInput:{value:'1'},selectedSectorNames:new Set(['A']),jobsBySector:new Map([['A',[{name:'Cargo',quantity:1,activities:'Atividade'}]]]),selectedRiskMode:'job',gheList:[],getRiskTargets:()=>[{id:'a',title:'Cargo'}],getSelectedRiskCodes:()=>new Set(['x']),dimensionFields:{cipaSummary:{textContent:'Sem comissão'},sesmtSummary:{textContent:'Sem equipe'}},getRiskSelections:()=>[{targetId:'a',targetTitle:'Cargo',risk:{code:'x',name:'Risco'}}],getRiskSourceData:()=>detail,getEpiData:()=>epi});
  vm.runInContext(source.slice(source.indexOf('function getReportMissingFields('),source.indexOf('function validateReport()')),ctx);
  return {ctx,detail,epi,check:()=>ctx.getReportMissingFields()};
 }
@@ -37,4 +38,11 @@ test('criar GHE bloqueia nomes repetidos e não altera vínculos existentes',()=
  assert.equal(existing.linkedJobs.length,1);
  if(name==='Novo GHE')assert.equal(ctx.gheList[1].linkedJobs.length,0);
  }
+});
+
+test('data da visita é opcional; somente data preenchida inválida ou incompleta bloqueia',()=>{
+ const f=fixture();assert.equal(f.check().length,0);
+ f.ctx.visitDateInput.value='2026-02-30';assert.ok(f.ctx.getReportMissingFields(true).some(item=>item.destination==='#visit-date'));
+ f.ctx.visitDateInput.value='2026-09-29';assert.equal(f.check().length,0);
+ f.ctx.visitDateInput.value='';f.ctx.visitDateInput.validity.badInput=true;assert.ok(f.check().some(item=>item.includes('data de visita válida')));
 });

@@ -16,6 +16,7 @@ export function compactPrintReport(content){
  let sequence=0;
  for(const risk of content.querySelectorAll('.viewer-risk')){
   const card=risk.querySelector('.report-risk-detail');if(!card)continue;
+  risk.classList.add('print-risk-card');
   const fields=[...card.querySelectorAll('.report-detail-field')].map(el=>({label:text(el.querySelector('.report-field-label')),value:text(el.querySelector('p'))}));
   const get=label=>fields.find(field=>field.label===label)?.value||'';
   const name=text(risk.querySelector('.viewer-risk-heading strong')),code=text(risk.querySelector('.viewer-risk-heading small'));

@@ -1,10 +1,14 @@
+import {readAssessmentReport} from './report-rectification.js?v=20261020-rectify1';
+import {generateEffectiveDocument} from './report-generator.js?v=20261020-rectify1';
+import {mountRectificationHistory} from './rectification-history.js?v=20261020-rectify1';
+import './report-opening.js?v=20261019-opening1';
 import {watchPageResume} from './page-resume.js?v=20260930-resume1';
 import {hydrateReportPhotos} from './workstation-photos.js?v=20260928-photos1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
 import {organizeReport} from './report-layout.js?v=20260929-update1';
-import {addReuseButton} from './reuse-report.js?v=20260929-update1';
-import {mountReportViewer,reportVisitDate} from './report-viewer.js?v=20261019-categoryfix1';
+import {addReuseButton} from './reuse-report.js?v=20261020-rectify1';
+import {mountReportViewer,reportVisitDate} from './report-viewer.js?v=20261019-visit1';
 const message=document.querySelector('#report-status'),content=document.querySelector('#report-content'),print=document.querySelector('#report-print');
 const tags=new Set(['section','div','article','h2','h3','h4','p','span','strong','small','ul','li']);
 function renderNode(node,depth=0){
@@ -21,6 +25,7 @@ async function load(){
  viewer?.destroy();viewer=null;
  document.querySelector('#report-shell').hidden=true;document.querySelector('#report-overview').hidden=true;
  document.querySelector('.report-toolbar .reuse-report')?.remove();
+ document.querySelectorAll('[data-rectification-control]').forEach(node=>node.remove());
  for(const img of content.querySelectorAll('img'))if(img.src.startsWith('blob:'))URL.revokeObjectURL(img.src);
  content.hidden=true;print.disabled=true;message.textContent='Carregando relatório…';
  try{
@@ -28,9 +33,10 @@ async function load(){
  resumeMember=access.member; updateHeader(access.member);
  const reportsLink=document.querySelector('header nav a[href="./reports.html"]');reportsLink?.classList.add('nav-current');reportsLink?.setAttribute('aria-current','page');
  const id=new URLSearchParams(location.search).get('id');if(!/^[0-9a-f-]{36}$/i.test(id||''))throw Error('Endereço de relatório inválido.');
- const {data,error}=await authClient.from('assessments').select('client_id,title,report_revision,final_snapshot,completed_at,team_members!assessments_responsible_id_fkey(display_name)').eq('id',id).eq('status','completed').maybeSingle();
- if(error||!data)throw Error('Relatório indisponível. Volte à lista ou tente novamente.');
- const doc=data.final_snapshot?.answers?.report_document;
+ const original=new URLSearchParams(location.search).get('original')==='1';
+ const state=await readAssessmentReport(authClient,id,{original});
+ const data=state.assessment;
+ const doc=!original&&state.sequence>0?await generateEffectiveDocument(data.final_snapshot.answers,{originalDocument:state.original_report_document,changes:state.history.flatMap(entry=>entry.changes)}):data.final_snapshot?.answers?.report_document;
  if(doc?.version!==1||!Array.isArray(doc.children))throw Error('Este relatório não possui uma versão de visualização compatível.');
  const fragment=document.createDocumentFragment();doc.children.forEach(node=>fragment.append(renderNode(node)));
  content.replaceChildren(fragment);content.querySelectorAll(".report-mini-card").forEach(card=>card.classList.toggle("report-long",card.textContent.length>1400));document.title='GRO';document.querySelector('#report-title').textContent=data.title;
@@ -88,6 +94,7 @@ async function load(){
  const introduction=document.createElement('p');introduction.className='report-introduction';
  introduction.textContent=`Em visita realizada${visitDate==='Não informada'?' (data não informada)':' em '+visitDate}${responsible?', por '+responsible:''}, à empresa ${identity}${cnpj?', inscrita no CNPJ sob o nº '+cnpj:''}${fullAddress?', localizada em '+fullAddress:''}, foram levantadas informações sobre os setores, as atividades e as condições de trabalho. Este relatório apresenta os riscos identificados, as medidas de prevenção informadas e as necessidades de avaliação complementar, conforme as condições observadas na ocasião.`;
  const cover=content.querySelector('.report-cover');
+ globalThis.GRO_REPORT_OPENING.apply(cover);
  if(cover&&sizingBlock){
    const grid=document.createElement('div');grid.className='report-dimension-grid';
    const lines=Array.from(sizingBlock.querySelectorAll('li')).map(item=>item.textContent.trim());
@@ -123,13 +130,14 @@ async function load(){
  closing.append(heading,paragraph,attribution,signatures);content.append(closing);
  organizeReport(content,data.final_snapshot?.answers||{});
  await hydrateReportPhotos(content,authClient,data.client_id);
- message.textContent='Concluído em '+new Date(data.completed_at).toLocaleString('pt-BR')+'. Versão preservada no histórico.';
+ message.textContent='Concluído em '+new Date(data.completed_at).toLocaleString('pt-BR')+'. '+(original?'Conteúdo original preservado.':state.sequence>0?'Conteúdo retificado. Revisão original preservada.':'Versão preservada no histórico.');
  viewer=mountReportViewer(content,data);
  document.querySelector('#report-shell').hidden=false;document.querySelector('#report-overview').hidden=false;
  content.hidden=false;print.disabled=false;
  document.querySelector('.report-toolbar .reuse-report')?.remove();
- addReuseButton(document.querySelector('.report-toolbar'),id,authClient,getTeamMember,text=>{message.textContent=text;});
- if(new URLSearchParams(location.search).get('print')==='1'){history.replaceState(null,'','./report.html?id='+encodeURIComponent(id));await document.fonts.ready;window.print();}
+ if(!original)addReuseButton(document.querySelector('.report-toolbar'),id,authClient,getTeamMember,text=>{message.textContent=text;});
+ mountRectificationHistory(state,id,{original});
+ if(new URLSearchParams(location.search).get('print')==='1'){history.replaceState(null,'','./report.html?id='+encodeURIComponent(id)+(original?'&original=1':''));await document.fonts.ready;window.print();}
  }catch(error){message.textContent=error.message;}
  finally{loading=false;document.querySelector('#report-retry').disabled=false;}
 }

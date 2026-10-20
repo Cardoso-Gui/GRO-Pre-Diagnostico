@@ -1,13 +1,10 @@
-import {paginateReport} from './report-pagination.js?v=20261019-categoryfix1';
-import {compactPrintReport} from './report-print-compact.js?v=20261019-categoryfix1';
+import './visit-date.js?v=20261019-visit1';
+import {paginateReport} from './report-pagination.js?v=20261019-layout2';
+import {compactPrintReport} from './report-print-compact.js?v=20261019-layout2';
 const make=(tag,text='',className='')=>{const el=document.createElement(tag);el.textContent=text;el.className=className;return el;};
 const normalized=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-export function reportVisitDate(answers){
- const value=answers.visitDate||answers.visit_date;
- if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return 'Não informada';
- const date=new Date(value+'T12:00:00Z');
- return !Number.isNaN(date.valueOf())&&date.toISOString().slice(0,10)===value?value.split('-').reverse().join('/'):'Não informada';
-}
+export function reportVisitDate(answers){return globalThis.GRO_VISIT_DATE.format(answers);}
+export function riskCountLabel(count){return count+' '+(count===1?'risco':'riscos');}
 function riskType(text){
  const value=normalized(text);
  for(const [match,label,key] of [['fisic','Físicos','physical'],['quimic','Químicos','chemical'],['biologic','Biológicos','biological'],['ergonom','Ergonômicos','ergonomic'],['acidente','Acidentes','accident']])if(value.includes(match))return {label,key};
@@ -55,7 +52,7 @@ export function mountReportViewer(content,data){
    }
    for(const group of groups){
     const cards=[...group.querySelectorAll('.report-risk-detail')],categories=new Map();
-    group.querySelector('summary').append(make('span',cards.length+' riscos','viewer-count'));
+    group.querySelector('summary').append(make('span',riskCountLabel(cards.length),'viewer-count'));
     const chips=make('div','','viewer-risk-types');group.querySelector('summary').after(chips);
     for(const card of cards){
      const title=card.querySelector(':scope > strong'),code=card.querySelector(':scope > span'),type=riskType(code?.textContent);

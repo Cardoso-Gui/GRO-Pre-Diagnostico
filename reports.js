@@ -1,6 +1,7 @@
+import {overlayReportSummaries} from './report-rectification.js?v=20261020-rectify1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
-import {addReuseButton} from './reuse-report.js?v=20260928-admin1';
+import {addReuseButton} from './reuse-report.js?v=20261020-rectify1';
 const $=s=>document.querySelector(s),list=$('#report-list'),status=$('#list-status'),more=$('#list-more');
 const clients=[],authors=[],PAGE=20;
 let sequence=0,rows=[],isAdmin=false,filters={},hasMore=false,ready=false,linkedClient='';
@@ -51,7 +52,7 @@ function render(){
   for(const text of ['Levantamento','Concluído em','Responsável',''])columns.append(node('span',text));group.append(columns);
   for(const row of reports){
    const card=node('article','','report-record'),title=node('div','','record-title');
-   title.append(node('h3',row.title||'Levantamento'),node('span','Concluído','record-state'));
+   title.append(node('h3',row.title||'Levantamento'),node('span',row.rectification_sequence>0?'Retificado':'Concluído','record-state'));
    const date=node('div',''),author=node('div','');
    date.append(node('span','Concluído em','record-label'),node('p',new Date(row.completed_at).toLocaleDateString('pt-BR')));
    author.append(node('span','Responsável','record-label'),node('p',row.team_members?.display_name||'Equipe'));
@@ -59,7 +60,8 @@ function render(){
    const options=node('details',''),toggle=node('summary','Mais ações');options.append(toggle);
    const pdf=node('a','Imprimir / salvar PDF');pdf.href=view.href+'&print=1';options.append(pdf);
    addReuseButton(options,row.id,authClient,getTeamMember,text=>{status.textContent=text;});
-   if(isAdmin){const remove=node('button','Excluir relatório','delete-report');remove.type='button';remove.onclick=()=>askDelete(row,remove);options.append(remove);}
+   if(row.can_rectify){const rectify=node('a','Retificar');rectify.href='./rectify.html?id='+encodeURIComponent(row.id);options.append(rectify);}
+   if(isAdmin&&!row.rectification_sequence){const remove=node('button','Excluir relatório','delete-report');remove.type='button';remove.onclick=()=>askDelete(row,remove);options.append(remove);}
    actions.append(view,options);card.append(title,date,author,actions);group.append(card);
   }
   list.append(group);
@@ -72,7 +74,8 @@ async function load(reset=true){
  if(reset){filters=readFilters();rows=[];hasMore=false;list.replaceChildren();}
  more.disabled=true;more.hidden=true;list.setAttribute('aria-busy','true');status.textContent='Carregando relatórios…';
  try{
-  const data=await fetchPage(rows.length,ticket);if(ticket!==sequence)return;
+  const fetched=await fetchPage(rows.length,ticket);if(ticket!==sequence)return;
+  const data=await overlayReportSummaries(authClient,fetched);if(ticket!==sequence)return;
   hasMore=data.length>PAGE;rows.push(...data.slice(0,PAGE));render();more.hidden=!hasMore;
  }catch{if(ticket===sequence){status.textContent='Não foi possível carregar os relatórios. Clique em Pesquisar para tentar novamente.';more.hidden=reset||!hasMore;}}
  finally{if(ticket===sequence){more.disabled=false;list.setAttribute('aria-busy','false');}}

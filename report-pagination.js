@@ -8,12 +8,17 @@ export function paginateReport(content,title='Relatório do levantamento'){
  content.replaceChildren(holder);
  let sheet,body,parents,context,hasContent=false,pendingHeadings=[];
  const sheets=[];
- function next(ctx=''){
+ function repeatsContext(original,ctx){
+  if(!original||!ctx)return false;
+  const title=original.tagName==='H3'?original.textContent:original.tagName==='SUMMARY'&&original.parentElement?.classList.contains('viewer-group')?original.querySelector(':scope > strong')?.textContent:'';
+  return title?.trim()===ctx.replace(/ — continuação$/,'');
+ }
+ function next(ctx='',startingHeading=null){
   const carry=pendingHeadings;pendingHeadings=[];
   for(const item of carry)item.copy.remove();
   if(body)cleanEmpty();
   sheet=document.createElement('section');sheet.className='report-sheet';
-  context=document.createElement('div');context.className='report-sheet-context';context.textContent=ctx;
+  context=document.createElement('div');context.className='report-sheet-context';context.textContent=carry.some(item=>repeatsContext(item.original,ctx))||repeatsContext(startingHeading,ctx)?'':ctx;
   body=document.createElement('div');body.className='report-sheet-body';
   sheet.append(context,body);holder.append(sheet);sheets.push(sheet);parents=new Map();hasContent=false;
   for(const item of carry)put(item.original,item.chain,item.ctx);
@@ -53,23 +58,10 @@ export function paginateReport(content,title='Relatório do levantamento'){
    if(remaining)next(ctx);
   }
  }
- // Stack cards independently, but never cross a category or group boundary.
+ // Keep the same card width and field layout, even for a single risk or a
+ // partly filled sheet. Packing must not silently turn cards into wide tables.
  function putCategory(category,chain,ctx){
   const nested=[...chain,category];
-  const risks=[...category.children].filter(el=>el.classList.contains('viewer-risk'));
-  const measure=document.createElement('div');measure.className='print-risk-measure';content.append(measure);
-  measure.replaceChildren(...risks.map(r=>r.cloneNode(true)));
-  const fullHeight=measure.getBoundingClientRect().height;
-  const trial=document.createElement('div');trial.className='print-risk-columns';
-  const trialColumns=[document.createElement('div'),document.createElement('div')];
-  for(const col of trialColumns){col.className='print-risk-column';trial.append(col);}
-  measure.replaceChildren(trial);
-  for(const risk of risks){
-   const clone=risk.cloneNode(true);clone.classList.add('print-risk-card');
-   const col=trialColumns[0].getBoundingClientRect().height<=trialColumns[1].getBoundingClientRect().height?trialColumns[0]:trialColumns[1];col.append(clone);
-  }
-  const useColumns=risks.length>1&&trial.getBoundingClientRect().height<fullHeight;
-  measure.remove();
   let grid=null,columns=[];
   function startColumns(){
    grid=document.createElement('div');grid.className='print-risk-columns';
@@ -78,43 +70,26 @@ export function paginateReport(content,title='Relatório do levantamento'){
   }
   for(const child of category.childNodes){
    if(child.nodeType===3&&!child.textContent.trim())continue;
-   if(child.nodeType!==1||!child.classList.contains('viewer-risk')||!useColumns){
+   if(child.nodeType!==1||!child.classList.contains('viewer-risk')){
     grid=null;put(child,nested,ctx);continue;
    }
    if(!grid)startColumns();
-   const card=child.cloneNode(true);card.classList.add('print-risk-card');card.dataset.printOrder=risks.indexOf(child);
+   const card=child.cloneNode(true);card.classList.add('print-risk-card');
    const column=columns[0].getBoundingClientRect().height<=columns[1].getBoundingClientRect().height?columns[0]:columns[1];
    column.append(card);
-   // Very long cards retain the full-width field-by-field pagination.
-   if(card.getBoundingClientRect().height>540){
-    card.remove();if(!grid.querySelector('.viewer-risk'))grid.remove();grid=null;
-    put(child,nested,ctx);continue;
-   }
    if(!fits()){
     card.remove();
-    const populated=!!grid.querySelector('.viewer-risk');
-    if(!populated){
-     grid.remove();grid=null;
-     const single=child.cloneNode(true);parent(nested).append(single);
-     if(fits()){hasContent=true;pendingHeadings=[];continue;}
-     single.remove();next(ctx);startColumns();columns[0].append(card);
-     if(!fits()){card.remove();grid.remove();grid=null;put(child,nested,ctx);continue;}
-     hasContent=true;pendingHeadings=[];continue;
+    if(!grid.querySelector('.viewer-risk'))grid.remove();
+    grid=null;cleanEmpty();
+    if(hasContent)next(ctx);
+    startColumns();columns[0].append(card);
+    if(!fits()){
+     // Only a card that cannot fit on a fresh sheet may use full-width
+     // field-by-field pagination. Its stacked card styling is preserved.
+     card.remove();grid.remove();grid=null;cleanEmpty();
+     const oversized=child.cloneNode(true);oversized.classList.add('print-risk-card');
+     put(oversized,nested,ctx);continue;
     }
-    // A narrow card can be taller than a full-width one. Try the complete
-    // current batch at full width before spending another physical sheet.
-    const stack=document.createElement('div');
-    for(const risk of [...grid.querySelectorAll('.viewer-risk'),card].sort((a,b)=>Number(a.dataset.printOrder)-Number(b.dataset.printOrder))){
-     const single=risk.cloneNode(true);single.classList.remove('print-risk-card');stack.append(single);
-    }
-    grid.replaceWith(stack);
-    if(fits()){grid=null;hasContent=true;pendingHeadings=[];continue;}
-    stack.replaceWith(grid);
-    const single=child.cloneNode(true);parent(nested).append(single);
-    if(fits()){grid=null;hasContent=true;pendingHeadings=[];continue;}
-    single.remove();
-    grid=null;next(ctx);startColumns();columns[0].append(card);
-    if(!fits()){card.remove();grid.remove();grid=null;put(child,nested,ctx);continue;}
    }
    hasContent=true;pendingHeadings=[];
   }
@@ -166,7 +141,11 @@ export function paginateReport(content,title='Relatório do levantamento'){
     // An exceptionally tall card uses the existing full-width splitter;
     // never send the column wrapper through generic recursive pagination.
     const queue=queues.find(q=>q.length),card=queue.shift().cloneNode(true);
-    card.classList.remove('print-risk-card');put(card,chain,ctx);
+    card.classList.add('print-risk-card');
+    const sourceCategory=original.children[queues.indexOf(queue)],category=sourceCategory.cloneNode(false);
+    category.classList.remove('print-risk-column');
+    const heading=sourceCategory.querySelector('h4');if(heading)put(heading,[...chain,category],ctx);
+    put(card,[...chain,category],ctx);
    }
    if(queues.some(q=>q.length))next(ctx);
   }
@@ -183,6 +162,10 @@ export function paginateReport(content,title='Relatório do levantamento'){
    // Keep the sector section out of the cover, including its heading.
    if(original.classList.contains('report-sectors')&&hasContent)next();
    if(original.matches('.viewer-group')&&original.querySelector('.viewer-risk'))ctx=original.querySelector(':scope > summary > strong')?.textContent.trim()||ctx;
+   if(original.classList.contains('report-block')){
+    const title=original.querySelector(':scope > h3')?.textContent.trim();
+    if(title)ctx=title+' — continuação';
+   }
    if(original.classList.contains('compact-training'))ctx='Treinamentos sugeridos — continuação';
    const children=[...original.childNodes];
    for(let i=0;i<children.length;i++){
@@ -200,7 +183,7 @@ export function paginateReport(content,title='Relatório do levantamento'){
   const accepted=()=>{hasContent=true;if(heading)pendingHeadings.push({copy,original,chain,ctx});else pendingHeadings=[];};
   if(fits(reserve)){accepted();return;}
   copy.remove();cleanEmpty();
-  if(hasContent){next(ctx);copy=original.cloneNode(true);parent(chain).append(copy);if(fits(reserve)){accepted();return;}copy.remove();cleanEmpty();}
+  if(hasContent){next(ctx,heading?original:null);copy=original.cloneNode(true);parent(chain).append(copy);if(fits(reserve)){accepted();return;}copy.remove();cleanEmpty();}
   // Oversized records are split by their existing fields, preserving all text.
   if(tag==='TR'){
    // Split a very tall table row into synchronized cell fragments.

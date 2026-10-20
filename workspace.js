@@ -1,4 +1,4 @@
-import {initAssessmentWizard} from './assessment-wizard.js?v=20261019-review1';
+import {initAssessmentWizard} from './assessment-wizard.js?v=20261019-visit1';
 const assessmentWizard=initAssessmentWizard();
 import {watchPageResume} from './page-resume.js?v=20260930-resume1';
 import {addClientPickerSearch} from './client-search.js?v=20260929-button1';
@@ -88,7 +88,7 @@ async function loadForm(){
  catch(error){say(error.message,true);return false;}
  finally{saving=false;fields.forEach((field,i)=>field.disabled=states[i]);$('#generate-report-button').disabled=false;}
 },reload:()=>{if(!dirty||confirm('Descartar alterações não salvas e recarregar o rascunho?')){dirty=false;location.reload();}}};
- for(const file of ['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js', 'workstation-editor.js','script.js'])await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=file+'?v=20261019-review1';script.onload=resolve;script.onerror=reject;document.body.append(script);});
+ for(const file of ['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js', 'workstation-editor.js','report-opening.js','visit-date.js','script.js'])await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=file+'?v=20261019-visit1';script.onload=resolve;script.onerror=reject;document.body.append(script);});
  globalThis.GRO_FORM.restore(row.answers);
  cleanState=fingerprint();dirty=Boolean(row.unsaved);
  $('#questionnaire').hidden=false;$('#page-title').textContent=row.title;$('#cnpj-form').hidden=true;$('#clear-draft-button').hidden=true;$('#load-draft-button').textContent='Recarregar rascunho';

@@ -1,11 +1,11 @@
-import {renderReviewStage} from './review-stage.js?v=20261019-review1';
+import {renderReviewStage} from './review-stage.js?v=20261020-rectify1';
 import {renderEpiStage} from './epi-stage.js?v=20261019-review1';
 // Navigation changes presentation only; the original form owns data and validation.
 export function initAssessmentWizard(){
  const $=s=>document.querySelector(s);
  const steps=['Empresa','Dimensionamento','Setores e cargos','Organização dos riscos','Riscos e detalhamento','EPIs','Revisão e relatório'];
  const titles=['Empresa e identificação',...steps.slice(1)];titles[5]='Equipamentos de proteção individual';
- const groups=[['#company-card > .company-header','#company-card > .details-grid'],['#dimension-form','#dimension-results'],['.sectors-section','#jobs-section'],['#risk-mode-section'],['#risk-selection-section','#risk-source-section'],[],['#final-report-section']];
+ const groups=[['#company-card > .company-header','#company-card > .details-grid','#assessment-visit-details'],['#dimension-form','#dimension-results'],['.sectors-section','#jobs-section'],['#risk-mode-section'],['#risk-selection-section','#risk-source-section'],[],['#final-report-section']];
  const management=document.createElement('div');management.id='ghe-management-list';management.className='risk-selection-grid';
  $('#risk-mode-section').append($('#ghe-form'),management);
  const blocks=groups.map(selectors=>selectors.flatMap(s=>[...document.querySelectorAll(s)]));
@@ -39,5 +39,5 @@ export function initAssessmentWizard(){
  const observer=new MutationObserver(()=>{if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;update();});});
  observer.observe($('#company-card'),{subtree:true,childList:true,attributes:true,attributeFilter:['hidden']});
  update();
- return {loaded({id,title,isNew}){ready=true;draftId=id;$('#wizard-title').textContent=title||'Novo levantamento';save.disabled=false;save.removeAttribute('title');$('#wizard-save-status').textContent=isNew?'Novo levantamento ainda não salvo.':'Rascunho carregado. Salve para guardar novas alterações.';let restored=1;try{const stored=sessionStorage.getItem('gro-wizard-step:'+id);if(!isNew&&stored!==null)restored=Number(stored);}catch{}go(Number.isInteger(restored)&&restored>=0&&restored<7?restored:1,false);}};
+ return {loaded({id,title,isNew}){ready=true;draftId=id;$('#wizard-title').textContent=title||'Novo levantamento';save.disabled=false;save.removeAttribute('title');$('#wizard-save-status').textContent=isNew?'Novo levantamento ainda não salvo.':'Rascunho carregado. Salve para guardar novas alterações.';let restored=0;try{const stored=sessionStorage.getItem('gro-wizard-step:'+id);if(!isNew&&stored!==null)restored=Number(stored);}catch{}go(Number.isInteger(restored)&&restored>=0&&restored<7?restored:0,false);}};
 }
