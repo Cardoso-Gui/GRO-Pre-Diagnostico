@@ -40,6 +40,7 @@
 .team-directory .directory-person{display:flex;align-items:center;gap:13px;min-width:0}
 .team-directory .directory-person strong{font-weight:650;color:#203e4e}
 .team-directory .directory-you{font-size:11px;font-weight:400;color:#597382;display:block;margin-top:3px}
+.team-directory .directory-profession{font-size:11px;font-weight:400;color:#526c7b;display:block;margin-top:4px}
 .team-directory .directory-avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;background:#dbecea;color:#235f56;font-size:12px;font-weight:700}
 .team-directory .directory-avatar[data-tone="1"]{background:#dce8fa;color:#285b8b}
 .team-directory .directory-avatar[data-tone="2"]{background:#eee0f7;color:#724a90}

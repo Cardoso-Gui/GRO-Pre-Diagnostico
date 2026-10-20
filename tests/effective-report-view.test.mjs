@@ -9,8 +9,8 @@ import {overlayReportDocument} from '../report-document-overlay.js';
 const read=file=>fs.readFileSync(new URL('../'+file,import.meta.url),'utf8');
 const files=['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js','report-opening.js','visit-date.js','script.js'];
 function buildDoc(t,answers){const dom=new JSDOM(read('levantamento.html'),{url:'https://synthetic.example.test/levantamento.html',runScripts:'outside-only'});t.after(()=>dom.window.close());const context=dom.getInternalVMContext();context.GRO_CLOUD={rectification:true};for(const file of files)vm.runInContext(read(file),context);context.GRO_FORM.restore(structuredClone(answers));return JSON.parse(JSON.stringify(context.GRO_FORM.document().report_document));}
-async function report(t,{original=false,fail=false}={}){
- const base=fixture(),source=base.assessment.final_snapshot.answers;const originalDoc=buildDoc(t,source);base.assessment.final_snapshot.answers.report_document=originalDoc;
+async function report(t,{original=false,fail=false,professional=null}={}){
+ const base=fixture(),source=base.assessment.final_snapshot.answers;if(professional){base.assessment.final_snapshot.responsible_professional=professional;base.assessment.team_members={display_name:'Operador atual (não responsável)',professional_role:'safety_assistant',professional_registration:'999999'};}const originalDoc=buildDoc(t,source);base.assessment.final_snapshot.answers.report_document=originalDoc;
  const detail=structuredClone(source.riskSourcesBySelection);detail[0][1].improve='Melhoria retificada <img src=x onerror=alert(1)>';
  const patch={answers:{visitDate:'2024-02-29',riskSourcesBySelection:detail},client:{trade_name:'Nome corrigido'}};
  const assessment=applyBusinessChanges(base.assessment,patch),generated=buildDoc(t,assessment.final_snapshot.answers);
@@ -35,4 +35,18 @@ test('original preservado abre original sem misturar a retificação',async t=>{
 });
 test('erro ao verificar histórico mantém impressão e conteúdo bloqueados',async t=>{
  const win=await report(t,{fail:true});assert.equal(win.document.querySelector('#report-content').hidden,true);assert.equal(win.document.querySelector('#report-print').disabled,true);assert.match(win.document.querySelector('#report-status').textContent,/visualização foi interrompida/);
+});
+
+
+test('nova identidade profissional congelada aparece na visita, no painel e na assinatura imprimível',async t=>{
+ const professional={user_id:'responsible',display_name:'Engenheira original',professional_role:'safety_engineer',registration_type:'CREA',registration_number:'98765',registration_uf:'SP'};
+ for(const original of [false,true]){
+  const win=await report(t,{professional,original}),content=win.document.querySelector('#report-content');
+  assert.equal(content.hidden,false);assert.match(content.querySelector('.report-introduction').textContent,/Engenheira original/);assert.match(win.document.querySelector('#report-overview').textContent,/Engenheira original/);
+  const signature=content.querySelectorAll('.report-signature')[1];assert.match(signature.textContent,/Engenheira original/);assert.match(signature.textContent,/Engenheiro de Segurança do Trabalho/);assert.match(signature.textContent,/CREA\/SP: 98765/);assert.doesNotMatch(content.textContent,/Operador atual|999999/);
+  win.dispatchEvent(new win.Event('beforeprint'));assert.ok(content.querySelectorAll('.report-sheet').length>0);assert.match(content.textContent,/Engenheira original/);assert.match(content.textContent,/CREA\/SP: 98765/);assert.doesNotMatch(content.textContent,/Operador atual|999999/);win.dispatchEvent(new win.Event('afterprint'));assert.match(content.querySelectorAll('.report-signature')[1].textContent,/CREA\/SP: 98765/);
+ }
+});
+test('relatório legado mantém o nome anterior disponível e não inventa credencial profissional',async t=>{
+ const win=await report(t),content=win.document.querySelector('#report-content');assert.match(content.textContent,/Responsável sintético/);assert.match(content.querySelectorAll('.report-signature')[1].textContent,/Função e registro não preservados neste relatório/);assert.equal(content.querySelector('.report-professional-registration'),null);
 });

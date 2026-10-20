@@ -9,7 +9,7 @@
     
     <meta name="referrer" content="no-referrer" />
     <script src="vendor/supabase-2.117.2.js?v=20260925-reports2" defer></script>
-    <script type="module" src="workspace.js?v=20261019-visit1"></script>
+    <script type="module" src="workspace.js?v=20261020-professional1"></script>
   <link rel="stylesheet" href="dimension.css?v=20260925-reports2"><link rel="stylesheet" href="./app-header.css?v=20260928-occ1"><link rel="stylesheet" href="./client-search.css?v=20260929-inline1"><link rel="stylesheet" href="home.css?v=20260928-occ1"><link rel="stylesheet" href="home-dashboard.css?v=20261019-header2"><link rel="stylesheet" href="assessment-wizard.css?v=20261019-visit1"></head>
   <body class="home-page wizard-page">
     <section id="session-check" class="session-check" aria-live="polite"><p>Verificando seu acesso…</p><a href="index.html">Voltar ao login</a></section>
@@ -100,6 +100,11 @@
 
           <section id="assessment-visit-details" class="assessment-visit-details" aria-labelledby="visit-details-title">
             <h3 id="visit-details-title">Identificação da visita</h3>
+            <label for="visit-responsible">Responsável pela visita <span>(obrigatório para concluir)</span></label>
+            <select id="visit-responsible" aria-describedby="visit-responsible-help visit-responsible-status"><option value="">Selecionar responsável pela visita</option></select>
+            <p id="visit-responsible-help">Auxiliares podem acompanhar e preencher, mas a responsabilidade deve ser de um técnico ou engenheiro com registro informado. O cadastro não comprova a regularidade profissional.</p>
+            <p id="visit-responsible-status" role="status"></p>
+            <button id="reload-visit-responsible" type="button">Atualizar responsáveis</button>
             <label for="visit-date">Data da visita <span>(opcional)</span></label>
             <input id="visit-date" name="visitDate" type="date" aria-describedby="visit-date-help" />
             <p id="visit-date-help">Informe a data em que a visita foi realizada. Se não souber, deixe em branco; o relatório mostrará “Não informada”.</p>

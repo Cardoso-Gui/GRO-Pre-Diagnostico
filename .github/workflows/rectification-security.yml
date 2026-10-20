@@ -1,4 +1,4 @@
-name: Rectification security (synthetic only)
+name: Report and professional security (synthetic only)
 
 on:
   pull_request:
@@ -37,5 +37,5 @@ jobs:
         run: npm ci
       - name: Run unit, DOM, and embedded PostgreSQL authorization tests
         run: npm test
-      - name: Prove independent-session locking and revocation
+      - name: Prove rectification and professional independent-session locking
         run: npm run test:concurrency

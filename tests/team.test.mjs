@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {JSDOM} from 'jsdom';
+import {professionalRoleLabel} from '../professional-identity.js';
 const read=file=>readFileSync(new URL('../'+file,import.meta.url),'utf8');
 const html=read('team.html'),source=read('team.js');
 const TEAM='10888888-c3e9-4bf7-ac23-76e7b1e8fe6d',OTHER='other';
@@ -17,7 +18,7 @@ async function fixture(t,{member={...person(1,{team_id:TEAM,role:'admin',is_supe
   const query={};for(const method of ['select','order','eq','range'])query[method]=(...args)=>{call.methods.push([method,...args]);if(method==='eq')filters.push(args);if(method==='range')range=args;return query;};
   query.then=resolve=>{const complete=()=>{let data=state[table==='teams'?'teams':'people'].filter(row=>filters.every(([key,value])=>row[key]===value));resolve({data:data.slice(range[0],range[1]+1),error:state.fail?Error('offline'):null});};if(state.hold)state.pending.push(complete);else complete();};return query;
  }};
- const context=vm.createContext({document,window:dom.window,location:{replace:url=>redirects.push(url)},getTeamMember:async()=>({member:state.member,error:state.memberError}),authClient,updateHeader:()=>{},watchPageResume:options=>resume=options,console});
+ const context=vm.createContext({document,window:dom.window,professionalRoleLabel,location:{replace:url=>redirects.push(url)},getTeamMember:async()=>({member:state.member,error:state.memberError}),authClient,updateHeader:()=>{},watchPageResume:options=>resume=options,console});
  vm.runInContext(source.replace(/^import .*;\n/gm,''),context);await tick();await tick();
  t.after(()=>dom.window.close());
  return {document,calls,state,redirects,context,authChange:event=>authChange(event),resume:()=>resume,async input(id,value,event='change'){const el=document.getElementById(id);el.value=value;el.dispatchEvent(new dom.window.Event(event));await tick();},async click(id){document.getElementById(id).click();await tick();await tick();},async release(){state.hold=false;for(const complete of state.pending.splice(0))complete();await tick();await tick();}};
@@ -53,7 +54,7 @@ test('generic superadmin keeps pre-existing access behavior without a new client
 test('queries preserve selected fields, deterministic order and the existing 50-row batch',async t=>{
  const f=await fixture(t);
  assert.deepEqual(f.calls[0].methods,[['select','id,name,active,grants_global_access'],['order','name']]);
- assert.deepEqual(f.calls[1].methods,[['select','user_id,display_name,username,contact_phone,role,active,is_super_admin,team_id'],['order','display_name'],['order','user_id'],['range',0,49]]);
+ assert.deepEqual(f.calls[1].methods,[['select','user_id,display_name,username,contact_phone,role,active,is_super_admin,team_id,professional_role'],['order','display_name'],['order','user_id'],['range',0,49]]);
 });
 test('disabled or absent membership returned by auth guard fails closed before directory queries',async t=>{
  const f=await fixture(t,{member:null});
@@ -152,10 +153,23 @@ test('collapse preference survives filter changes and repeated toggles',async t=
  const again=f.document.querySelector('details');again.open=true;await new Promise(resolve=>setTimeout(resolve,15));await f.input('status-filter','active');await f.input('status-filter','');assert.equal(f.document.querySelector('details').open,true);
 });
 test('layout-only assets isolate this page and add no management writes or controls',()=>{
- assert.match(html,/team\.css\?v=20261020-directory1/);assert.doesNotMatch(html,/admin\.css/);
+ assert.match(html,/team\.css\?v=20261020-professional1/);assert.doesNotMatch(html,/admin\.css/);
  assert.match(source,/from '\.\/auth-client\.js\?v=20260928-global1'/);assert.match(source,/from '\.\/app-header\.js\?v=20260928-occ1'/);
  assert.doesNotMatch(source,/\.insert\(|\.update\(|authClient[^;]*\.delete\(|\.upsert\(|\.rpc\(/);
  assert.doesNotMatch(html,/Convidar|Remover|Editar usuário|Nova equipe/);
  assert.match(html,/id="member-search"[^>]*aria-describedby="team-search-hint"/);
  assert.match(read('team.css'),/@media\(max-width:720px\)/);assert.match(read('team.css'),/\.team-directory :is\(input,select,summary,button\):focus-visible/);
+});
+
+test('directory displays profession separately while existing filters remain access-based',async t=>{
+ const people=[person(2,{role:'admin',professional_role:'safety_assistant'}),person(3,{role:'admin',professional_role:'safety_technician'}),person(4,{professional_role:'safety_engineer'}),person(5),person(6,{professional_role:'constructor'})];
+ const f=await fixture(t,{people});
+ assert.deepEqual([...f.document.querySelector('.directory-table thead').querySelectorAll('th')].map(node=>node.textContent),['Integrante','Usuário','Contato','Perfil de acesso','Status']);
+ assert.deepEqual([...f.document.querySelectorAll('.directory-profession')].map(node=>node.textContent),['Auxiliar de Segurança do Trabalho','Técnico de Segurança do Trabalho','Engenheiro de Segurança do Trabalho','Função profissional não informada','Função profissional não informada']);
+ const row=f.document.querySelector('tbody tr');assert.equal(row.querySelector('.directory-role').textContent,'Administrador');
+ assert.equal(row.querySelectorAll('td').length,5);
+ await f.input('role-filter','admin');
+ assert.equal(f.document.querySelectorAll('tbody tr').length,2);
+ assert.deepEqual([...f.document.querySelectorAll('.directory-profession')].map(node=>node.textContent),['Auxiliar de Segurança do Trabalho','Técnico de Segurança do Trabalho']);
+ assert.equal(f.calls.length,2);
 });

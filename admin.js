@@ -1,8 +1,31 @@
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
+import {PROFESSIONAL_ROLES,REGISTRATION_UFS,professionalRoleLabel} from './professional-identity.js?v=20261020-professional1';
 const $=s=>document.querySelector(s),uf=$('#user-form'),tf=$('#team-form');
 let member,users=[],teams=[],busy=false,loading=false,loaded=false;
 const field=(form,name)=>form.elements.namedItem(name);
+for(const [value,label] of Object.entries(PROFESSIONAL_ROLES)){const option=document.createElement('option');option.value=value;option.textContent=label;field(uf,'professional_role').append(option);}
+for(const value of REGISTRATION_UFS){const option=document.createElement('option');option.value=value;option.textContent=value;field(uf,'professional_registration_uf').append(option);}
+function syncProfession(){
+ const profession=field(uf,'professional_role').value,registered=['safety_technician','safety_engineer'].includes(profession),engineer=profession==='safety_engineer';
+ const registration=field(uf,'professional_registration'),registrationUF=field(uf,'professional_registration_uf');
+ $('#professional-registration-label').hidden=!registered;registration.disabled=!registered;registration.required=registered;
+ $('#professional-registration-title').textContent=engineer?'Número de registro no CREA':'Número de registro no MTE';
+ $('#professional-registration-uf-label').hidden=!engineer;registrationUF.disabled=!engineer;registrationUF.required=engineer;
+ if(!registered)registration.value='';if(!engineer)registrationUF.value='';
+ registration.setCustomValidity('');registrationUF.setCustomValidity('');
+ $('#professional-responsibility-note').textContent=profession==='safety_assistant'?'O auxiliar pode acompanhar e preencher, mas não pode ser responsável pela visita, mesmo com perfil de Administrador.':registered?'A função profissional é independente do perfil de acesso. Informe o registro do profissional responsável.':'Sem função profissional informada, o usuário não pode ser responsável por visitas.';
+}
+field(uf,'professional_role').addEventListener('change',syncProfession);
+for(const name of ['professional_registration','professional_registration_uf'])field(uf,name).addEventListener('input',e=>e.target.setCustomValidity(''));
+function professionalData(){
+ const role=field(uf,'professional_role'),registration=field(uf,'professional_registration'),registrationUF=field(uf,'professional_registration_uf');
+ syncProfession();registration.value=registration.value.trim();
+ if(registration.required&&!registration.value)registration.setCustomValidity('Informe o número de registro profissional.');
+ if(registrationUF.required&&!REGISTRATION_UFS.includes(registrationUF.value))registrationUF.setCustomValidity('Selecione uma UF válida para o CREA.');
+ for(const control of [role,registration,registrationUF])if(!control.checkValidity()){control.reportValidity();control.focus();return null;}
+ return {professional_role:role.value||null,professional_registration:registration.value||null,professional_registration_uf:registrationUF.value||null};
+}
 const dialogs=new Map([[uf,$('#user-dialog')],[tf,$('#team-dialog')]]);
 const baselines=new Map(),openers=new Map();
 const icons={edit:'M16 3 21 8M3 21l5-1L21 7a2 2 0 0 0-4-4L4 16l-1 5Z',team:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M16 3a4 4 0 0 1 0 8M22 21v-2a4 4 0 0 0-3-3.87'};
@@ -16,8 +39,9 @@ function snapshot(form){return JSON.stringify([...form.querySelectorAll('input,s
 function isDirty(form){return dialogs.get(form).open&&baselines.get(form)!==snapshot(form);}
 function remember(form){baselines.set(form,snapshot(form));}
 function editUser(user){
- uf.reset();for(const key of ['user_id','display_name','username','contact_phone','team_id','role'])field(uf,key).value=user?.[key]|| (key==='team_id'?member.team_id:key==='role'?'editor':'');
+ uf.reset();for(const key of ['user_id','display_name','username','contact_phone','team_id','role','professional_role','professional_registration','professional_registration_uf'])field(uf,key).value=user?.[key]|| (key==='team_id'?member.team_id:key==='role'?'editor':'');
  const editing=!!user;
+ field(uf,'professional_role').required=!editing;syncProfession();
  field(uf,'contact_phone').value=formatPhone(field(uf,'contact_phone').value);
  $('#reset-password-section').hidden=!editing||!!(user?.is_super_admin&&user.user_id!==member.user_id);
  $('#password-section').hidden=editing&&$('#reset-password-section').hidden;
@@ -63,13 +87,13 @@ function render(){
  const visibleUsers=users.filter(user=>`${user.display_name} ${user.username}`.toLocaleLowerCase('pt-BR').includes(query)&&(!teamFilter||user.team_id===teamFilter)&&(!roleFilter||userRole(user)===roleFilter)&&statusMatches(user.active,statusFilter));
  $('#users-list').replaceChildren();$('#users-count').textContent=countLabel(visibleUsers.length,users.length,'usuário','usuários');
  if(visibleUsers.length){
-  const result=table(['Nome','Usuário','Equipe','Função','Status','Ações'],'access-users-table','Usuários cadastrados na lista carregada');
+  const result=table(['Nome','Usuário','Equipe','Perfil de acesso','Status','Ações'],'access-users-table','Usuários cadastrados na lista carregada');
   for(const user of visibleUsers){
    const row=el('tr',''),person=el('div','','access-person');
    const initials=(user.display_name||user.username||'?').trim().split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0]).join('').toLocaleUpperCase('pt-BR');
    const avatar=el('span',initials,'access-avatar');avatar.setAttribute('aria-hidden','true');avatar.dataset.tone=String(users.indexOf(user)%5);person.append(avatar);
-   const details=el('div','');details.append(el('strong',user.display_name));if(user.contact_phone)details.append(el('span',formatPhone(user.contact_phone),'access-contact'));person.append(details);
-   cell(row,'Nome',person);cell(row,'Usuário',user.username||'Não informado');cell(row,'Equipe',teams.find(t=>t.id===user.team_id)?.name||'Equipe');cell(row,'Função',el('span',roleLabel(userRole(user)),'access-badge access-role'));cell(row,'Status',el('span',user.active?'Ativo':'Inativo',`access-badge access-status${user.active?'':' inactive'}`));cell(row,'Ações',editButton('user',user));result.body.append(row);
+   const details=el('div','');details.append(el('strong',user.display_name),el('span',professionalRoleLabel(user.professional_role),'access-profession'));if(user.contact_phone)details.append(el('span',formatPhone(user.contact_phone),'access-contact'));person.append(details);
+   cell(row,'Nome',person);cell(row,'Usuário',user.username||'Não informado');cell(row,'Equipe',teams.find(t=>t.id===user.team_id)?.name||'Equipe');cell(row,'Perfil de acesso',el('span',roleLabel(userRole(user)),'access-badge access-role'));cell(row,'Status',el('span',user.active?'Ativo':'Inativo',`access-badge access-status${user.active?'':' inactive'}`));cell(row,'Ações',editButton('user',user));result.body.append(row);
   }$('#users-list').append(result.table);
  }else $('#users-list').append(el('p',users.length?'Nenhum usuário encontrado entre os registros carregados.':'Nenhum usuário disponível na lista carregada.','access-empty'));
  const teamQuery=$('#team-search').value.trim().toLocaleLowerCase('pt-BR'),teamStatus=$('#team-status-filter').value;
@@ -84,7 +108,7 @@ async function load(){
  if(loading)return;
  loading=true;$('#reload-list').hidden=true;render();
  try{
-  const [ur,tr]=await Promise.all([authClient.from('team_members').select('user_id,display_name,username,contact_phone,role,active,team_id,is_super_admin').order('display_name'),authClient.from('teams').select('id,name,active,grants_global_access').order('name')]);
+  const [ur,tr]=await Promise.all([authClient.from('team_members').select('user_id,display_name,username,contact_phone,role,active,team_id,is_super_admin,professional_role,professional_registration,professional_registration_uf').order('display_name'),authClient.from('teams').select('id,name,active,grants_global_access').order('name')]);
   if(ur.error||tr.error)throw new Error('Não foi possível carregar a lista. Confira a conexão e tente novamente.');
   users=ur.data;teams=tr.data;loaded=true;
   const selected=field(uf,'team_id').value,filter=$('#user-team-filter'),selectedFilter=filter.value;field(uf,'team_id').replaceChildren();filter.replaceChildren(el('option','Todas as equipes'));filter.firstChild.value='';
@@ -102,7 +126,7 @@ async function save(form,action,data){
   try{await load();}catch(e){notice('Salvo. '+e.message,true);}
  }catch(e){notice(e.message,true,form);}finally{unlock();busy=false;render();if(!dialogs.get(form).open){const opener=openers.get(form);const target=opener?.id?[...document.querySelectorAll(form===uf?'[data-edit-user]':'[data-edit-team]')].find(button=>button.dataset[form===uf?'editUser':'editTeam']===opener.id):null;(target||$(form===uf?'#new-user':'#new-team')).focus();}}
 }
-uf.addEventListener('submit',e=>{e.preventDefault();const data={};for(const key of ['user_id','display_name','username','contact_phone','team_id','role','password'])data[key]=field(uf,key).value;data.active=field(uf,'active').checked;save(uf,data.user_id?'update_user':'create_user',data);});
+uf.addEventListener('submit',e=>{e.preventDefault();if(busy)return;const profession=professionalData();if(!profession)return;const data={...profession};for(const key of ['user_id','display_name','username','contact_phone','team_id','role','password'])data[key]=field(uf,key).value;data.active=field(uf,'active').checked;save(uf,data.user_id?'update_user':'create_user',data);});
 tf.addEventListener('submit',e=>{e.preventDefault();save(tf,field(tf,'id').value?'update_team':'create_team',{id:field(tf,'id').value,name:field(tf,'name').value,active:field(tf,'active').checked});});
 $('#new-user').onclick=e=>openForm(uf,null,e.currentTarget);$('#new-team').onclick=e=>openForm(tf,null,e.currentTarget);
 for(const id of ['cancel-user','close-user'])$('#'+id).onclick=()=>closeForm(uf);for(const id of ['cancel-team','close-team'])$('#'+id).onclick=()=>closeForm(tf);

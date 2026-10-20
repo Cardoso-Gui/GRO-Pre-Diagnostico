@@ -10,7 +10,7 @@ export function companyFromClient(client) {
 }
 export async function saveAssessment(client, row, answers) {
  if(row.unsaved){
-  const payload={id:row.id,client_id:row.client_id,title:row.title,responsible_id:row.responsible_id,status:'draft',answers};
+  const payload={id:row.id,client_id:row.client_id,title:row.title,responsible_id:row.responsible_id,visit_responsible_id:row.visit_responsible_id||null,status:'draft',answers};
   let {data,error}=await client.from('assessments').insert(payload).select('id,revision,updated_at').maybeSingle();
   if(error?.code==='23505'){
    const existing=await client.from('assessments').select('*').eq('id',row.id).maybeSingle();
@@ -22,7 +22,7 @@ export async function saveAssessment(client, row, answers) {
   return {...row,...data,answers,unsaved:false};
  }
 
- const {data,error}=await client.from('assessments').update({answers}).eq('id',row.id).eq('revision',row.revision).eq('status','draft').select('id,revision,updated_at').maybeSingle();
+ const {data,error}=await client.from('assessments').update({answers,visit_responsible_id:row.visit_responsible_id||null}).eq('id',row.id).eq('revision',row.revision).eq('status','draft').select('id,revision,updated_at').maybeSingle();
  if(error) throw new Error('Não foi possível confirmar o salvamento. Mantenha esta página aberta e tente novamente.');
  if(!data) throw new Error('Este rascunho foi alterado por outra pessoa ou ficou indisponível. Suas respostas continuam nesta tela. Abra o levantamento em outra aba para comparar antes de recarregar.');
  return {...row,...data,answers};
@@ -35,7 +35,8 @@ export async function deleteDraft(client, draft) {
 }
 export async function completeAssessment(client, row, answers) {
  const saved = row.unsaved ? await saveAssessment(client,row,answers) : row;
- const {data,error}=await client.from('assessments').update({answers,status:'completed'}).eq('id',saved.id).eq('revision',saved.revision).eq('status','draft').select('id,status,revision,completed_at').maybeSingle();
+ const {data,error}=await client.from('assessments').update({answers,visit_responsible_id:saved.visit_responsible_id||null,status:'completed'}).eq('id',saved.id).eq('revision',saved.revision).eq('status','draft').select('id,status,revision,completed_at').maybeSingle();
+ if(error?.code==='23514')throw Error('Não foi possível concluir. Confira se o responsável pela visita continua ativo, pertence à equipe autorizada e possui função de técnico ou engenheiro com registro completo (MTE ou CREA/UF). Auxiliares podem preencher, mas não ser responsáveis.');
  if(error||!data)throw Error('Não foi possível confirmar a conclusão. Suas respostas continuam aqui. Confira o histórico antes de tentar novamente.');
  return {...saved,...data,answers};
 }

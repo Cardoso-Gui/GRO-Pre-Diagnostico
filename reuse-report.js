@@ -1,5 +1,5 @@
 import {readAssessmentReport} from './report-rectification.js?v=20261020-rectify1';
-import {companyFromClient,saveAssessment} from './assessment-data.js';
+import {companyFromClient,saveAssessment} from './assessment-data.js?v=20261020-professional1';
 
 export function reusedAnswers(snapshot,client){
  // A reused assessment represents a new visit: do not inherit either date key.
@@ -27,7 +27,7 @@ export function addReuseButton(container,sourceId,authClient,getTeamMember,notif
    const client=await authClient.from('clients').select('*').eq('id',source.data.client_id).eq('archived',false).maybeSingle();
    if(client.error)throw Error('Não foi possível carregar os dados do cliente. Confira a conexão e tente reutilizar novamente.');
    if(!client.data)throw Error('Cliente indisponível ou arquivado.');
-   const row={id:creationId,client_id:client.data.id,responsible_id:access.member.user_id,title:('Revisão — '+source.data.title).slice(0,200),unsaved:true};
+   const row={id:creationId,client_id:client.data.id,responsible_id:access.member.user_id,visit_responsible_id:null,title:('Revisão — '+source.data.title).slice(0,200),unsaved:true};
    const saved=await saveAssessment(authClient,row,reusedAnswers(source.data.final_snapshot.answers,client.data));
    location.assign('./levantamento.html?id='+encodeURIComponent(saved.id));
   }catch(error){notify(error.message);busy=false;button.disabled=false;}
