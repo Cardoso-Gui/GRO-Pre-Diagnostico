@@ -1672,7 +1672,7 @@ function createSectorJobReportBlock() {
   });
 
   if (container.children.length === 0) {
-    container.appendChild(createReportMiniCard("Nenhum setor informado", "", ["Preencha os setores para consolidar esta seção."]));
+    container.appendChild(createReportMiniCard("Nenhum setor informado", "", ["Não foram registrados setores para compor esta seção."]));
   }
 
   block.appendChild(container);
@@ -1691,7 +1691,7 @@ function createIdentifiedRiskReportBlock(selections) {
   });
 
   if (container.children.length === 0) {
-    container.appendChild(createReportMiniCard("Nenhum risco informado", "", ["Selecione riscos para consolidar esta seção."]));
+    container.appendChild(createReportMiniCard("Nenhum risco informado", "", ["Não foram registrados riscos para compor esta seção."]));
   }
 
   block.appendChild(container);
@@ -1745,7 +1745,7 @@ function createTechnicalPendingReportBlock(selections) {
   list.className = "report-list";
 
   if (pending.length === 0) {
-    addReportItem(list, "Nenhuma medição/avaliação marcada como necessária neste levantamento.");
+    addReportItem(list, "Não houve indicação de medição ou avaliação complementar nos registros deste levantamento.");
   } else {
     pending.forEach((selection) => {
       const sourceData = getRiskSourceData(selection.targetId, selection.risk.code);
@@ -1773,12 +1773,12 @@ function createEpiTrainingReportBlock(selections) {
 
     container.appendChild(createReportMiniCard(
       "EPIs",
-      epiLines.length ? "EPIs informados no levantamento" : "Nenhum EPI aplicável informado",
-      epiLines.length ? epiLines : ["Validar necessidade de EPI com o responsável técnico."]
+      epiLines.length ? "EPIs informados no levantamento" : "Não há indicação de EPI aplicável registrada para este cargo/GHE.",
+      epiLines.length ? epiLines : ["A necessidade de EPI deve ser avaliada pelos responsáveis técnicos."]
     ));
 
     if (suggestions.length === 0) {
-      container.appendChild(createReportMiniCard("Treinamentos", "Sem sugestão pré-cadastrada", ["Validar necessidade com o responsável técnico."]));
+      container.appendChild(createReportMiniCard("Treinamentos", "Não foram geradas sugestões de treinamento a partir dos dados deste levantamento.", ["A necessidade de capacitação deve ser avaliada pelos responsáveis técnicos."]));
       return;
     }
 
@@ -1799,14 +1799,14 @@ function getEpiReportLines(selections) {
       return [];
     }
 
-    return [`${selection.risk.name}: ${epiData.items.join(", ") || "EPI aplicável, mas não informado"}`];
+    return [`${selection.risk.name}: ${epiData.items.join(", ") || "O uso de EPI foi indicado, mas o equipamento não foi especificado."}`];
   });
 }
 
 function createNrReportBlock(selections) {
   const block = createReportBlock("NRs identificadas no levantamento");
   const note = document.createElement("p");
-  note.textContent = "Normas gerais e normas com critérios identificados nos dados informados. Confirme o enquadramento e os requisitos com o responsável técnico; a ausência nesta lista não representa dispensa.";
+  note.textContent = "Esta seção apresenta as Normas Regulamentadoras (NRs) gerais e aquelas associadas aos critérios identificados nos dados do levantamento. A relação serve como referência inicial para a análise dos responsáveis técnicos, que devem confirmar o enquadramento da empresa e os requisitos aplicáveis às suas atividades. A ausência de uma norma nesta lista não significa que ela seja inaplicável ou que a empresa esteja dispensada de cumpri-la.";
   block.appendChild(note);
   const container = document.createElement("div");
 
@@ -1830,7 +1830,7 @@ function createNrReportBlock(selections) {
     });
 
   if (container.children.length === 0) {
-    container.appendChild(createReportMiniCard("Nenhuma NR aplicável identificada", "", ["Revise o levantamento ou valide com o responsável técnico."]));
+    container.appendChild(createReportMiniCard("Nenhuma NR identificada pelos critérios do levantamento.", "", ["O enquadramento deve ser revisto pelos responsáveis técnicos."]));
   }
 
   block.appendChild(container);

@@ -41,6 +41,6 @@ test('visualizador mantém a origem da data e da identidade e atualiza somente a
  assert.match(viewer,/const visitDate=reportVisitDate\(data\.final_snapshot\?\.answers\|\|\{\}\)/);
  assert.match(viewer,/const professional=reportProfessionalIdentity\(data\),responsible=professional\.name/);
  assert.match(viewer,/createReportVisitIntroduction\(\{identity,cnpj,fullAddress,visitDate,responsible\}\)/);
- assert.match(read('report.html'),/report\.js\?v=20261020-sesmt1/);
+ assert.match(read('report.html'),/report\.js\?v=20261020-notices1/);
  assert.doesNotMatch(read('report-visit-introduction.js'),/innerHTML|completed_at|team_members|professional_registration|\.rpc\(|\.from\(/);
 });

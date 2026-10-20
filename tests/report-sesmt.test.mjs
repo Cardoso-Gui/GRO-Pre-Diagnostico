@@ -58,7 +58,7 @@ test('gerador usa a redação SESMT aprovada sem mudar o formulário ou outro re
 
 test('SESMT compartilha carregamento atualizado sem alterar cálculo ou persistência',()=>{
  for(const file of ['workspace.js','report-generator.js']){
-  const source=read(file);assert.match(source,/'report-cipa\.js','report-sesmt\.js','visit-date\.js','script\.js'/);assert.ok(source.includes("['report-sesmt.js','script.js'].includes(file)?'20261020-sesmt1'"));assert.ok(source.includes("file==='report-cipa.js'?'20261020-cipa1'"));
+  const source=read(file);assert.match(source,/'report-cipa\.js','report-sesmt\.js','visit-date\.js','script\.js'/);assert.ok(source.includes("file==='script.js'?'20261020-notices1':file==='report-sesmt.js'?'20261020-sesmt1'"));assert.ok(source.includes("file==='report-cipa.js'?'20261020-cipa1'"));
  }
  assert.match(read('report.js'),/import '\.\/report-sesmt\.js\?v=20261020-sesmt1'/);assert.match(read('report.js'),/GRO_REPORT_SESMT\.apply\(cover\)/);
  const source=read('script.js'),dimension=source.slice(source.indexOf('function renderDimension('),source.indexOf('function addSectorOption('));assert.doesNotMatch(dimension,/GRO_REPORT_SESMT/);assert.doesNotMatch(read('report-sesmt.js'),/innerHTML|calculateCipa|calculateSesmt|\.rpc\(|\.from\(|fetch\(|localStorage|sessionStorage/);

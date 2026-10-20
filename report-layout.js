@@ -1,4 +1,6 @@
+import {REPORT_NOTICES,normalizeReportNotices} from './report-notices.js?v=20261020-notices1';
 export function organizeReport(content, answers) {
+  normalizeReportNotices(content,answers);
   const make = (tag, className, text) => {
     const node = document.createElement(tag);
     node.className = className;
@@ -59,12 +61,12 @@ export function organizeReport(content, answers) {
         card.append(make('strong','',risk),make('span','',target),make('p','',text));
         group.append(card);
       };
-      if (values.get('Precisa medir/avaliar') === 'Sim') add(measurements,values.get('Fonte/situação') || 'Medição/avaliação indicada no levantamento.');
+      if (values.get('Precisa medir/avaliar') === 'Sim') add(measurements,values.get('Fonte/situação') || REPORT_NOTICES.measurementIndicated);
       const improvement = values.get('Melhorias propostas');
       if (improvement && improvement !== '-') add(improvements,improvement);
     }
-    if (measurements.children.length === 1) measurements.append(make('p','','Nenhuma medição ou avaliação marcada como necessária.'));
-    if (improvements.children.length === 1) improvements.append(make('p','','Nenhuma melhoria registrada no levantamento.'));
+    if (measurements.children.length === 1) measurements.append(make('p','',REPORT_NOTICES.measurements));
+    if (improvements.children.length === 1) improvements.append(make('p','',REPORT_NOTICES.improvements));
     recommendations.append(measurements,improvements);
     const pending = blocks.find(block => block.querySelector('h3')?.textContent.trim() === 'Pendências para validação técnica');
     if (pending) pending.replaceWith(recommendations); else details.after(recommendations);
@@ -84,7 +86,7 @@ export function organizeReport(content, answers) {
   const combined = blocks.find(block => block.querySelector('h3')?.textContent.trim() === 'EPIs e treinamentos sugeridos');
   if (combined) {
     const training = make('section','report-block');
-    training.append(make('h3','','Treinamentos sugeridos'),make('p','','Sugestões conforme os dados do levantamento, sujeitas à validação do responsável técnico.'));
+    training.append(make('h3','','Treinamentos sugeridos'),make('p','',REPORT_NOTICES.trainingIntroduction));
     const list = make('div','report-card-list');
     let target = '',lastTarget = null;
     for (const item of Array.from(combined.querySelector('.report-card-list')?.children || [])) {
@@ -94,7 +96,7 @@ export function organizeReport(content, answers) {
       list.append(item);
     }
     combined.querySelector('h3').textContent='EPIs informados';
-    if (!list.children.length) list.append(make('p','','Nenhum treinamento sugerido neste levantamento.'));
+    if (!list.children.length) list.append(make('p','',REPORT_NOTICES.training+' '+REPORT_NOTICES.trainingValidation));
     training.append(list);combined.after(training);
   }
 }
