@@ -29,7 +29,7 @@ test('SESMT legado e atual mantêm nós personalizados, CIPA e snapshot intactos
   const cipa=el('section','','report-dimension-card',el('h4','CIPA'),...legacy.map(text=>el('p',text))),outside=el('div','','',...legacy.map(text=>el('p',text)));
   const cover=el('section','','report-cover',outside,el('div','','report-dimension-grid',cipa,sesmt)),snapshot=cover.cloneNode(true),saved=snapshot.textContent,cipaSaved=cipa.textContent;
   for(let i=0;i<3;i++)globalThis.GRO_REPORT_SESMT.apply(cover);
-  assert.equal(sesmt.querySelector('h4').textContent,'SESMT — Resultado do dimensionamento');
+  assert.equal(sesmt.querySelector('h4').textContent,'SESMT — Resultado do dimensionamento');assert.ok(cover.classList.contains('report-cover-sesmt-result'));
   assert.deepEqual(sesmt.children.filter(node=>node.tagName==='P').map(node=>node.textContent),[...approved,custom.textContent]);
   assert.equal(custom.parentElement,sesmt);assert.equal(nested.textContent,legacy.join(''));assert.equal(outside.textContent,legacy.join(''));assert.equal(cipa.textContent,cipaSaved);assert.equal(sesmt.querySelector('img'),null);assert.equal(snapshot.textContent,saved);
  }
@@ -40,7 +40,7 @@ test('pares incompletos ou separados e resultados com equipe não são reescrito
  installDOM(t);
  for(const nodes of [[el('p',legacy[0])],[el('p',legacy[0]),el('div','Separador'),el('p',legacy[1])],[el('p',legacy[0]),el('p',legacy[1]+' Complemento')],[el('p','1 tipo(s) de profissional'),el('p','1 - Técnico em segurança do trabalho')]]){
   const card=el('section','','report-dimension-card',el('h4','SESMT'),...nodes),cover=el('section','','report-cover',el('div','','report-dimension-grid',card)),saved=card.textContent;
-  globalThis.GRO_REPORT_SESMT.apply(cover);assert.equal(card.textContent,saved);assert.equal(card.querySelector('h4').textContent,'SESMT');for(const node of nodes)assert.equal(node.parentElement,card);
+  globalThis.GRO_REPORT_SESMT.apply(cover);assert.equal(cover.classList.contains('report-cover-sesmt-result'),false);assert.equal(card.textContent,saved);assert.equal(card.querySelector('h4').textContent,'SESMT');for(const node of nodes)assert.equal(node.parentElement,card);
  }
 });
 
@@ -62,4 +62,10 @@ test('SESMT compartilha carregamento atualizado sem alterar cálculo ou persist�
  }
  assert.match(read('report.js'),/import '\.\/report-sesmt\.js\?v=20261020-sesmt1'/);assert.match(read('report.js'),/GRO_REPORT_SESMT\.apply\(cover\)/);
  const source=read('script.js'),dimension=source.slice(source.indexOf('function renderDimension('),source.indexOf('function addSectorOption('));assert.doesNotMatch(dimension,/GRO_REPORT_SESMT/);assert.doesNotMatch(read('report-sesmt.js'),/innerHTML|calculateCipa|calculateSesmt|\.rpc\(|\.from\(|fetch\(|localStorage|sessionStorage/);
+});
+
+test('ajuste de espaço fica limitado à capa SESMT aprovada na impressão sem reduzir fontes',()=>{
+ const css=read('report-print.css');assert.ok(css.includes('#report-content .report-cover.report-cover-sesmt-result{padding-top:3mm;padding-bottom:3mm}'));assert.ok(css.includes('#report-content .report-cover.report-cover-sesmt-result .report-dimension-grid{margin-top:3mm}'));
+ for(const rule of css.split('}').filter(rule=>rule.includes('report-cover-sesmt-result')))assert.doesNotMatch(rule,/font-size|line-height|scale|zoom/);
+ assert.match(read('report.html'),/report-print\.css\?v=20261020-sesmt1/);
 });

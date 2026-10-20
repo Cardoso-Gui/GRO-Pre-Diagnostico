@@ -27,8 +27,8 @@
     const details=[nodes[i].textContent,nodes[i+1].textContent];
     if(matches(details,0,legacy)){
      present(details).forEach((text,index)=>{const p=document.createElement('p');p.textContent=text;nodes[i+index].replaceWith(p);});
-     heading.textContent=title;i++;
-    }else if(matches(details,0,paragraphs))heading.textContent=title;
+     heading.textContent=title;cover.classList.add('report-cover-sesmt-result');i++;
+    }else if(matches(details,0,paragraphs)){heading.textContent=title;cover.classList.add('report-cover-sesmt-result');}
    }
   }
  }

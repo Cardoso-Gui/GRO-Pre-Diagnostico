@@ -25,6 +25,8 @@
  #report-content{line-height:1.4}
  #report-content .report-block,#report-content .report-cover,#report-content .report-closing{padding:0;margin:0 0 5mm;border:0;border-radius:0}
  #report-content .report-cover{padding:4mm;border:1px solid #d6e1da;border-top:3px solid #137b68}
+ #report-content .report-cover.report-cover-sesmt-result{padding-top:3mm;padding-bottom:3mm}
+ #report-content .report-cover.report-cover-sesmt-result .report-dimension-grid{margin-top:3mm}
  #report-content .report-cover h3{font-size:18pt}
  #report-content .report-cover .report-introduction,#report-content .report-cover .report-objective{font-size:9pt;line-height:1.45;margin:3mm 0;padding-top:2mm}
  #report-content .report-summary-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:3mm;margin-top:3mm}
