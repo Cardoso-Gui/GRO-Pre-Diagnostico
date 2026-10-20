@@ -5,6 +5,7 @@ import {watchPageResume} from './page-resume.js?v=20260930-resume1';
 import {photoUrl,uploadPhoto} from './workstation-photos.js?v=20260928-photos1';
 import {loadQuestionnaireRuntime,generateEffectiveDocument} from './report-generator.js?v=20261020-rectify1';
 import {readAssessmentReport,saveRectification,correctionChanges,applyBusinessChanges,changedValues,equalValue,renameBusinessReferences} from './report-rectification.js?v=20261020-rectify1';
+import {describeRectificationChange} from './rectification-diff-view.js?v=20261020-review1';
 const $=s=>document.querySelector(s),wizard=initAssessmentWizard(),params=new URLSearchParams(location.search),id=params.get('id');
 const review=$('#rectification-review'),status=$('#rectification-save-status');
 let state,member,baseline,company,title,busy=false,dirty=false,pending=null,confirmed=false,accessBlocked=false,intentionalLeaving=false;
@@ -38,9 +39,15 @@ async function reviewChanges(){
  const host=$('#rectification-diff');host.replaceChildren();
  const original={title:state.assessment.title,answers:structuredClone(state.assessment.final_snapshot.answers),client:state.assessment.final_snapshot.client};delete original.answers.report_document;
  const current={title:effective.title,answers:effective.final_snapshot.answers,client:effective.final_snapshot.client};
- for(const diff of changedValues(original,current)){
-  const item=make('article');item.className='rectification-diff-item';item.append(make('strong',diff.path));
-  for(const [key,label] of [['before','Antes'],['after','Depois']]){const line=make('p',label+': '+(diff[key]===null?'Não informado':typeof diff[key]==='object'?JSON.stringify(diff[key]):String(diff[key])));line.className=key;item.append(line);}host.append(item);
+ const differences=changedValues(original,current);
+ $('#rectification-change-count').textContent=differences.length===1?'1 alteração para conferir':differences.length+' alterações para conferir';
+ for(const diff of differences){
+  const display=describeRectificationChange(diff,{before:original,after:current});
+  const item=make('article');item.className='rectification-diff-item';item.append(make('h3',display.label));
+  if(display.context){const context=make('p',display.context);context.className='rectification-diff-context';item.append(context);}
+  const values=make('div');values.className='rectification-diff-values';
+  for(const [key,label] of [['before','Antes'],['after','Depois']]){const cell=make('div');cell.className=key;cell.append(make('span',label),make('p',display[key]));values.append(cell);}item.append(values);
+  const reference=make('details');reference.className='rectification-field-reference';reference.append(make('summary','Referência do campo'),make('code',display.path));item.append(reference);host.append(item);
  }
  if(!pending||!equalValue(pending.changes,patch)){pending={requestId:crypto.randomUUID(),changes:structuredClone(patch),reason:null};}
  status.textContent='';review.showModal();$('#rectification-reason').focus();

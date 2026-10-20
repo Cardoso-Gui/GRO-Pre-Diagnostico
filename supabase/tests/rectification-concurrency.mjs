@@ -31,7 +31,7 @@ try{
  const owner=await connect(),a=await connect(),b=await connect();
  console.log((await owner.query('select version()')).rows[0].version);
  await owner.query(await readFile(new URL('supabase/tests/rectification-fixture.sql',root),'utf8'));
- await owner.query(await readFile(new URL('supabase/migrations/20261019235450_report_rectification.sql',root),'utf8'));
+ await owner.query(await readFile(new URL('supabase/migrations/20261020001758_report_rectification.sql',root),'utf8'));
  await owner.query("insert into public.teams(id,name,grants_global_access) values($1,'Synthetic administrators',true)",[team]);
  await owner.query('insert into auth.users(id) values($1)',[user]);await owner.query('insert into auth.sessions(id,user_id) values($1,$2)',[session,user]);
  await owner.query("insert into public.team_members(user_id,team_id,display_name,role) values($1,$2,'Synthetic administrator','admin')",[user,team]);
