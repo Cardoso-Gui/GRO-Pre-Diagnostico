@@ -61,6 +61,21 @@ function validate(result){
  }
  for(const page of pdf.pages)for(const word of page.words)assert.ok(word.xMin>=0&&word.yMin>=0&&word.xMax<=page.width+.5&&word.yMax<=page.height+.5,`PDF word outside page: ${word.text}`);
  if(scenario==='full'){
+  assert.equal(diag.expected.length,19,'full fixture retains all nineteen risks');
+  assert.equal(snap.sheets[0].cover.length,6,'both opening paragraphs, visit, objective, summary and dimensions fit the first page');
+  for(const sheet of snap.sheets){
+   for(const [i,entry] of sheet.cover.entries()){
+    assert.ok(entry.rect.bottom<=sheet.rect.bottom+1,'cover entry does not overflow the page');
+    assert.ok(entry.rect.x>=sheet.rect.x-1&&entry.rect.right<=sheet.rect.right+1,'cover entry is not cut off horizontally');
+    for(const next of sheet.cover.slice(i+1))assert.ok(entry.rect.bottom<=next.rect.y+1,'cover prose and data do not overlap');
+   }
+  }
+  const visit=snap.sheets[0].cover.find(entry=>entry.className==='report-introduction');
+  assert.ok(normalize(pdf.text).includes(normalize(visit.text)),'all visit prose is present in extracted PDF');
+  if(result.label==='current'){
+   assert.ok(visit.text.startsWith('A visita à empresa Empresa fictícia de teste (Unidade sintética), inscrita no CNPJ sob o nº 12.345.678/0001-99 e situada em Rua Sintética, 100, Bloco de Teste, Bairro Fictício, Cidade Sintética/SP, CEP: 01000-000, foi realizada em 01/01/2026, por Responsável fictício pela visita. '));
+   assert.ok(visit.text.endsWith('O levantamento teve como foco conhecer as atividades desenvolvidas nos setores abrangidos pela visita e registrar as condições de trabalho, os riscos identificados e as medidas de prevenção informadas. Para contextualizar esses registros, foram consideradas as observações realizadas no local e as informações fornecidas pela empresa, dentro do escopo da visita.'));
+  }
   assert.equal(diag.originals.length,6);assert.ok(diag.originals.every(img=>img.complete&&img.naturalWidth>0&&img.sourceKind==='blob'),'six decoded blob originals');
   const printedImages=snap.sheets.flatMap(sheet=>sheet.images);
   assert.equal(printedImages.length,6,'six print images');
@@ -88,7 +103,7 @@ async function run(label,root,scenario){
  });
  const stem=`${label}-${scenario}`;
  try{
-  await page.goto(`https://gro-synthetic.invalid/tests/browser/report-print-fixture.html?scenario=${scenario}`);
+  await page.goto(`https://gro-synthetic.invalid/tests/browser/report-print-fixture.html?scenario=${scenario}&version=${label}`);
   await page.waitForFunction(()=>window.synthetic?.ready===true);
   const file=path.join(out,`${stem}.pdf`);
   // No artificial delay or manual beforeprint: exercise Chromium's PDF path.

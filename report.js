@@ -1,3 +1,4 @@
+import {createReportVisitIntroduction} from './report-visit-introduction.js?v=20261020-visitcopy1';
 import {readAssessmentReport} from './report-rectification.js?v=20261020-rectify1';
 import {reportProfessionalIdentity} from './professional-identity.js?v=20261020-professional1';
 import {generateEffectiveDocument} from './report-generator.js?v=20261020-opening2';
@@ -92,8 +93,7 @@ async function load(){
  const sizingBlock=Array.from(content.querySelectorAll('.report-block')).find(block=>block.querySelector('h3')?.textContent.trim()==='Dimensionamento CIPA/SESMT');
  const sectorsBlock=Array.from(content.querySelectorAll('.report-block')).find(block=>block.querySelector('h3')?.textContent.trim()==='Setores e cargos');
  if(sectorsBlock)sectorsBlock.classList.add('report-sectors');
- const introduction=document.createElement('p');introduction.className='report-introduction';
- introduction.textContent=`Em visita realizada${visitDate==='Não informada'?' (data não informada)':' em '+visitDate}${responsible?', por '+responsible:''}, à empresa ${identity}${cnpj?', inscrita no CNPJ sob o nº '+cnpj:''}${fullAddress?', localizada em '+fullAddress:''}, foram levantadas informações sobre os setores, as atividades e as condições de trabalho. Este relatório apresenta os riscos identificados, as medidas de prevenção informadas e as necessidades de avaliação complementar, conforme as condições observadas na ocasião.`;
+ const introduction=createReportVisitIntroduction({identity,cnpj,fullAddress,visitDate,responsible});
  const cover=content.querySelector('.report-cover');
  globalThis.GRO_REPORT_OPENING.apply(cover);
  if(cover&&sizingBlock){

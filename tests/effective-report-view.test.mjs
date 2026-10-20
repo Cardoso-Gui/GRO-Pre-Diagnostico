@@ -50,3 +50,25 @@ test('nova identidade profissional congelada aparece na visita, no painel e na a
 test('relatório legado mantém o nome anterior disponível e não inventa credencial profissional',async t=>{
  const win=await report(t),content=win.document.querySelector('#report-content');assert.match(content.textContent,/Responsável sintético/);assert.match(content.querySelectorAll('.report-signature')[1].textContent,/Função e registro não preservados neste relatório/);assert.equal(content.querySelector('.report-professional-registration'),null);
 });
+
+
+test('texto aprovado da visita aparece no original e no retificado sem inventar data',async t=>{
+ for(const original of [false,true]){
+  const win=await report(t,{original}),intro=win.document.querySelector('.report-introduction');
+  assert.ok(intro.textContent.startsWith('A visita à empresa '));
+  assert.equal(intro.querySelectorAll('br').length,2);
+  assert.match(intro.textContent,/O levantamento teve como foco conhecer as atividades desenvolvidas nos setores abrangidos pela visita/);
+  assert.match(intro.textContent,/dentro do escopo da visita\.$/);
+  if(original){assert.match(intro.textContent,/A data da visita não foi informada\./);assert.doesNotMatch(intro.textContent,/em 02\/01\/2025/);}
+  else{assert.match(intro.textContent,/foi realizada em 29\/02\/2024, por Responsável sintético\./);assert.doesNotMatch(intro.textContent,/data da visita não foi informada/);}
+ }
+});
+
+
+test('nome indisponível na identidade congelada não é tratado como pessoa nem substituído pelo operador',async t=>{
+ const win=await report(t,{professional:{display_name:'',professional_role:'safety_engineer',registration_type:'CREA',registration_number:'98765',registration_uf:'SP'}});
+ const intro=win.document.querySelector('.report-introduction');
+ assert.doesNotMatch(intro.textContent,/, por |Responsável não disponível|Operador atual|999999|98765/);
+ const signature=win.document.querySelectorAll('.report-signature')[1];
+ assert.match(signature.textContent,/Responsável não disponível/);assert.match(signature.textContent,/CREA\/SP: 98765/);
+});
