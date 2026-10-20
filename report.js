@@ -1,18 +1,19 @@
+import {REPORT_NOTICES} from './report-notices.js?v=20261020-notices1';
 import './report-cipa.js?v=20261020-cipa1';
 import './report-sesmt.js?v=20261020-sesmt1';
 import {createReportVisitIntroduction} from './report-visit-introduction.js?v=20261020-visitcopy1';
 import {readAssessmentReport} from './report-rectification.js?v=20261020-rectify1';
 import {reportProfessionalIdentity} from './professional-identity.js?v=20261020-professional1';
-import {generateEffectiveDocument} from './report-generator.js?v=20261020-sesmt1';
+import {generateEffectiveDocument} from './report-generator.js?v=20261020-notices1';
 import {mountRectificationHistory} from './rectification-history.js?v=20261020-rectify1';
 import './report-opening.js?v=20261020-objective1';
 import {watchPageResume} from './page-resume.js?v=20260930-resume1';
 import {hydrateReportPhotos} from './workstation-photos.js?v=20260928-photos1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
-import {organizeReport} from './report-layout.js?v=20260929-update1';
+import {organizeReport} from './report-layout.js?v=20261020-notices1';
 import {addReuseButton} from './reuse-report.js?v=20261020-professional1';
-import {mountReportViewer,reportVisitDate} from './report-viewer.js?v=20261020-printfix1';
+import {mountReportViewer,reportVisitDate} from './report-viewer.js?v=20261020-notices1';
 const message=document.querySelector('#report-status'),content=document.querySelector('#report-content'),print=document.querySelector('#report-print');
 const tags=new Set(['section','div','article','h2','h3','h4','p','span','strong','small','ul','li']);
 function renderNode(node,depth=0){
@@ -115,7 +116,7 @@ async function load(){
  if(cover){const summary=cover.querySelector('.report-summary-grid');if(summary)summary.before(introduction);else cover.append(introduction);}
  const closing=document.createElement('section');closing.className='report-closing';
  const heading=document.createElement('h3');heading.textContent='Considerações finais';
- const paragraph=document.createElement('p');paragraph.textContent='Este levantamento registra as condições observadas na data da visita e as informações fornecidas pela empresa. As necessidades de avaliação complementar e as melhorias apontadas deverão ser analisadas pelos responsáveis técnicos, para definição das medidas e dos prazos de implementação.';
+ const paragraph=document.createElement('p');paragraph.textContent=REPORT_NOTICES.closing;
  const attribution=document.createElement('div');attribution.className='report-attribution';
  const completed=document.createElement('span');completed.textContent='Concluído em '+date;
  attribution.append(completed);
@@ -130,10 +131,10 @@ async function load(){
    if(label==='Responsável pela visita'){
      if(professional.frozen){
        const profession=document.createElement('span');profession.className='report-professional-role';profession.textContent=professional.role;
-       const registration=document.createElement('span');registration.className='report-professional-registration';registration.textContent=professional.registration||'Registro não preservado';
+       const registration=document.createElement('span');registration.className='report-professional-registration';registration.textContent=professional.registration||REPORT_NOTICES.registration;
        field.append(profession,registration);
      }else{
-       const legacy=document.createElement('small');legacy.className='report-professional-legacy';legacy.textContent='Função e registro não preservados neste relatório.';field.append(legacy);
+       const legacy=document.createElement('small');legacy.className='report-professional-legacy';legacy.textContent=REPORT_NOTICES.professional;field.append(legacy);
      }
    }
    signatures.append(field);

@@ -1,3 +1,4 @@
+import {REPORT_NOTICES} from './report-notices.js?v=20261020-notices1';
 const node=(tag,text='',className='')=>{const el=document.createElement(tag);el.textContent=text;el.className=className;return el;};
 const text=el=>el?.textContent.trim()||'';
 const filled=value=>value.trim()!==''&&!/^[-–—]$/.test(value.trim());
@@ -49,10 +50,10 @@ export function compactPrintReport(content){
   section.append(node('h3','Recomendações consolidadas'));
   if(recommendations.size)section.append(table(['Ref.','Cargo/GHE e risco','Recomendação registrada'],[...recommendations.values()].map(item=>[item.ref,stacked([...item.links].map(([target,risks])=>target+'\n'+risks.join('\n'))),item.value]),'compact-recommendations-table'));
   for(const [index,row] of [...section.querySelectorAll('.compact-recommendations-table tbody tr')].entries()){row.dataset.recommendationRef=[...recommendations.values()][index].ref;}
-  if(!recommendations.size)section.append(node('p','Nenhuma melhoria adicional informada. Registros como “n/a” permanecem nas fichas dos riscos.'));
+  if(!recommendations.size)section.append(node('p',REPORT_NOTICES.improvements+' Registros como “n/a” permanecem nas fichas dos riscos.'));
   section.append(node('h4','Medições e avaliações indicadas'));
   if(measurements.length)section.append(table(['Ref. do risco','Cargo/GHE','Risco'],measurements.map(([key,target,name,code])=>[key,target,name+' · '+code])));
-  else section.append(node('p','Nenhuma medição ou avaliação marcada como necessária.'));
+  else section.append(node('p',REPORT_NOTICES.measurements));
   // Sources and exposure details remain in the referenced risk record.
   originalRecommendations.replaceWith(section);
  }

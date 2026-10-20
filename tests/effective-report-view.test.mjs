@@ -6,11 +6,18 @@ import {JSDOM,VirtualConsole} from 'jsdom';
 import {fixture} from './helpers/rectification-fixture.mjs';
 import {applyBusinessChanges} from '../report-rectification.js';
 import {overlayReportDocument} from '../report-document-overlay.js';
+import {REPORT_NOTICES} from '../report-notices.js';
 const read=file=>fs.readFileSync(new URL('../'+file,import.meta.url),'utf8');
 const files=['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js','report-opening.js','report-cipa.js','report-sesmt.js','visit-date.js','script.js'];
 function buildDoc(t,answers){const dom=new JSDOM(read('levantamento.html'),{url:'https://synthetic.example.test/levantamento.html',runScripts:'outside-only'});t.after(()=>dom.window.close());const context=dom.getInternalVMContext();context.GRO_CLOUD={rectification:true};for(const file of files)vm.runInContext(read(file),context);context.GRO_FORM.restore(structuredClone(answers));return JSON.parse(JSON.stringify(context.GRO_FORM.document().report_document));}
-async function report(t,{original=false,fail=false,professional=null,legacyObjective=false,legacyCipa=false,legacySesmt=false}={}){
- const base=fixture(),source=base.assessment.final_snapshot.answers;if(professional){base.assessment.final_snapshot.responsible_professional=professional;base.assessment.team_members={display_name:'Operador atual (não responsável)',professional_role:'safety_assistant',professional_registration:'999999'};}const originalDoc=buildDoc(t,source);base.assessment.final_snapshot.answers.report_document=originalDoc;
+async function report(t,{original=false,fail=false,professional=null,legacyObjective=false,legacyCipa=false,legacySesmt=false,emptyNotices=false,legacyNoticeCards=false}={}){
+ const base=fixture(),source=base.assessment.final_snapshot.answers;if(emptyNotices)source.selectedRisksByTarget=[];if(legacyNoticeCards){source.epiBySelection[0][1]={applicable:"Sim",items:[]};source.epiBySelection.push(["synthetic-custom-preserved",{applicable:"Sim",items:["Luva especial: EPI aplicável, mas não informado"]}]);}if(professional){base.assessment.final_snapshot.responsible_professional=professional;base.assessment.team_members={display_name:'Operador atual (não responsável)',professional_role:'safety_assistant',professional_registration:'999999'};}const originalDoc=buildDoc(t,source);base.assessment.final_snapshot.answers.report_document=originalDoc;
+ if(emptyNotices){const legacy=node=>{if(node.text===REPORT_NOTICES.risks)node.text='Selecione riscos para consolidar esta seção.';if(node.text===REPORT_NOTICES.measurements)node.text='Nenhuma medição/avaliação marcada como necessária neste levantamento.';for(const child of node.children||[])legacy(child);};legacy(originalDoc);}
+ if(legacyNoticeCards){
+  const section=originalDoc.children.find(node=>node.children?.some(child=>child.tag==='h3'&&child.children?.[0]?.text==='EPIs e treinamentos sugeridos')),list=section.children.find(node=>node.className==='report-card-list');
+  const el=(tag,text,className='')=>({tag,className,children:[{text}]}),card=(title,caption,lines)=>({tag:'article',className:'report-mini-card',children:[el('strong',title),el('span',caption),...lines.map(text=>el('small',text))]});
+  list.children=[el('h4','Operacional / Cargo sintético'),card('EPIs','EPIs informados no levantamento',['Risco fictício: EPI aplicável, mas não informado','Risco customizado: Luva especial: EPI aplicável, mas não informado']),card('Treinamentos','Sem sugestão pré-cadastrada',['Validar necessidade com o responsável técnico.'])];
+ }
  if(legacyObjective){const cover=originalDoc.children.find(node=>node.className==='report-cover');for(const text of ['O levantamento tem como objetivo apoiar a identificação dos perigos e o planejamento das ações de prevenção, considerando as atividades desenvolvidas e as informações fornecidas pela empresa.','Objetivo específico preservado'])cover.children.push({tag:'p',className:'report-objective',children:[{text}]});}
  if(legacyCipa){const block=originalDoc.children.find(node=>node.children?.some(child=>child.tag==='h3'&&child.children?.[0]?.text==='Dimensionamento CIPA/SESMT'));const list=block.children.find(node=>node.tag==='ul');list.children=list.children.filter(node=>!node.children?.[0]?.text?.startsWith('CIPA:'));for(const text of ['Sem comissão nesta faixa - Sem atendimento pelo SESMT, nomear um representante entre os empregados. MEI é dispensado dessa nomeação (NR-5, 5.4.13).','Observação específica preservada'])list.children.push({tag:'li',className:'',children:[{text:'CIPA: '+text}]});}
  if(legacySesmt){const block=originalDoc.children.find(node=>node.children?.some(child=>child.tag==='h3'&&child.children?.[0]?.text==='Dimensionamento CIPA/SESMT'));const list=block.children.find(node=>node.tag==='ul');list.children=list.children.filter(node=>!node.children?.[0]?.text?.startsWith('SESMT:'));for(const text of ['Sem equipe mínima nesta faixa','Pelo Anexo II da NR-4 não há profissionais mínimos para essa faixa.','Observação SESMT específica preservada'])list.children.push({tag:'li',className:'',children:[{text:'SESMT: '+text}]});}
@@ -51,7 +58,7 @@ test('nova identidade profissional congelada aparece na visita, no painel e na a
  }
 });
 test('relatório legado mantém o nome anterior disponível e não inventa credencial profissional',async t=>{
- const win=await report(t),content=win.document.querySelector('#report-content');assert.match(content.textContent,/Responsável sintético/);assert.match(content.querySelectorAll('.report-signature')[1].textContent,/Função e registro não preservados neste relatório/);assert.equal(content.querySelector('.report-professional-registration'),null);
+ const win=await report(t),content=win.document.querySelector('#report-content');assert.match(content.textContent,/Responsável sintético/);assert.match(content.querySelectorAll('.report-signature')[1].textContent,/A função e o registro profissional não estão disponíveis nos dados preservados deste relatório/);assert.equal(content.querySelector('.report-professional-registration'),null);
 });
 
 
@@ -112,5 +119,39 @@ test('SESMT atual e legado recebem somente a redação aprovada sem regravar reg
   assert.doesNotMatch(sesmt.textContent,/Sem equipe mínima nesta faixa|Pelo Anexo II da NR-4 não há profissionais mínimos/);
   assert.equal(sesmt.querySelectorAll('p').length,legacySesmt?3:2);if(legacySesmt)assert.match(sesmt.textContent,/Observação SESMT específica preservada/);
   assert.equal(cipa.querySelector('h4').textContent,'CIPA — Resultado do dimensionamento');assert.match(cipa.textContent,/formalizadas anualmente pela organização/);assert.equal(cipa.querySelectorAll('p').length,2);
+ }
+});
+
+
+test('avisos vazios legados no original e retificado preservam registros e exportações repetidas',async t=>{
+ for(const original of [false,true]){
+  const win=await report(t,{original,emptyNotices:true}),content=win.document.querySelector('#report-content');
+  assert.equal(content.hidden,false);const expected=[REPORT_NOTICES.risks,REPORT_NOTICES.training,REPORT_NOTICES.trainingValidation,REPORT_NOTICES.improvements,REPORT_NOTICES.measurements,REPORT_NOTICES.professional];
+  for(const notice of expected)assert.ok(content.textContent.includes(notice),notice);
+  const before=content.innerHTML;
+  for(let repeat=0;repeat<2;repeat++){win.dispatchEvent(new win.Event('beforeprint'));for(const notice of expected)assert.ok(content.textContent.includes(notice),notice);win.dispatchEvent(new win.Event('afterprint'));assert.equal(content.innerHTML,before);}
+  assert.equal(content.querySelector('.report-professional-registration'),null);
+ }
+});
+
+
+test('cartões legados EPI e treinamento atravessam visualização e PDF sem reescrever campo personalizado',async t=>{
+ for(const original of [false,true]){
+  const win=await report(t,{original,legacyNoticeCards:true}),content=win.document.querySelector('#report-content');
+  assert.equal(content.hidden,false);assert.ok(content.textContent.includes(REPORT_NOTICES.epi));
+  if(original){assert.ok(content.textContent.includes(REPORT_NOTICES.training));assert.ok(content.textContent.includes(REPORT_NOTICES.trainingValidation));assert.ok(content.textContent.includes('Risco customizado: Luva especial: EPI aplicável, mas não informado'));}
+  const before=content.innerHTML;win.dispatchEvent(new win.Event('beforeprint'));assert.ok(content.textContent.includes(REPORT_NOTICES.epi));
+  if(original){assert.ok(content.textContent.includes(REPORT_NOTICES.training));assert.ok(content.textContent.includes('Luva especial: EPI aplicável, mas não informado'));}
+  win.dispatchEvent(new win.Event('afterprint'));assert.equal(content.innerHTML,before);
+ }
+});
+
+test('três parágrafos principais aprovados e registro ausente aparecem sem inventar credenciais',async t=>{
+ for(const original of [false,true]){
+  const professional={user_id:'responsible',display_name:'Profissional fictício',professional_role:'safety_engineer'};
+  const win=await report(t,{original,professional}),content=win.document.querySelector('#report-content');assert.equal(content.hidden,false);
+  for(const copy of [REPORT_NOTICES.trainingIntroduction,REPORT_NOTICES.normsIntroduction,REPORT_NOTICES.closing])assert.ok(content.textContent.includes(copy),copy);
+  assert.equal(content.querySelector('.report-professional-registration').textContent,REPORT_NOTICES.registration);assert.doesNotMatch(content.textContent,/999999|Operador atual/);
+  win.dispatchEvent(new win.Event('beforeprint'));for(const copy of [REPORT_NOTICES.trainingIntroduction,REPORT_NOTICES.normsIntroduction,REPORT_NOTICES.closing])assert.ok(content.textContent.includes(copy),copy);win.dispatchEvent(new win.Event('afterprint'));
  }
 });

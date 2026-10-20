@@ -1,7 +1,7 @@
 import {reportProfessionalIdentity} from './professional-identity.js?v=20261020-professional1';
 import './visit-date.js?v=20261019-visit1';
 import {paginateReport} from './report-pagination.js?v=20261020-printfix1';
-import {compactPrintReport} from './report-print-compact.js?v=20261019-layout2';
+import {compactPrintReport} from './report-print-compact.js?v=20261020-notices1';
 import {reusePrintImages} from './report-print-images.js?v=20261020-printfix1';
 const make=(tag,text='',className='')=>{const el=document.createElement(tag);el.textContent=text;el.className=className;return el;};
 const normalized=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();

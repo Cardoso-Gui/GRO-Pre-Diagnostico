@@ -82,17 +82,13 @@ function validate(result){
   const cipa=snap.sheets[0].dimensions[0],sesmt=snap.sheets[0].dimensions[1];
   assert.equal(cipa.title,'CIPA — Resultado do dimensionamento');
   assert.equal(cipa.paragraphs.length,2);
-  assert.equal(sesmt.title,result.label==='current'?'SESMT — Resultado do dimensionamento':'SESMT');
+  assert.equal(sesmt.title,'SESMT — Resultado do dimensionamento');
   assert.equal(sesmt.paragraphs.length,2);
-  const legacySesmt=['Sem equipe mínima nesta faixa','Pelo Anexo II da NR-4 não há profissionais mínimos para essa faixa.'];
-  if(result.label==='baseline')assert.deepEqual(sesmt.paragraphs.map(p=>p.text),legacySesmt);
-  else{
-   assert.ok(sesmt.paragraphs[0].text.startsWith('O Serviço Especializado em Segurança e em Medicina do Trabalho (SESMT) reúne profissionais'));
-   assert.ok(sesmt.paragraphs[0].text.endsWith('não indica um quantitativo mínimo de profissionais para compor esse serviço.'));
-   assert.ok(sesmt.paragraphs[1].text.startsWith('Esse resultado deve ser analisado em conjunto com a estrutura da organização'));
-   assert.ok(sesmt.paragraphs[1].text.endsWith('cumprir as demais exigências aplicáveis à segurança e à saúde no trabalho.'));
-   for(const text of legacySesmt)assert.ok(!dimensions.text.includes(text),'recognized legacy SESMT copy is replaced');
-  }
+  assert.ok(sesmt.paragraphs[0].text.startsWith('O Serviço Especializado em Segurança e em Medicina do Trabalho (SESMT) reúne profissionais'));
+  assert.ok(sesmt.paragraphs[0].text.endsWith('não indica um quantitativo mínimo de profissionais para compor esse serviço.'));
+  assert.ok(sesmt.paragraphs[1].text.startsWith('Esse resultado deve ser analisado em conjunto com a estrutura da organização'));
+  assert.ok(sesmt.paragraphs[1].text.endsWith('cumprir as demais exigências aplicáveis à segurança e à saúde no trabalho.'));
+  for(const text of ['Sem equipe mínima nesta faixa','Pelo Anexo II da NR-4 não há profissionais mínimos para essa faixa.'])assert.ok(!dimensions.text.includes(text),'neither version restores legacy SESMT copy');
   for(const sheet of snap.sheets){
    for(const [i,entry] of sheet.cover.entries()){
     assert.ok(entry.rect.bottom<=sheet.rect.bottom+1,'cover entry does not overflow the page');
@@ -112,8 +108,14 @@ function validate(result){
   assert.ok(printedImages.every(img=>img.sameOriginal&&img.complete&&img.naturalWidth>0),'beforeprint reuses all decoded original image nodes synchronously');
   assert.equal(pdf.images.length,6,'pdfimages must find six embedded raster photos, not empty frames');
   for(const size of diag.photoSizes)assert.equal(pdf.images.filter(img=>img.width===size.width&&img.height===size.height).length,1,`embedded photo ${size.width}x${size.height} exactly once`);
- }else{
+ }else if(scenario==='packing'){
   assert.equal(snap.sheets.filter(sheet=>sheet.cards.length).length,1,'five small categories from one group should share a sheet');
+ }
+ const extracted=normalize(pdf.rawText.replace(/-[ \t]*\r?\n[ \t]*/g,'-'));
+ for(const notice of diag.expectedNotices)assert.equal(extracted.split(notice).length-1,1,'approved report prose remains extractable exactly once: '+notice);
+ if(['empty','missing-fields'].includes(scenario)){
+  if(scenario==='missing-fields')assert.ok(extracted.includes('n/a'),'placeholder remains in risk record');
+  assert.equal(pdf.images.length,0,'empty fixtures contain no invented photos');
  }
  // Export again without navigation, proving afterprint restores usable sources.
  assert.deepEqual(result.repeat.images,pdf.images,'second PDF retains all six photos');
@@ -141,7 +143,7 @@ async function run(label,root,scenario){
   const repeatFile=path.join(out,`${stem}-repeat.pdf`);
   await page.pdf({path:repeatFile,format:'A4',printBackground:true,preferCSSPageSize:true});
   const diagnostics=await page.evaluate(()=>{
-   const s=window.synthetic;return {expected:s.expected,photoSizes:s.photoSizes,originals:s.originals,prints:s.prints,beforeCount:s.beforeCount,afterCount:s.afterCount,...s.snapshot()};
+   const s=window.synthetic;return {expected:s.expected,expectedNotices:s.expectedNotices,photoSizes:s.photoSizes,originals:s.originals,prints:s.prints,beforeCount:s.beforeCount,afterCount:s.afterCount,...s.snapshot()};
   });
   Object.assign(diagnostics,{errors,blocked});
   const result={label,scenario,diagnostics,pdf:inspectPdf(file),repeat:inspectPdf(repeatFile)};
@@ -158,8 +160,8 @@ async function run(label,root,scenario){
  }finally{await context.close();}
 }
 try{
- if(process.env.REPORT_BASELINE_ROOT)for(const scenario of ['full','packing'])await run('baseline',path.resolve(process.env.REPORT_BASELINE_ROOT),scenario);
- for(const scenario of ['full','packing'])await run('current',repo,scenario);
+ if(process.env.REPORT_BASELINE_ROOT)for(const scenario of ['full','packing','empty','missing-fields'])await run('baseline',path.resolve(process.env.REPORT_BASELINE_ROOT),scenario);
+ for(const scenario of ['full','packing','empty','missing-fields'])await run('current',repo,scenario);
 }finally{await browser.close();}
 const summary=results.map(result=>({label:result.label,scenario:result.scenario,pdfPages:result.pdf?.pageCount,embeddedImages:result.pdf?.images.length,imagesReadyDuringBeforePrint:result.diagnostics?.prints[0]?.sheets.flatMap(sheet=>sheet.images).filter(img=>img.complete&&img.naturalWidth>0).length,validation:result.validation}));
 await fs.writeFile(path.join(out,'summary.json'),JSON.stringify(summary,null,2));

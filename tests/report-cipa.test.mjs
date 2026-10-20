@@ -69,7 +69,7 @@ test('geração PDF usa os mesmos parágrafos sem alterar resultados CIPA ou SES
 test('carregamento compartilhado atualiza apresentação e script sem envolver persistência ou cálculo',()=>{
  for(const file of ['workspace.js','report-generator.js']){
   const source=read(file);assert.match(source,/'report-opening\.js','report-cipa\.js','report-sesmt\.js','visit-date\.js','script\.js'/);
-  assert.ok(source.includes("['report-sesmt.js','script.js'].includes(file)?'20261020-sesmt1'"));
+  assert.ok(source.includes("file==='script.js'?'20261020-notices1':file==='report-sesmt.js'?'20261020-sesmt1'"));
  }
  assert.match(read('report.js'),/import '\.\/report-cipa\.js\?v=20261020-cipa1'/);assert.match(read('report.js'),/GRO_REPORT_CIPA\.apply\(cover\)/);
  const source=read('script.js'),dimension=source.slice(source.indexOf('function renderDimension('),source.indexOf('function addSectorOption('));
