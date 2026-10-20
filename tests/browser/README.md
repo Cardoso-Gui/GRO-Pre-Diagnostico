@@ -35,5 +35,6 @@ in the final PDF, so a suspected image-loading race is not asserted without proo
 
 The full fixture also renders the production cover opening and visit introduction,
 with synthetic identification and dimension cards. It checks that the complete
-cover stays on the first sheet without overlap or cutoff. Baseline exports retain
-the previous visit wording; current exports use the shared production renderer.
+cover stays on the first sheet without overlap or cutoff. Both exports use the shared visit renderer. The fixture includes the obsolete
+objective as a legacy cover node: baseline retains it, while current normalization
+removes only that standard paragraph before printing.

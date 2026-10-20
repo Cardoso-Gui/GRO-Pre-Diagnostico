@@ -3,7 +3,7 @@ import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {updateHeader} from './app-header.js?v=20261019-access1';
 import {watchPageResume} from './page-resume.js?v=20260930-resume1';
 import {photoUrl,uploadPhoto} from './workstation-photos.js?v=20260928-photos1';
-import {loadQuestionnaireRuntime,generateEffectiveDocument} from './report-generator.js?v=20261020-rectify1';
+import {loadQuestionnaireRuntime,generateEffectiveDocument} from './report-generator.js?v=20261020-objective1';
 import {readAssessmentReport,saveRectification,correctionChanges,applyBusinessChanges,changedValues,equalValue,renameBusinessReferences} from './report-rectification.js?v=20261020-rectify1';
 import {describeRectificationChange} from './rectification-diff-view.js?v=20261020-review1';
 const $=s=>document.querySelector(s),wizard=initAssessmentWizard(),params=new URLSearchParams(location.search),id=params.get('id');

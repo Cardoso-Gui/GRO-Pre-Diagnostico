@@ -9,8 +9,9 @@ import {overlayReportDocument} from '../report-document-overlay.js';
 const read=file=>fs.readFileSync(new URL('../'+file,import.meta.url),'utf8');
 const files=['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js','report-opening.js','visit-date.js','script.js'];
 function buildDoc(t,answers){const dom=new JSDOM(read('levantamento.html'),{url:'https://synthetic.example.test/levantamento.html',runScripts:'outside-only'});t.after(()=>dom.window.close());const context=dom.getInternalVMContext();context.GRO_CLOUD={rectification:true};for(const file of files)vm.runInContext(read(file),context);context.GRO_FORM.restore(structuredClone(answers));return JSON.parse(JSON.stringify(context.GRO_FORM.document().report_document));}
-async function report(t,{original=false,fail=false,professional=null}={}){
+async function report(t,{original=false,fail=false,professional=null,legacyObjective=false}={}){
  const base=fixture(),source=base.assessment.final_snapshot.answers;if(professional){base.assessment.final_snapshot.responsible_professional=professional;base.assessment.team_members={display_name:'Operador atual (não responsável)',professional_role:'safety_assistant',professional_registration:'999999'};}const originalDoc=buildDoc(t,source);base.assessment.final_snapshot.answers.report_document=originalDoc;
+ if(legacyObjective){const cover=originalDoc.children.find(node=>node.className==='report-cover');for(const text of ['O levantamento tem como objetivo apoiar a identificação dos perigos e o planejamento das ações de prevenção, considerando as atividades desenvolvidas e as informações fornecidas pela empresa.','Objetivo específico preservado'])cover.children.push({tag:'p',className:'report-objective',children:[{text}]});}
  const detail=structuredClone(source.riskSourcesBySelection);detail[0][1].improve='Melhoria retificada <img src=x onerror=alert(1)>';
  const patch={answers:{visitDate:'2024-02-29',riskSourcesBySelection:detail},client:{trade_name:'Nome corrigido'}};
  const assessment=applyBusinessChanges(base.assessment,patch),generated=buildDoc(t,assessment.final_snapshot.answers);
@@ -24,7 +25,7 @@ async function report(t,{original=false,fail=false,professional=null}={}){
   'report-generator.js':{generateEffectiveDocument:async(answers,options)=>{assert.equal(answers.visitDate,'2024-02-29');return overlayReportDocument(options.originalDocument,generated,options.changes);}}
  };
  const cache=new Map();async function module(name){name=name.replace(/^\.\//,'').split('?')[0];if(cache.has(name))return cache.get(name);const result=stubs[name]?new vm.SyntheticModule(Object.keys(stubs[name]),function(){for(const [key,value]of Object.entries(stubs[name]))this.setExport(key,value);},{context,identifier:name}):new vm.SourceTextModule(read(name),{context,identifier:name});cache.set(name,result);await result.link(specifier=>module(specifier));return result;}
- await(await module('report.js')).evaluate();return win;
+ const savedState=JSON.stringify(state);await(await module('report.js')).evaluate();assert.equal(JSON.stringify(state),savedState,'rendering must not rewrite saved records');return win;
 }
 
 test('leitura efetiva, painel e conteúdo imprimível mostram os mesmos dados corrigidos',async t=>{
@@ -57,6 +58,7 @@ test('texto aprovado da visita aparece no original e no retificado sem inventar 
   const win=await report(t,{original}),intro=win.document.querySelector('.report-introduction');
   assert.ok(intro.textContent.startsWith('A visita à empresa '));
   assert.equal(intro.querySelectorAll('br').length,2);
+  assert.equal(win.document.querySelector('.report-objective'),null);
   assert.match(intro.textContent,/O levantamento teve como foco conhecer as atividades desenvolvidas nos setores abrangidos pela visita/);
   assert.match(intro.textContent,/dentro do escopo da visita\.$/);
   if(original){assert.match(intro.textContent,/A data da visita não foi informada\./);assert.doesNotMatch(intro.textContent,/em 02\/01\/2025/);}
@@ -71,4 +73,12 @@ test('nome indisponível na identidade congelada não é tratado como pessoa nem
  assert.doesNotMatch(intro.textContent,/, por |Responsável não disponível|Operador atual|999999|98765/);
  const signature=win.document.querySelectorAll('.report-signature')[1];
  assert.match(signature.textContent,/Responsável não disponível/);assert.match(signature.textContent,/CREA\/SP: 98765/);
+});
+
+
+test('visualização original remove objetivo padrão legado e preserva objetivo personalizado',async t=>{
+ const win=await report(t,{original:true,legacyObjective:true}),cover=win.document.querySelector('.report-cover');
+ assert.equal(cover.querySelectorAll('.report-objective').length,1);assert.equal(cover.querySelector('.report-objective').textContent,'Objetivo específico preservado');
+ assert.ok(!cover.textContent.includes('O levantamento tem como objetivo apoiar a identificação dos perigos e o planejamento das ações de prevenção, considerando as atividades desenvolvidas e as informações fornecidas pela empresa.'));
+ assert.equal(cover.querySelectorAll('.report-opening').length,2);assert.equal(cover.querySelector('.report-introduction').querySelectorAll('br').length,2);
 });

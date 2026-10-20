@@ -34,7 +34,7 @@ jobs:
       - name: Check out baseline for the same synthetic fixture
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.base.sha || 'ade1b517bf4912b7d97719d2b04fecb92c374a18' }}
+          ref: ${{ github.event.pull_request.base.sha || '19d1c5b2aeab30a0c71028aed2252fe73da23a81' }}
           path: .pdf-baseline
           persist-credentials: false
       - name: Set up Node.js

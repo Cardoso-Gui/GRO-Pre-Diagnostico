@@ -3,11 +3,11 @@ import {organizeReport} from '/report-layout.js';
 import {mountReportViewer} from '/report-viewer.js';
 import {hydrateReportPhotos} from '/workstation-photos.js';
 import '/report-opening.js';
+import {createReportVisitIntroduction} from '/report-visit-introduction.js';
 
 const content=document.querySelector('#report-content');
 const parameters=new URLSearchParams(location.search);
 const scenario=parameters.get('scenario')||'full';
-const current=parameters.get('version')!=='baseline';
 const make=(tag,text='',className='')=>{const el=document.createElement(tag);el.textContent=text;el.className=className;return el;};
 const block=(title)=>{const el=make('section','','report-block');el.append(make('h3',title));return el;};
 const types=['Físicos','Químicos','Biológicos','Ergonômicos','Acidentes'];
@@ -22,14 +22,13 @@ const saved=JSON.stringify(answers);
 if(scenario==='full'){
  const cover=make('section','','report-cover');cover.append(make('span','Fixture sintética'),make('h3','Empresa fictícia de teste'));globalThis.GRO_REPORT_OPENING.apply(cover);
  const visitValues={identity:'Empresa fictícia de teste (Unidade sintética)',cnpj:'12.345.678/0001-99',fullAddress:'Rua Sintética, 100, Bloco de Teste, Bairro Fictício, Cidade Sintética/SP, CEP: 01000-000',visitDate:'01/01/2026',responsible:'Responsável fictício pela visita'};
- if(current){const {createReportVisitIntroduction}=await import('/report-visit-introduction.js');cover.append(createReportVisitIntroduction(visitValues));}
- else cover.append(make('p',`Em visita realizada em ${visitValues.visitDate}, por ${visitValues.responsible}, à empresa ${visitValues.identity}, inscrita no CNPJ sob o nº ${visitValues.cnpj}, localizada em ${visitValues.fullAddress}, foram levantadas informações sobre os setores, as atividades e as condições de trabalho. Este relatório apresenta os riscos identificados, as medidas de prevenção informadas e as necessidades de avaliação complementar, conforme as condições observadas na ocasião.`,'report-introduction'));
+ cover.append(createReportVisitIntroduction(visitValues));
  cover.append(make('p','O levantamento tem como objetivo apoiar a identificação dos perigos e o planejamento das ações de prevenção, considerando as atividades desenvolvidas e as informações fornecidas pela empresa.','report-objective'));
  const summary=make('div','','report-summary-grid');
  for(const pairs of [[['CNAE principal','0000-0/00 · Atividade fictícia para teste']],[['Grau de risco','2'],['Funcionários','3']],[['Revisão','Rev 01'],['Data da visita','01/01/2026']]]){const item=make('div','','report-summary-item');for(const [i,[label,value]] of pairs.entries())item.append(make('span',label,i?'report-second-label':''),make('strong',value));summary.append(item);}
  const dimensions=make('div','','report-dimension-grid');
  for(const label of ['CIPA','SESMT']){const card=make('section','','report-dimension-card');card.append(make('h4',label),make('p','Resultado sintético de dimensionamento. Não constitui orientação técnica.'),make('p','Observação fictícia para verificar o espaço reservado às informações complementares de cada quadro.'));dimensions.append(card);}
- cover.append(summary,dimensions);content.append(cover);
+ cover.append(summary,dimensions);globalThis.GRO_REPORT_OPENING.apply(cover);content.append(cover);
  const sectors=block('Setores e cargos');sectors.classList.add('report-sectors');sectors.append(make('div','','report-card-list'));content.append(sectors);
 }
 const details=block('Detalhamento dos riscos'),list=make('div','','report-card-list');details.append(list);content.append(details);

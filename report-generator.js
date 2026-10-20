@@ -4,7 +4,7 @@ import {affectedReportSections,overlayReportDocument} from './report-document-ov
 const files=['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js','report-opening.js','visit-date.js','script.js'];
 export async function loadQuestionnaireRuntime(target=document){
  for(const file of files)await new Promise((resolve,reject)=>{
-  const script=target.createElement('script');script.src=new URL(file+'?v='+(file==='report-opening.js'?'20261020-opening2':'20261020-rectify1'),import.meta.url).href;
+  const script=target.createElement('script');script.src=new URL(file+'?v='+(file==='report-opening.js'?'20261020-objective1':'20261020-rectify1'),import.meta.url).href;
   script.onload=resolve;script.onerror=()=>reject(Error('Não foi possível carregar o gerador de relatório. Tente novamente.'));target.body.append(script);
  });
 }
