@@ -74,15 +74,15 @@ test('renderização repetida mantém dois parágrafos, sem duplicação',t=>{
 
 test('gerador e visualizador usam a mesma abertura e carregamento atualizado',()=>{
  const workspace=read('workspace.js'),viewer=read('report.js'),generator=read('report-generator.js');
- assert.match(workspace,/'report-opening\.js','report-cipa\.js','visit-date\.js','script\.js'/);
+ assert.match(workspace,/'report-opening\.js','report-cipa\.js','report-sesmt\.js','visit-date\.js','script\.js'/);
  assert.match(viewer,/import '\.\/report-opening\.js\?v=20261020-objective1'/);
- assert.match(viewer,/report-generator\.js\?v=20261020-cipa1/);
+ assert.match(viewer,/report-generator\.js\?v=20261020-sesmt1/);
  for(const loader of [workspace,generator])assert.match(loader,/file==='report-opening\.js'\?'20261020-objective1'/);
  assert.match(viewer,/GRO_REPORT_OPENING\.apply\(cover\)/);
- assert.match(read('levantamento.html'),/workspace\.js\?v=20261020-cipa1/);
- assert.match(read('report.html'),/report\.js\?v=20261020-cipa1/);
- assert.match(read('rectification-workspace.js'),/report-generator\.js\?v=20261020-cipa1/);
- assert.match(read('rectify.html'),/rectification-workspace\.js\?v=20261020-cipa1/);
+ assert.match(read('levantamento.html'),/workspace\.js\?v=20261020-sesmt1/);
+ assert.match(read('report.html'),/report\.js\?v=20261020-sesmt1/);
+ assert.match(read('rectification-workspace.js'),/report-generator\.js\?v=20261020-sesmt1/);
+ assert.match(read('rectify.html'),/rectification-workspace\.js\?v=20261020-sesmt1/);
 });
 
 

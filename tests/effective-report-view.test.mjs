@@ -7,12 +7,13 @@ import {fixture} from './helpers/rectification-fixture.mjs';
 import {applyBusinessChanges} from '../report-rectification.js';
 import {overlayReportDocument} from '../report-document-overlay.js';
 const read=file=>fs.readFileSync(new URL('../'+file,import.meta.url),'utf8');
-const files=['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js','report-opening.js','report-cipa.js','visit-date.js','script.js'];
+const files=['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js','report-opening.js','report-cipa.js','report-sesmt.js','visit-date.js','script.js'];
 function buildDoc(t,answers){const dom=new JSDOM(read('levantamento.html'),{url:'https://synthetic.example.test/levantamento.html',runScripts:'outside-only'});t.after(()=>dom.window.close());const context=dom.getInternalVMContext();context.GRO_CLOUD={rectification:true};for(const file of files)vm.runInContext(read(file),context);context.GRO_FORM.restore(structuredClone(answers));return JSON.parse(JSON.stringify(context.GRO_FORM.document().report_document));}
-async function report(t,{original=false,fail=false,professional=null,legacyObjective=false,legacyCipa=false}={}){
+async function report(t,{original=false,fail=false,professional=null,legacyObjective=false,legacyCipa=false,legacySesmt=false}={}){
  const base=fixture(),source=base.assessment.final_snapshot.answers;if(professional){base.assessment.final_snapshot.responsible_professional=professional;base.assessment.team_members={display_name:'Operador atual (não responsável)',professional_role:'safety_assistant',professional_registration:'999999'};}const originalDoc=buildDoc(t,source);base.assessment.final_snapshot.answers.report_document=originalDoc;
  if(legacyObjective){const cover=originalDoc.children.find(node=>node.className==='report-cover');for(const text of ['O levantamento tem como objetivo apoiar a identificação dos perigos e o planejamento das ações de prevenção, considerando as atividades desenvolvidas e as informações fornecidas pela empresa.','Objetivo específico preservado'])cover.children.push({tag:'p',className:'report-objective',children:[{text}]});}
  if(legacyCipa){const block=originalDoc.children.find(node=>node.children?.some(child=>child.tag==='h3'&&child.children?.[0]?.text==='Dimensionamento CIPA/SESMT'));const list=block.children.find(node=>node.tag==='ul');list.children=list.children.filter(node=>!node.children?.[0]?.text?.startsWith('CIPA:'));for(const text of ['Sem comissão nesta faixa - Sem atendimento pelo SESMT, nomear um representante entre os empregados. MEI é dispensado dessa nomeação (NR-5, 5.4.13).','Observação específica preservada'])list.children.push({tag:'li',className:'',children:[{text:'CIPA: '+text}]});}
+ if(legacySesmt){const block=originalDoc.children.find(node=>node.children?.some(child=>child.tag==='h3'&&child.children?.[0]?.text==='Dimensionamento CIPA/SESMT'));const list=block.children.find(node=>node.tag==='ul');list.children=list.children.filter(node=>!node.children?.[0]?.text?.startsWith('SESMT:'));for(const text of ['Sem equipe mínima nesta faixa','Pelo Anexo II da NR-4 não há profissionais mínimos para essa faixa.','Observação SESMT específica preservada'])list.children.push({tag:'li',className:'',children:[{text:'SESMT: '+text}]});}
  const detail=structuredClone(source.riskSourcesBySelection);detail[0][1].improve='Melhoria retificada <img src=x onerror=alert(1)>';
  const patch={answers:{visitDate:'2024-02-29',riskSourcesBySelection:detail},client:{trade_name:'Nome corrigido'}};
  const assessment=applyBusinessChanges(base.assessment,patch),generated=buildDoc(t,assessment.final_snapshot.answers);
@@ -85,7 +86,7 @@ test('visualização original remove objetivo padrão legado e preserva objetivo
 });
 
 
-test('CIPA padrão atual e legado recebem redação aprovada sem alterar SESMT ou registros',async t=>{
+test('CIPA padrão atual e legado preservam redação aprovada e registros',async t=>{
  for(const original of [false,true])for(const legacyCipa of [false,true]){
   const win=await report(t,{original,legacyCipa}),cards=win.document.querySelectorAll('.report-dimension-card'),cipa=cards[0],sesmt=cards[1];
   assert.equal(cipa.querySelector('h4').textContent,'CIPA — Resultado do dimensionamento');
@@ -95,6 +96,21 @@ test('CIPA padrão atual e legado recebem redação aprovada sem alterar SESMT o
   assert.match(cipa.textContent,/O MEI está dispensado dessa nomeação, conforme os itens 5\.4\.13 e 5\.4\.13\.2 da NR-5\./);
   assert.doesNotMatch(cipa.textContent,/Sem comissão nesta faixa/);
   assert.equal(cipa.querySelectorAll('p').length,legacyCipa?3:2);if(legacyCipa)assert.match(cipa.textContent,/Observação específica preservada/);
-  assert.equal(sesmt.querySelector('h4').textContent,'SESMT');assert.equal(sesmt.querySelectorAll('p')[0].textContent,'Sem equipe mínima nesta faixa');assert.equal(sesmt.querySelectorAll('p')[1].textContent,'Pelo Anexo II da NR-4 não há profissionais mínimos para essa faixa.');
+  assert.equal(sesmt.querySelector('h4').textContent,'SESMT — Resultado do dimensionamento');assert.equal(sesmt.querySelectorAll('p').length,2);
+ }
+});
+
+
+test('SESMT atual e legado recebem somente a redação aprovada sem regravar registros',async t=>{
+ for(const original of [false,true])for(const legacySesmt of [false,true]){
+  const win=await report(t,{original,legacySesmt}),cards=win.document.querySelectorAll('.report-dimension-card'),cipa=cards[0],sesmt=cards[1];
+  assert.equal(sesmt.querySelector('h4').textContent,'SESMT — Resultado do dimensionamento');
+  assert.match(sesmt.textContent,/O Serviço Especializado em Segurança e em Medicina do Trabalho \(SESMT\) reúne profissionais/);
+  assert.match(sesmt.textContent,/não indica um quantitativo mínimo de profissionais para compor esse serviço/);
+  assert.match(sesmt.textContent,/Esse resultado deve ser analisado em conjunto com a estrutura da organização/);
+  assert.match(sesmt.textContent,/A ausência de equipe mínima no dimensionamento não afasta a responsabilidade da empresa/);
+  assert.doesNotMatch(sesmt.textContent,/Sem equipe mínima nesta faixa|Pelo Anexo II da NR-4 não há profissionais mínimos/);
+  assert.equal(sesmt.querySelectorAll('p').length,legacySesmt?3:2);if(legacySesmt)assert.match(sesmt.textContent,/Observação SESMT específica preservada/);
+  assert.equal(cipa.querySelector('h4').textContent,'CIPA — Resultado do dimensionamento');assert.match(cipa.textContent,/formalizadas anualmente pela organização/);assert.equal(cipa.querySelectorAll('p').length,2);
  }
 });

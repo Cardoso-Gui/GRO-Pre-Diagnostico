@@ -36,6 +36,8 @@ in the final PDF, so a suspected image-loading race is not asserted without proo
 The full fixture also renders the production cover opening and visit introduction,
 with synthetic identification and dimension cards. It checks that the complete
 cover stays on the first sheet without overlap or cutoff. Both exports use the shared visit renderer and omit the redundant objective.
-The current CIPA card uses the shared production formatter with the approved
-conditional representative and annual-formalization text; the baseline keeps the
-previous standard CIPA wording. SESMT copy and the underlying inputs are unchanged.
+Both versions retain the approved CIPA representative and annual-formalization text.
+The current SESMT card uses the shared production formatter for the approved
+zero-team explanatory text; the baseline keeps its previous standard SESMT pair.
+Every complete dimension paragraph must be extractable exactly once, including
+literal hyphens wrapped by Poppler. Underlying dimension inputs remain unchanged.

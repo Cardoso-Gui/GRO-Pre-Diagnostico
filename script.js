@@ -1648,10 +1648,8 @@ function createDimensionReportBlock() {
   addReportItem(list, `Funcionários informados: ${employeeCountInput.value || "-"}`);
   addReportItem(list, `Grau de risco: ${riskGradeOutput.textContent}`);
   for(const detail of globalThis.GRO_REPORT_CIPA.present([`${dimensionFields.cipaSummary.textContent} - ${dimensionFields.cipaNote.textContent}`]))addReportItem(list, `CIPA: ${detail}`);
-  addReportItem(list, `SESMT: ${dimensionFields.sesmtSummary.textContent}`);
-  Array.from(dimensionFields.sesmtList.children).forEach((item) => {
-    addReportItem(list, `SESMT: ${item.textContent}`);
-  });
+  const sesmtDetails=[dimensionFields.sesmtSummary.textContent,...Array.from(dimensionFields.sesmtList.children,item=>item.textContent)];
+  for(const detail of globalThis.GRO_REPORT_SESMT.present(sesmtDetails))addReportItem(list, `SESMT: ${detail}`);
   block.appendChild(list);
 
   return block;
