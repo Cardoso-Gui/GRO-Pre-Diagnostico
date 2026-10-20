@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {JSDOM} from 'jsdom';
+import {PROFESSIONAL_ROLES,REGISTRATION_UFS,professionalRoleLabel} from '../professional-identity.js';
 
 const read=file=>readFileSync(new URL('../'+file,import.meta.url),'utf8');
 const html=read('admin.html'),source=read('admin.js');
@@ -60,7 +61,7 @@ async function fixture(t,{member=defaultMember(),people=defaultPeople(),teams=te
   }},
  };
  const location={replace:url=>redirects.push(url),href:''};
- const context=vm.createContext({document,window:dom.window,location,authClient,getTeamMember:async()=>({member:state.member,error:state.memberError}),updateHeader:value=>headerCalls.push(value),confirm:message=>{confirmations.push(message);return state.confirm;},console,requestAnimationFrame:callback=>callback(),setTimeout,clearTimeout});
+ const context=vm.createContext({document,window:dom.window,location,authClient,PROFESSIONAL_ROLES,REGISTRATION_UFS,professionalRoleLabel,getTeamMember:async()=>({member:state.member,error:state.memberError}),updateHeader:value=>headerCalls.push(value),confirm:message=>{confirmations.push(message);return state.confirm;},console,requestAnimationFrame:callback=>callback(),setTimeout,clearTimeout});
  vm.runInContext(source.replace(/^import .*;\n/gm,''),context);
  await flush();
  t.after(()=>dom.window.close());
@@ -86,6 +87,7 @@ async function fillNewUser(f){
  await f.input(f.field('user-form','contact_phone'),'11987654321','input');
  await f.input(f.field('user-form','team_id'),OTHER);
  await f.input(f.field('user-form','role'),'admin');
+ await f.input(f.field('user-form','professional_role'),'safety_assistant');
  await f.input(f.field('user-form','password'),'example-password','input');
 }
 
@@ -111,7 +113,7 @@ test('global and ordinary administrators retain exact existing unpaginated query
  for(const member of [defaultMember(),person(2,{role:'admin'})]){
   const f=await fixture(t,{member});
   assert.deepEqual(f.calls,[
-   {table:'team_members',methods:[['select','user_id,display_name,username,contact_phone,role,active,team_id,is_super_admin'],['order','display_name']]},
+   {table:'team_members',methods:[['select','user_id,display_name,username,contact_phone,role,active,team_id,is_super_admin,professional_role,professional_registration,professional_registration_uf'],['order','display_name']]},
    {table:'teams',methods:[['select','id,name,active,grants_global_access'],['order','name']]},
   ]);
   assert.equal(f.document.querySelector('#admin-page').hidden,false);
@@ -233,13 +235,13 @@ test('editing restores focus to its original row button when the unchanged dialo
  assert.equal(f.document.activeElement,opener);
  assert.equal(f.invocations.length,0);
 });
-test('create and update user submit the exact existing gro-admin payload and close on success',async t=>{
+test('create and update user retain access fields and include professional identity in gro-admin payload',async t=>{
  const f=await fixture(t);await f.click('new-user');await fillNewUser(f);await f.submit('user-form');
- assert.deepEqual(f.invocations,[{name:'gro-admin',body:{action:'create_user',data:{user_id:'',display_name:'Nova Pessoa',username:'nova.pessoa',contact_phone:'(11) 98765-4321',team_id:OTHER,role:'admin',password:'example-password',active:true}}}]);
+ assert.deepEqual(f.invocations,[{name:'gro-admin',body:{action:'create_user',data:{user_id:'',display_name:'Nova Pessoa',username:'nova.pessoa',contact_phone:'(11) 98765-4321',team_id:OTHER,role:'admin',password:'example-password',active:true,professional_role:'safety_assistant',professional_registration:null,professional_registration_uf:null}}}]);
  assert.equal(f.document.querySelector('#user-dialog').open,false);
  assert.equal(f.calls.length,4);
  await f.editUser('user-2');await f.input(f.field('user-form','display_name'),'Nome atualizado','input');await f.input(f.field('user-form','active'),false);await f.submit('user-form');
- assert.deepEqual(f.invocations[1],{name:'gro-admin',body:{action:'update_user',data:{user_id:'user-2',display_name:'Nome atualizado',username:'pessoa.2',contact_phone:'(11) 90000-1234',team_id:OTHER,role:'editor',password:'',active:false}}});
+ assert.deepEqual(f.invocations[1],{name:'gro-admin',body:{action:'update_user',data:{user_id:'user-2',display_name:'Nome atualizado',username:'pessoa.2',contact_phone:'(11) 90000-1234',team_id:OTHER,role:'editor',password:'',active:false,professional_role:null,professional_registration:null,professional_registration_uf:null}}});
  assert.equal(f.document.querySelector('#user-dialog').open,false);
  assert.equal(f.document.activeElement.isConnected,true);
  assert.equal(f.document.activeElement.closest('dialog'),null);
@@ -479,4 +481,135 @@ test('unreadable endpoint failure retains ordinary administrator form restrictio
  assert.match(f.document.querySelector('#user-form-status').textContent,/Não foi possível confirmar o salvamento/);
  assert.match(f.document.querySelector('#user-form-status').textContent,/Atualize a lista/);
  assert.equal(f.calls.length,2);
+});
+
+// All professional identities below are synthetic. No real records or network
+// are used, and authorization remains based only on role/is_super_admin/team.
+test('profession form is independent of access profile and new users require a selection',async t=>{
+ const f=await fixture(t);await f.click('new-user');
+ const profession=f.field('user-form','professional_role');
+ assert.equal(profession.required,true);assert.equal(profession.value,'');
+ assert.deepEqual([...profession.options].map(option=>[option.value,option.textContent]),[['','Não informada'],...Object.entries(PROFESSIONAL_ROLES)]);
+ assert.deepEqual([...f.field('user-form','role').options].map(option=>option.value),['editor','admin']);
+ assert.match(f.field('user-form','role').closest('label').textContent,/Perfil de acesso/);
+ assert.equal(f.document.querySelector('#professional-registration-label').hidden,true);
+ assert.equal(f.document.querySelector('#professional-registration-uf-label').hidden,true);
+ assert.match(f.document.querySelector('#professional-registration-note').textContent,/não comprova habilitação profissional/);
+ assert.match(f.document.querySelector('#professional-registration-note').textContent,/não é verificada/);
+ await fillNewUser(f);await f.input(profession,'');await f.submit('user-form');
+ assert.equal(f.invocations.length,0);assert.equal(f.document.querySelector('#user-dialog').open,true);
+});
+
+test('profession changes show MTE CREA and valid UF controls without changing access',async t=>{
+ const f=await fixture(t);await f.click('new-user');await fillNewUser(f);
+ const profession=f.field('user-form','professional_role'),registration=f.field('user-form','professional_registration'),uf=f.field('user-form','professional_registration_uf');
+ assert.deepEqual([...uf.options].map(option=>option.value),['',...REGISTRATION_UFS]);
+ await f.input(profession,'safety_technician');
+ assert.equal(f.document.querySelector('#professional-registration-label').hidden,false);
+ assert.match(f.document.querySelector('#professional-registration-title').textContent,/MTE/);
+ assert.equal(registration.disabled,false);assert.equal(registration.required,true);
+ assert.equal(uf.required,false);assert.equal(uf.disabled,true);
+ await f.input(registration,'MTE-synthetic-123','input');await f.input(profession,'safety_engineer');
+ assert.match(f.document.querySelector('#professional-registration-title').textContent,/CREA/);
+ assert.equal(f.document.querySelector('#professional-registration-uf-label').hidden,false);
+ assert.equal(uf.required,true);assert.equal(uf.disabled,false);
+ await f.input(uf,'SP');await f.input(profession,'safety_technician');assert.equal(uf.value,'');
+ for(const value of ['safety_assistant','']){
+  await f.input(profession,'safety_engineer');await f.input(registration,'CREA-synthetic','input');await f.input(uf,'RJ');
+  await f.input(profession,value);
+  assert.equal(registration.value,'');assert.equal(uf.value,'');
+  assert.equal(registration.required,false);assert.equal(registration.disabled,true);
+  assert.equal(uf.required,false);assert.equal(uf.disabled,true);
+  assert.equal(f.document.querySelector('#professional-registration-label').hidden,true);
+  assert.equal(f.document.querySelector('#professional-registration-uf-label').hidden,true);
+  assert.equal(f.field('user-form','role').value,'admin');
+  assert.equal(f.field('user-form','team_id').value,OTHER);
+  assert.equal(f.field('user-form','active').checked,true);
+ }
+ await f.input(profession,'safety_assistant');
+ assert.match(f.document.querySelector('#professional-responsibility-note').textContent,/não pode ser responsável.*Administrador/);
+});
+
+test('existing technician and engineer identities restore independently of protected access fields',async t=>{
+ const people=[defaultMember(),person(2,{professional_role:'safety_technician',professional_registration:'MTE-synthetic'}),person(3,{professional_role:'safety_engineer',professional_registration:'CREA-synthetic',professional_registration_uf:'MG'})];
+ const f=await fixture(t,{people});
+ for(const person of people){
+  await f.editUser(person.user_id);
+  for(const key of ['professional_role','professional_registration','professional_registration_uf'])assert.equal(f.field('user-form',key).value,person[key]||'');
+  assert.equal(f.field('user-form','professional_role').required,false);
+  assert.equal(f.field('user-form','professional_role').disabled,false);
+  assert.equal(f.field('user-form','role').value,person.role);
+  assert.equal(f.field('user-form','role').disabled,person.user_id===defaultMember().user_id);
+  await f.click('close-user');
+ }
+ assert.equal(f.confirmations.length,0);
+});
+
+test('missing or whitespace registration and invalid CREA UF block create or edit submission',async t=>{
+ for(const editing of [false,true]){
+  const f=await fixture(t);
+  if(editing)await f.editUser('user-2');else{await f.click('new-user');await fillNewUser(f);}
+  const profession=f.field('user-form','professional_role'),registration=f.field('user-form','professional_registration'),uf=f.field('user-form','professional_registration_uf');
+  for(const role of ['safety_technician','safety_engineer']){
+   await f.input(profession,role);await f.submit('user-form');assert.equal(f.invocations.length,0);
+   await f.input(registration,'   ','input');await f.submit('user-form');assert.equal(f.invocations.length,0);
+  }
+  await f.input(registration,'CREA-synthetic','input');await f.submit('user-form');assert.equal(f.invocations.length,0);
+  const forged=f.document.createElement('option');forged.value='ZZ';forged.textContent='ZZ';uf.append(forged);
+  await f.input(uf,'ZZ');await f.submit('user-form');assert.equal(f.invocations.length,0);
+  assert.equal(f.document.querySelector('#user-dialog').open,true);
+  await f.input(uf,'SP');await f.submit('user-form');assert.equal(f.invocations.length,1);
+ }
+});
+
+test('registered-professional payloads keep access profile unchanged and trim declared registration',async t=>{
+ for(const [profession,access,registrationUF] of [['safety_technician','admin',''],['safety_engineer','editor','SP']]){
+  const f=await fixture(t);await f.click('new-user');await fillNewUser(f);
+  await f.input(f.field('user-form','role'),access);await f.input(f.field('user-form','professional_role'),profession);
+  await f.input(f.field('user-form','professional_registration'),'  DECLARED-synthetic-123  ','input');
+  if(registrationUF)await f.input(f.field('user-form','professional_registration_uf'),registrationUF);
+  await f.submit('user-form');
+  assert.equal(f.invocations.length,1);
+  const {data}=f.invocations[0].body;
+  assert.equal(data.role,access);assert.equal(data.professional_role,profession);
+  assert.equal(data.professional_registration,'DECLARED-synthetic-123');assert.equal(data.professional_registration_uf,registrationUF||null);
+  assert.equal(Object.hasOwn(data,'is_super_admin'),false);
+  assert.equal(data.display_name,'Nova Pessoa');assert.equal(data.team_id,OTHER);assert.equal(data.active,true);
+ }
+});
+
+test('assistant and legacy edits clear irrelevant registration and preserve administrator access',async t=>{
+ const people=[defaultMember(),person(2,{role:'admin',professional_role:'safety_assistant',professional_registration:'stale',professional_registration_uf:'SP'}),person(3,{role:'admin',professional_role:null,professional_registration:'stale',professional_registration_uf:'SP'})];
+ const f=await fixture(t,{people});
+ for(const person of people){
+  await f.editUser(person.user_id);
+  assert.equal(f.field('user-form','professional_registration').value,'');assert.equal(f.field('user-form','professional_registration_uf').value,'');
+  await f.submit('user-form');
+  const {data}=f.invocations.at(-1).body;
+  assert.equal(data.professional_role,person.professional_role||null);assert.equal(data.professional_registration,null);assert.equal(data.professional_registration_uf,null);assert.equal(data.role,'admin');
+ }
+});
+
+test('save failure retains professional fields and repeat open flows reset dynamic controls',async t=>{
+ const f=await fixture(t,{invokeResponse:{data:null,error:{context:{json:async()=>({message:'Falha sintética.'})}}}});
+ await f.click('new-user');await fillNewUser(f);await f.input(f.field('user-form','professional_role'),'safety_engineer');await f.input(f.field('user-form','professional_registration'),'CREA-synthetic','input');await f.input(f.field('user-form','professional_registration_uf'),'SP');await f.submit('user-form');
+ assert.equal(f.document.querySelector('#user-dialog').open,true);
+ assert.equal(f.field('user-form','professional_role').value,'safety_engineer');assert.equal(f.field('user-form','professional_registration').value,'CREA-synthetic');assert.equal(f.field('user-form','professional_registration_uf').value,'SP');
+ assert.equal(f.field('user-form','professional_registration_uf').disabled,false);
+ await f.click('cancel-user');await f.click('new-user');
+ assert.equal(f.field('user-form','professional_role').value,'');assert.equal(f.field('user-form','professional_registration').value,'');assert.equal(f.field('user-form','professional_registration_uf').value,'');
+ assert.equal(f.document.querySelector('#professional-registration-label').hidden,true);assert.equal(f.document.querySelector('#professional-registration-uf-label').hidden,true);
+ assert.equal(f.field('user-form','professional_registration').disabled,true);assert.equal(f.field('user-form','professional_registration_uf').disabled,true);
+});
+
+test('admin directory separates professions and access badges and keeps access filters unchanged',async t=>{
+ const people=[person(2,{role:'admin',professional_role:'safety_assistant'}),person(3,{role:'admin',professional_role:'safety_technician'}),person(4,{role:'editor',professional_role:'safety_engineer'}),person(5,{professional_role:'constructor'}),person(6)];
+ const f=await fixture(t,{people});
+ assert.deepEqual([...f.document.querySelectorAll('#users-list thead th')].map(node=>node.textContent),['Nome','Usuário','Equipe','Perfil de acesso','Status','Ações']);
+ assert.deepEqual([...f.document.querySelectorAll('.access-profession')].map(node=>node.textContent),['Auxiliar de Segurança do Trabalho','Técnico de Segurança do Trabalho','Engenheiro de Segurança do Trabalho','Função profissional não informada','Função profissional não informada']);
+ assert.equal(f.document.querySelector('.access-role').textContent,'Administrador');
+ await f.input('user-role-filter','admin');
+ assert.equal(f.document.querySelectorAll('#users-list tbody tr').length,2);
+ assert.deepEqual([...f.document.querySelectorAll('.access-profession')].map(node=>node.textContent),['Auxiliar de Segurança do Trabalho','Técnico de Segurança do Trabalho']);
+ assert.equal(f.calls.length,2);assert.equal(f.invocations.length,0);
 });

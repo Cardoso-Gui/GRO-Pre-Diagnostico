@@ -1,7 +1,7 @@
 import {overlayReportSummaries} from './report-rectification.js?v=20261020-rectify1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
-import {addReuseButton} from './reuse-report.js?v=20261020-rectify1';
+import {addReuseButton} from './reuse-report.js?v=20261020-professional1';
 const $=s=>document.querySelector(s),list=$('#report-list'),status=$('#list-status'),more=$('#list-more');
 const clients=[],authors=[],PAGE=20;
 let sequence=0,rows=[],isAdmin=false,filters={},hasMore=false,ready=false,linkedClient='';
@@ -49,13 +49,13 @@ function render(){
   const icon=node('span',name.slice(0,2).toUpperCase(),'company-icon');icon.setAttribute('aria-hidden','true');
   summary.append(icon,heading,node('span',reports.length+' '+(reports.length===1?'relatório':'relatórios')+(hasMore?' nesta lista':''),'company-count'));group.append(summary);
   const columns=node('div','','report-columns');columns.setAttribute('aria-hidden','true');
-  for(const text of ['Levantamento','Concluído em','Responsável',''])columns.append(node('span',text));group.append(columns);
+  for(const text of ['Levantamento','Concluído em','Operador',''])columns.append(node('span',text));group.append(columns);
   for(const row of reports){
    const card=node('article','','report-record'),title=node('div','','record-title');
    title.append(node('h3',row.title||'Levantamento'),node('span',row.rectification_sequence>0?'Retificado':'Concluído','record-state'));
    const date=node('div',''),author=node('div','');
    date.append(node('span','Concluído em','record-label'),node('p',new Date(row.completed_at).toLocaleDateString('pt-BR')));
-   author.append(node('span','Responsável','record-label'),node('p',row.team_members?.display_name||'Equipe'));
+   author.append(node('span','Operador','record-label'),node('p',row.team_members?.display_name||'Equipe'));
    const actions=node('div','','report-actions'),view=node('a','Ver relatório →','report-view');view.href='./report.html?id='+encodeURIComponent(row.id);
    const options=node('details',''),toggle=node('summary','Mais ações');options.append(toggle);
    const pdf=node('a','Imprimir / salvar PDF');pdf.href=view.href+'&print=1';options.append(pdf);

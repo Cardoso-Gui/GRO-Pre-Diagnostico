@@ -50,6 +50,19 @@ Deno.serve(async (req) => {
    if(!['admin','editor'].includes(data.role)) return reply(400,'Perfil inválido.');
    Object.assign(clean,{display_name:data.display_name.trim(),username,team_id:data.team_id,role:data.role,active:data.active===true,user_id:data.user_id});
    if(Object.hasOwn(data,'contact_phone')) clean.contact_phone=phone;
+   // Professional identity never changes role/is_super_admin. Missing keys remain
+   // omitted for older clients; explicit null/blank clears only that field.
+   const professionalRoles=new Set(['safety_technician','safety_engineer','safety_assistant']);
+   const registrationUfs=new Set(['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO']);
+   for(const field of ['professional_role','professional_registration','professional_registration_uf']) {
+    if(!Object.hasOwn(data,field)) continue;
+    if(data[field]!==null && typeof data[field]!=='string') return reply(400,'Dados profissionais inválidos.');
+    const value=data[field]?.trim() || null;
+    if(field==='professional_role' && value!==null && !professionalRoles.has(value)) return reply(400,'Função profissional inválida.');
+    if(field==='professional_registration' && value!==null && (value.length>80 || /[\x00-\x1f\x7f]/.test(value))) return reply(400,'Informe um registro profissional com até 80 caracteres, sem quebras de linha.');
+    if(field==='professional_registration_uf' && value!==null && !registrationUfs.has(value.toUpperCase())) return reply(400,'Selecione uma UF válida para o CREA.');
+    clean[field]=field==='professional_registration_uf' ? value?.toUpperCase() || null : value;
+   }
    if(action==='create_user') {
     if(typeof data.password!=='string' || data.password.length<6 || data.password.length>128) return reply(400,'A senha deve ter entre 6 e 128 caracteres.');
     const {data:existing}=await db.from('team_members').select('user_id').eq('username',username).maybeSingle();

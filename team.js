@@ -1,6 +1,7 @@
 import {watchPageResume} from './page-resume.js?v=20260930-resume1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
+import {professionalRoleLabel} from './professional-identity.js?v=20261020-professional1';
 const $=s=>document.querySelector(s);
 let member,offset=0,busy=false,rows=[],more=false,teams=[],generation=0;
 const collapsedTeams=new Set();
@@ -17,19 +18,19 @@ function teamIcon(){
 function tableFor(people,team){
  const table=node('table','','directory-table');table.setAttribute('aria-label',`Integrantes de ${team.name}`);
  const head=node('thead'),headRow=node('tr');
- for(const label of ['Integrante','Usuário','Contato','Função','Status']){const th=node('th',label);th.scope='col';headRow.append(th);}head.append(headRow);
+ for(const label of ['Integrante','Usuário','Contato','Perfil de acesso','Status']){const th=node('th',label);th.scope='col';headRow.append(th);}head.append(headRow);
  const body=node('tbody');
  for(const row of people){
   const tr=node('tr'),nameCell=node('td'),person=node('div','','directory-person');
   const name=String(row.display_name||'Nome não informado');
   const avatar=node('span',name.trim().split(/\s+/).slice(0,2).map(part=>part[0]||'').join('').toLocaleUpperCase('pt-BR'),'directory-avatar');
   avatar.setAttribute('aria-hidden','true');avatar.dataset.tone=String([...name].reduce((total,char)=>total+char.charCodeAt(0),0)%5);
-  const info=node('div');info.append(node('strong',name));if(row.user_id===member.user_id)info.append(node('span','Você','directory-you'));
+  const info=node('div');info.append(node('strong',name));if(row.user_id===member.user_id)info.append(node('span','Você','directory-you'));info.append(node('span',professionalRoleLabel(row.professional_role),'directory-profession'));
   person.append(avatar,info);nameCell.append(person);tr.append(nameCell);
-  const values=[['Usuário',row.username||'Não informado'],['Contato',formatPhone(row.contact_phone)||'Não informado'],['Função',roleLabels[memberRole(row,team)]],['Status',row.active?'Ativo':'Inativo']];
+  const values=[['Usuário',row.username||'Não informado'],['Contato',formatPhone(row.contact_phone)||'Não informado'],['Perfil de acesso',roleLabels[memberRole(row,team)]],['Status',row.active?'Ativo':'Inativo']];
   for(const [label,value] of values){
    const td=node('td'),mobileLabel=node('span',label,'directory-mobile-label');mobileLabel.setAttribute('aria-hidden','true');td.append(mobileLabel);
-   if(label==='Função')td.append(node('span',value,'directory-badge directory-role'));
+   if(label==='Perfil de acesso')td.append(node('span',value,'directory-badge directory-role'));
    else if(label==='Status')td.append(node('span',value,`directory-badge directory-status${row.active?'':' inactive'}`));
    else td.append(node('span',value,label==='Contato'?'directory-contact':''));
    tr.append(td);
@@ -89,7 +90,7 @@ async function load(reset=false){
   if(reset||changed){rows=[];offset=0;collapsedTeams.clear();$('#member-list').replaceChildren();}
   // Keep the existing authorization scope and 50-row pagination. RLS is unchanged.
   let teamQuery=authClient.from('teams').select('id,name,active,grants_global_access').order('name');
-  let peopleQuery=authClient.from('team_members').select('user_id,display_name,username,contact_phone,role,active,is_super_admin,team_id').order('display_name').order('user_id').range(offset,offset+49);
+  let peopleQuery=authClient.from('team_members').select('user_id,display_name,username,contact_phone,role,active,is_super_admin,team_id,professional_role').order('display_name').order('user_id').range(offset,offset+49);
   if(!member.is_super_admin){teamQuery=teamQuery.eq('id',member.team_id);peopleQuery=peopleQuery.eq('team_id',member.team_id);}
   const [team,members]=await Promise.all([teamQuery,peopleQuery]);if(request!==generation)return;
   if(team.error||members.error)throw team.error||members.error;

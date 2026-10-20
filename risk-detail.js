@@ -2,7 +2,7 @@ import {mountDamageEditor} from './risk-damage-editor.js?v=20261019-damage1';
 import {riskDetailStatus} from './risk-detail-status.js?v=20261019-epi1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
-import {saveAssessment} from './assessment-data.js';
+import {saveAssessment} from './assessment-data.js?v=20261020-professional1';
 import {detailKey,detailTargets,detailAnswers} from './risk-detail-data.js';
 const $=s=>document.querySelector(s),id=new URLSearchParams(location.search).get('id');
 let row,targets=[],details=new Map(),epis=new Map(),current=0,index=0,saving=false,baseline='';

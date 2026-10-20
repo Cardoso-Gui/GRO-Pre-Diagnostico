@@ -1,3 +1,4 @@
+import {reportProfessionalIdentity} from './professional-identity.js?v=20261020-professional1';
 import './visit-date.js?v=20261019-visit1';
 import {paginateReport} from './report-pagination.js?v=20261019-layout2';
 import {compactPrintReport} from './report-print-compact.js?v=20261019-layout2';
@@ -92,7 +93,7 @@ export function mountReportViewer(content,data){
  $('#report-title').textContent='Relatório do levantamento';
  $('#report-dates').textContent='Visita: '+reportVisitDate(answers)+' · Conclusão: '+completed+' · '+revision;
  const overview=$('#report-overview'),identity=make('div','','viewer-company');
- identity.append(make('h2',companyName),make('p',data.title||'Levantamento'),make('small','Responsável: '+(data.team_members?.display_name||'Não informado')));
+ identity.append(make('h2',companyName),make('p',data.title||'Levantamento'),make('small','Responsável pela visita: '+(reportProfessionalIdentity(data).name||'Não informado')));
  const metrics=make('div','','viewer-metrics');
  for(const [value,label] of [[staff,'Funcionários'],[sectors,'Setores'],[byGhe?(groups.length||answers.gheList?.length||0):jobs,byGhe?'GHEs':'Cargos'],[riskCards.length,'Registros de riscos']]){
   const item=make('div');item.append(make('strong',String(value)),make('span',label));metrics.append(item);

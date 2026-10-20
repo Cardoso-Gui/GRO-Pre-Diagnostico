@@ -4,11 +4,14 @@ const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text)n.textCont
 const button=(label,action)=>{const b=el('button',label,'review-action');b.type='button';b.onclick=action;return b;};
 export function renderReviewStage(){
  const host=document.querySelector('#review-stage-content'),raw=globalThis.GRO_FORM?.review();if(!host||!raw)return;
- const key=JSON.stringify(raw);if(key===signature)return;signature=key;
+ const responsible=globalThis.GRO_CLOUD?.visitResponsible?.();
+ const key=JSON.stringify({raw,responsible});if(key===signature)return;signature=key;
  const opened=new Set([...host.querySelectorAll('details[open]')].map(x=>x.dataset.target)),first=!host.children.length;
  const {answers}=raw,{groups,points,missing}=reviewModel(raw);
+ if(responsible&&!responsible.valid)missing.push({section:'Identificação da visita',text:'Selecione um técnico ou engenheiro com registro profissional completo como responsável pela visita.',destination:'#visit-responsible'});
  host.replaceChildren();
  const summary=el('section',null,'review-company');summary.append(el('h3',answers.currentCompany?.razao_social||answers.currentCompany?.nome_fantasia||'Empresa do levantamento'));
+ if(responsible){const identity=el('div',null,'review-checks');identity.append(el('span','Responsável pela visita: '+responsible.label),button('Revisar responsável',()=>globalThis.GRO_WIZARD.go(0)));summary.append(identity);}
  const stats=el('div',null,'review-stats'),sectors=new Set(answers.selectedSectors||[]),jobs=(answers.jobsBySector||[]).filter(([sector])=>sectors.has(sector)).reduce((n,[,rows])=>n+rows.length,0);
  for(const [value,label] of [[answers.employees||0,'funcionários'],[sectors.size,'setores'],[jobs,'cargos'],[groups.length,answers.selectedRiskMode==='ghe'?'GHEs':'cargos com riscos']]){const item=el('div');item.append(el('strong',String(value)),el('span',label));stats.append(item);}summary.append(stats);
  const checks=el('div',null,'review-checks');

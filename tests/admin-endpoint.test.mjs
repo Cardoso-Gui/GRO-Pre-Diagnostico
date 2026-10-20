@@ -37,3 +37,27 @@ test('contact phone is normalized and malformed numbers are rejected before crea
  for(const phone of ['123','abc11999999999','119999999999']){const bad=fixture();assert.equal((await bad.request({...user,data:{...user.data,contact_phone:phone}})).status,400);assert.equal(bad.calls.created.length,0);}
  const empty=fixture();assert.equal((await empty.request({...user,data:{...user.data,contact_phone:''}})).status,200);assert.equal(empty.calls.rpc[0].p_data.contact_phone,'');
 });
+
+test('professional identity is validated independently from permission and normalized',async()=>{
+ const f=fixture();const response=await f.request({...user,data:{...user.data,professional_role:'safety_engineer',professional_registration:'  12345-D  ',professional_registration_uf:' sp ',is_super_admin:true,registration_type:'MTE'}});
+ assert.equal(response.status,200);const saved=f.calls.rpc[0].p_data;
+ assert.equal(saved.role,'editor');assert.equal(saved.professional_role,'safety_engineer');assert.equal(saved.professional_registration,'12345-D');assert.equal(saved.professional_registration_uf,'SP');
+ assert.equal('is_super_admin' in saved,false);assert.equal('registration_type' in saved,false);
+});
+test('professional endpoint rejects spoofed types, roles, UF and oversized/control registrations before Auth mutation',async()=>{
+ for(const fields of [{professional_role:'admin'},{professional_role:1},{professional_registration:123},{professional_registration:{}},{professional_registration:'a'.repeat(81)},{professional_registration:'12\n345'},{professional_registration_uf:'XX'},{professional_registration_uf:true}]){
+  const f=fixture();assert.equal((await f.request({...user,data:{...user.data,...fields}})).status,400,JSON.stringify(fields));assert.equal(f.calls.created.length,0);assert.equal(f.calls.rpc.length,0);
+ }
+});
+test('omitted professional fields stay omitted for old clients; explicit blanks/nulls are cleared',async()=>{
+ const f=fixture();assert.equal((await f.request({...user,action:'update_user',data:{...user.data,user_id:'target',active:true}})).status,200);
+ for(const key of ['professional_role','professional_registration','professional_registration_uf']) assert.equal(Object.hasOwn(f.calls.rpc[0].p_data,key),false);
+ const clear=fixture();assert.equal((await clear.request({...user,action:'update_user',data:{...user.data,user_id:'target',active:true,professional_role:null,professional_registration:'  ',professional_registration_uf:''}})).status,200);
+ for(const key of ['professional_role','professional_registration','professional_registration_uf']) assert.equal(clear.calls.rpc[0].p_data[key],null);
+});
+test('auxiliary and unknown identities are accepted as incomplete profiles without granting administrative access',async()=>{
+ for(const professional_role of ['safety_assistant',null]){
+  const f=fixture();assert.equal((await f.request({...user,data:{...user.data,professional_role}})).status,200);assert.equal(f.calls.rpc[0].p_data.role,'editor');
+ }
+ const f=fixture({role:'editor'});assert.equal((await f.request({...user,data:{...user.data,professional_role:'safety_engineer',professional_registration:'123',professional_registration_uf:'SP'}})).status,403);assert.equal(f.calls.created.length,0);
+});

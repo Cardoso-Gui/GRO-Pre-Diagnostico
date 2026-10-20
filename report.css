@@ -135,3 +135,5 @@ body{margin:0;background:#f4f7f8;color:#203943;font-family:'Segoe UI',Arial,sans
 
 .report-workstation-photos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.report-workstation-photos:has(img:only-child){grid-template-columns:1fr}.report-workstation-photos img{min-width:0;max-height:220px}@media screen and (max-width:600px){.report-workstation-photos{grid-template-columns:1fr}}@media print{.report-workstation-photos img{max-height:55mm}}
 
+
+.report-professional-registration{overflow-wrap:anywhere}

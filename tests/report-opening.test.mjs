@@ -58,6 +58,6 @@ test('gerador e visualizador usam a mesma abertura e carregamento atualizado',()
  assert.match(workspace,/'report-opening\.js','visit-date\.js','script\.js'/);
  assert.match(viewer,/import '\.\/report-opening\.js\?v=20261019-opening1'/);
  assert.match(viewer,/GRO_REPORT_OPENING\.apply\(cover\)/);
- assert.match(read('levantamento.html'),/workspace\.js\?v=20261019-visit1/);
- assert.match(read('report.html'),/report\.js\?v=20261020-rectify1/);
+ assert.match(read('levantamento.html'),/workspace\.js\?v=20261020-professional1/);
+ assert.match(read('report.html'),/report\.js\?v=20261020-professional1/);
 });

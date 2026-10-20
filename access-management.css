@@ -47,6 +47,7 @@ body.access-management-page{background:#f1f7f4}
 .access-management .access-avatar[data-tone="3"]{background:#fae0e3;color:#914b58}
 .access-management .access-avatar[data-tone="4"]{background:#fbead2;color:#865e29}
 .access-management .access-contact{font-size:11px;color:#607887;display:block;margin-top:3px}
+.access-management .access-profession{font-size:11px;font-weight:400;color:#526c7b;display:block;margin-top:4px}
 .access-management .access-team-icon{width:48px;height:48px;border-radius:12px;background:#e3f2e9;color:#12644f;display:grid;place-items:center;flex-shrink:0}
 .access-management .access-team-icon svg{width:27px;height:27px}
 .access-management .access-team-icon.inactive{background:#edf0ef;color:#657571}

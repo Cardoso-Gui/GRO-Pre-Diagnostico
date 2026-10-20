@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "test": "node --experimental-vm-modules --test tests/*.test.mjs",
-    "test:concurrency": "node supabase/tests/rectification-concurrency.mjs ."
+    "test:concurrency": "npm run test:concurrency:rectification && npm run test:concurrency:professional",
+    "test:concurrency:rectification": "node supabase/tests/rectification-concurrency.mjs .",
+    "test:concurrency:professional": "node supabase/tests/professional-identity-concurrency.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.10",

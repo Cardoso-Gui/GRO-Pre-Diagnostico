@@ -1,4 +1,5 @@
 import {readAssessmentReport} from './report-rectification.js?v=20261020-rectify1';
+import {reportProfessionalIdentity} from './professional-identity.js?v=20261020-professional1';
 import {generateEffectiveDocument} from './report-generator.js?v=20261020-rectify1';
 import {mountRectificationHistory} from './rectification-history.js?v=20261020-rectify1';
 import './report-opening.js?v=20261019-opening1';
@@ -7,8 +8,8 @@ import {hydrateReportPhotos} from './workstation-photos.js?v=20260928-photos1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
 import {organizeReport} from './report-layout.js?v=20260929-update1';
-import {addReuseButton} from './reuse-report.js?v=20261020-rectify1';
-import {mountReportViewer,reportVisitDate} from './report-viewer.js?v=20261019-visit1';
+import {addReuseButton} from './reuse-report.js?v=20261020-professional1';
+import {mountReportViewer,reportVisitDate} from './report-viewer.js?v=20261020-professional1';
 const message=document.querySelector('#report-status'),content=document.querySelector('#report-content'),print=document.querySelector('#report-print');
 const tags=new Set(['section','div','article','h2','h3','h4','p','span','strong','small','ul','li']);
 function renderNode(node,depth=0){
@@ -48,7 +49,7 @@ async function load(){
  });
  const date=new Date(data.completed_at).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'});
  const visitDate=reportVisitDate(data.final_snapshot?.answers||{});
- const responsible=data.team_members?.display_name?.trim();
+ const professional=reportProfessionalIdentity(data),responsible=professional.name;
  const company=data.final_snapshot?.client;
  const companyName=company?.trade_name?.trim()||company?.legal_name||content.querySelector('.report-cover h3')?.textContent||'empresa';
  const companyBlock=Array.from(content.querySelectorAll('.report-block')).find(block=>block.querySelector('h3')?.textContent==='Dados da empresa');
@@ -114,8 +115,6 @@ async function load(){
  const heading=document.createElement('h3');heading.textContent='Considerações finais';
  const paragraph=document.createElement('p');paragraph.textContent='Este levantamento registra as condições observadas na data da visita e as informações fornecidas pela empresa. As necessidades de avaliação complementar e as melhorias apontadas deverão ser analisadas pelos responsáveis técnicos, para definição das medidas e dos prazos de implementação.';
  const attribution=document.createElement('div');attribution.className='report-attribution';
- const name=document.createElement('strong');name.textContent=responsible||'Responsável não disponível';
- const role=document.createElement('span');role.textContent='Responsável pelo levantamento';
  const completed=document.createElement('span');completed.textContent='Concluído em '+date;
  attribution.append(completed);
  const signatures=document.createElement('div');signatures.className='report-signatures';
@@ -125,7 +124,17 @@ async function load(){
    const line=document.createElement('div');line.className='report-signature-line';line.setAttribute('aria-label','Espaço para assinatura');
    const personName=document.createElement('strong');personName.textContent=person||'Nome: __________________________________';
    const caption=document.createElement('span');caption.textContent=label;
-   field.append(line,personName,caption);signatures.append(field);
+   field.append(line,personName,caption);
+   if(label==='Responsável pela visita'){
+     if(professional.frozen){
+       const profession=document.createElement('span');profession.className='report-professional-role';profession.textContent=professional.role;
+       const registration=document.createElement('span');registration.className='report-professional-registration';registration.textContent=professional.registration||'Registro não preservado';
+       field.append(profession,registration);
+     }else{
+       const legacy=document.createElement('small');legacy.className='report-professional-legacy';legacy.textContent='Função e registro não preservados neste relatório.';field.append(legacy);
+     }
+   }
+   signatures.append(field);
  }
  closing.append(heading,paragraph,attribution,signatures);content.append(closing);
  organizeReport(content,data.final_snapshot?.answers||{});
