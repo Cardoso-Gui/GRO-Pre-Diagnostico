@@ -62,7 +62,9 @@ function validate(result){
  for(const page of pdf.pages)for(const word of page.words)assert.ok(word.xMin>=0&&word.yMin>=0&&word.xMax<=page.width+.5&&word.yMax<=page.height+.5,`PDF word outside page: ${word.text}`);
  if(scenario==='full'){
   assert.equal(diag.expected.length,19,'full fixture retains all nineteen risks');
-  assert.equal(snap.sheets[0].cover.length,6,'both opening paragraphs, visit, objective, summary and dimensions fit the first page');
+  assert.equal(snap.sheets[0].cover.length,result.label==='current'?5:6,'opening, visit, summary and dimensions fit the first page; only baseline retains objective');
+  const redundantObjective='O levantamento tem como objetivo apoiar a identificação dos perigos e o planejamento das ações de prevenção, considerando as atividades desenvolvidas e as informações fornecidas pela empresa.';
+  assert.equal(normalize(pdf.text).includes(redundantObjective),result.label==='baseline','only the obsolete standard objective is removed from the current PDF');
   for(const sheet of snap.sheets){
    for(const [i,entry] of sheet.cover.entries()){
     assert.ok(entry.rect.bottom<=sheet.rect.bottom+1,'cover entry does not overflow the page');

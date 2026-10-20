@@ -9,6 +9,7 @@ const approved=[
  'Este relatório apresenta os resultados do levantamento preliminar das atividades e das condições de trabalho da empresa. Reúne informações sobre os setores abrangidos pelo levantamento, os riscos ocupacionais identificados e as medidas de prevenção informadas, com o objetivo de apoiar a definição de prioridades e orientar a análise de eventuais necessidades de avaliação complementar.',
  'Seu conteúdo se limita ao escopo do levantamento e às informações registradas na ocasião. Por seu caráter preliminar, não substitui o PGR, o PCMSO, o LTCAT, os laudos técnicos ou as avaliações específicas aplicáveis, nem dispensa a análise dos profissionais responsáveis.'
 ];
+const redundantObjective='O levantamento tem como objetivo apoiar a identificação dos perigos e o planejamento das ações de prevenção, considerando as atividades desenvolvidas e as informações fornecidas pela empresa.';
 const read=file=>fs.readFileSync(new URL('../'+file,import.meta.url),'utf8');
 const opening=cover=>cover.querySelectorAll('.report-opening').map(node=>node.textContent);
 
@@ -21,6 +22,7 @@ test('nova capa grava exatamente os dois parágrafos aprovados, mantendo identif
  assert.equal(cover.querySelector('h3').textContent,'Empresa sintética');
  assert.equal(cover.querySelectorAll('.report-summary-item').length,5);
  assert.deepEqual(cover.children.map(node=>node.tagName),['SPAN','H3','P','P','DIV']);
+ assert.equal(cover.querySelector('.report-objective'),null);assert.equal(cover.textContent.includes(redundantObjective),false);
 });
 
 test('capa histórica recebe abertura atual sem alterar visita, objetivo, dados ou snapshot',t=>{
@@ -73,10 +75,40 @@ test('renderização repetida mantém dois parágrafos, sem duplicação',t=>{
 test('gerador e visualizador usam a mesma abertura e carregamento atualizado',()=>{
  const workspace=read('workspace.js'),viewer=read('report.js'),generator=read('report-generator.js');
  assert.match(workspace,/'report-opening\.js','visit-date\.js','script\.js'/);
- assert.match(viewer,/import '\.\/report-opening\.js\?v=20261020-opening2'/);
- assert.match(viewer,/report-generator\.js\?v=20261020-opening2/);
- for(const loader of [workspace,generator])assert.match(loader,/file==='report-opening\.js'\?'20261020-opening2'/);
+ assert.match(viewer,/import '\.\/report-opening\.js\?v=20261020-objective1'/);
+ assert.match(viewer,/report-generator\.js\?v=20261020-objective1/);
+ for(const loader of [workspace,generator])assert.match(loader,/file==='report-opening\.js'\?'20261020-objective1'/);
  assert.match(viewer,/GRO_REPORT_OPENING\.apply\(cover\)/);
- assert.match(read('levantamento.html'),/workspace\.js\?v=20261020-opening2/);
- assert.match(read('report.html'),/report\.js\?v=20261020-visitcopy1/);
+ assert.match(read('levantamento.html'),/workspace\.js\?v=20261020-objective1/);
+ assert.match(read('report.html'),/report\.js\?v=20261020-objective1/);
+ assert.match(read('rectification-workspace.js'),/report-generator\.js\?v=20261020-objective1/);
+ assert.match(read('rectify.html'),/rectification-workspace\.js\?v=20261020-objective1/);
+});
+
+
+test('normalização remove somente o objetivo padrão direto da capa, sem tocar no snapshot',t=>{
+ installDOM(t);
+ for(const className of ['', 'report-objective']){
+  const obsolete=el('p','  '+redundantObjective.replace(/ /g,'\n  ')+'  ',className);
+  const duplicate=el('p',redundantObjective,'report-objective');
+  const custom=el('p',redundantObjective+' Observação específica preservada.','report-objective');
+  const nested=el('section','', 'report-custom',el('p',redundantObjective));
+  const nonParagraph=el('div',redundantObjective);
+  const visit=el('p','Visita preservada','report-introduction'),summary=el('div','Dados preservados','report-summary-grid');
+  const cover=el('section','','report-cover',el('h3','Empresa sintética'),obsolete,duplicate,visit,custom,nested,nonParagraph,summary);
+  const snapshot=cover.cloneNode(true),saved=snapshot.textContent;
+  globalThis.GRO_REPORT_OPENING.apply(cover);
+  assert.equal(obsolete.parentElement,null);assert.equal(duplicate.parentElement,null);
+  for(const node of [visit,custom,nested,nonParagraph,summary])assert.equal(node.parentElement,cover);
+  assert.equal(custom.textContent,redundantObjective+' Observação específica preservada.');assert.equal(nested.textContent,redundantObjective);
+  assert.equal(snapshot.textContent,saved);assert.equal(snapshot.children.length,8);
+  globalThis.GRO_REPORT_OPENING.apply(cover);
+  assert.deepEqual(opening(cover),approved);assert.equal(cover.children.length,8);
+ }
+});
+
+test('visualizador não reinsere o objetivo removido nem altera o texto da visita',()=>{
+ assert.doesNotMatch(read('report.js'),/introduction\.after\(objective\)|objective\.textContent|report-objective/);
+ assert.ok(!read('report.js').includes(redundantObjective));
+ assert.match(read('report.js'),/createReportVisitIntroduction\(\{identity,cnpj,fullAddress,visitDate,responsible\}\)/);
 });

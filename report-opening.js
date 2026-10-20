@@ -6,9 +6,13 @@
   'Seu conteúdo se limita ao escopo do levantamento e às informações registradas na ocasião. Por seu caráter preliminar, não substitui o PGR, o PCMSO, o LTCAT, os laudos técnicos ou as avaliações específicas aplicáveis, nem dispensa a análise dos profissionais responsáveis.'
  ]);
  const legacyOpening='Este relatório consolida as informações coletadas no questionário. Ele não substitui PGR, PCMSO, LTCAT, laudos técnicos, avaliações quantitativas ou validação dos responsáveis técnicos.';
+ const redundantObjective='O levantamento tem como objetivo apoiar a identificação dos perigos e o planejamento das ações de prevenção, considerando as atividades desenvolvidas e as informações fornecidas pela empresa.';
  const normalized=text=>text.replace(/\s+/g,' ').trim();
  function apply(cover){
   if(!cover)return;
+  // Remove only this obsolete standard paragraph from the rendered cover.
+  // Custom prose and stored documents remain untouched.
+  for(const node of [...cover.children])if(node.tagName==='P'&&normalized(node.textContent)===redundantObjective)node.remove();
   const previous=[...cover.children].filter(node=>node.classList.contains('report-opening'));
   // Replace only the known legacy opening, leaving unrelated prose untouched.
   if(!previous.length){

@@ -1,9 +1,9 @@
 import {createReportVisitIntroduction} from './report-visit-introduction.js?v=20261020-visitcopy1';
 import {readAssessmentReport} from './report-rectification.js?v=20261020-rectify1';
 import {reportProfessionalIdentity} from './professional-identity.js?v=20261020-professional1';
-import {generateEffectiveDocument} from './report-generator.js?v=20261020-opening2';
+import {generateEffectiveDocument} from './report-generator.js?v=20261020-objective1';
 import {mountRectificationHistory} from './rectification-history.js?v=20261020-rectify1';
-import './report-opening.js?v=20261020-opening2';
+import './report-opening.js?v=20261020-objective1';
 import {watchPageResume} from './page-resume.js?v=20260930-resume1';
 import {hydrateReportPhotos} from './workstation-photos.js?v=20260928-photos1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
@@ -109,8 +109,6 @@ async function load(){
    cover.append(grid);sizingBlock.remove();
  }
  if(cover){const summary=cover.querySelector('.report-summary-grid');if(summary)summary.before(introduction);else cover.append(introduction);}
- const objective=document.createElement('p');objective.className='report-objective';objective.textContent='O levantamento tem como objetivo apoiar a identificação dos perigos e o planejamento das ações de prevenção, considerando as atividades desenvolvidas e as informações fornecidas pela empresa.';
- introduction.after(objective);
  const closing=document.createElement('section');closing.className='report-closing';
  const heading=document.createElement('h3');heading.textContent='Considerações finais';
  const paragraph=document.createElement('p');paragraph.textContent='Este levantamento registra as condições observadas na data da visita e as informações fornecidas pela empresa. As necessidades de avaliação complementar e as melhorias apontadas deverão ser analisadas pelos responsáveis técnicos, para definição das medidas e dos prazos de implementação.';
