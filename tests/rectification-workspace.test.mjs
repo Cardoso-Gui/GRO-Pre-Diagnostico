@@ -5,7 +5,7 @@ import vm from 'node:vm';
 import {JSDOM,VirtualConsole} from 'jsdom';
 import {fixture} from './helpers/rectification-fixture.mjs';
 const read=file=>fs.readFileSync(new URL('../'+file,import.meta.url),'utf8');
-const runtimeFiles=['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js','report-opening.js','visit-date.js','script.js'];
+const runtimeFiles=['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js','report-opening.js','report-cipa.js','visit-date.js','script.js'];
 async function workspace(t,{state=fixture(),write,preflight,interruptDuringRuntime=false}={}){
  const dom=new JSDOM(read('rectify.html'),{url:'https://synthetic.example.test/rectify.html?id='+fixture().assessment.id,runScripts:'outside-only',virtualConsole:new VirtualConsole()});t.after(()=>dom.window.close());
  const win=dom.window,context=dom.getInternalVMContext(),calls=[],member={user_id:'synthetic-user',display_name:'Pessoa sintética',role:'admin',team_id:'synthetic-team'};

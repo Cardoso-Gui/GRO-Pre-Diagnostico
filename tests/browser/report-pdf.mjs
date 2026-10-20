@@ -19,11 +19,12 @@ const normalize=text=>text.replace(/\s+/g,' ').trim();
 function inspectPdf(file){
  const list=execFileSync('pdfimages',['-list',file],{encoding:'utf8'});
  const text=execFileSync('pdftotext',['-layout',file,'-'],{encoding:'utf8'});
+ const rawText=execFileSync('pdftotext',['-raw',file,'-'],{encoding:'utf8'});
  const bbox=execFileSync('pdftotext',['-bbox-layout',file,'-'],{encoding:'utf8'});
  const doc=new JSDOM(bbox,{contentType:'text/xml'}).window.document;
  const pages=[...doc.querySelectorAll('page')];
  const images=list.split('\n').filter(line=>/^\s*\d+\s+\d+\s+image\s/.test(line)).map(line=>{const p=line.trim().split(/\s+/);return {page:Number(p[0]),width:Number(p[3]),height:Number(p[4])};});
- return {images,text,pageCount:pages.length,pages:pages.map(page=>({width:Number(page.getAttribute('width')),height:Number(page.getAttribute('height')),words:[...page.querySelectorAll('word')].map(word=>({text:word.textContent,xMin:Number(word.getAttribute('xMin')),xMax:Number(word.getAttribute('xMax')),yMin:Number(word.getAttribute('yMin')),yMax:Number(word.getAttribute('yMax'))}))}))};
+ return {images,text,rawText,pageCount:pages.length,pages:pages.map(page=>({width:Number(page.getAttribute('width')),height:Number(page.getAttribute('height')),words:[...page.querySelectorAll('word')].map(word=>({text:word.textContent,xMin:Number(word.getAttribute('xMin')),xMax:Number(word.getAttribute('xMax')),yMin:Number(word.getAttribute('yMin')),yMax:Number(word.getAttribute('yMax'))}))}))};
 }
 function validate(result){
  const {scenario,diagnostics:diag,pdf}=result,snap=diag.prints[0];
@@ -62,9 +63,26 @@ function validate(result){
  for(const page of pdf.pages)for(const word of page.words)assert.ok(word.xMin>=0&&word.yMin>=0&&word.xMax<=page.width+.5&&word.yMax<=page.height+.5,`PDF word outside page: ${word.text}`);
  if(scenario==='full'){
   assert.equal(diag.expected.length,19,'full fixture retains all nineteen risks');
-  assert.equal(snap.sheets[0].cover.length,result.label==='current'?5:6,'opening, visit, summary and dimensions fit the first page; only baseline retains objective');
+  assert.equal(snap.sheets[0].cover.length,5,'opening, visit, summary and dimensions fit the first page');
   const redundantObjective='O levantamento tem como objetivo apoiar a identificação dos perigos e o planejamento das ações de prevenção, considerando as atividades desenvolvidas e as informações fornecidas pela empresa.';
-  assert.equal(normalize(pdf.text).includes(redundantObjective),result.label==='baseline','only the obsolete standard objective is removed from the current PDF');
+  assert.equal(normalize(pdf.text).includes(redundantObjective),false,'neither version reintroduces the removed objective');
+  const dimensions=snap.sheets[0].cover.find(entry=>entry.className==='report-dimension-grid');
+  assert.equal(dimensions.text.includes('formalizadas anualmente pela organização (NR-5, item 5.4.14).'),result.label==='current','current CIPA includes approved annual formalization');
+  assert.equal(dimensions.text.includes('Sem comissão nesta faixa'),result.label==='baseline','only recognized legacy CIPA copy is replaced');
+  assert.equal(snap.sheets[0].dimensions.length,2,'both dimension cards remain on the cover');
+  for(const card of snap.sheets[0].dimensions){
+   for(const [i,paragraph] of card.paragraphs.entries()){
+    assert.ok(paragraph.rect.bottom<=card.rect.bottom+1,'dimension paragraph stays inside card');
+    // Poppler preserves a newline after a wrapped literal hyphen (e.g. NR-\n5).
+    const extracted=normalize(pdf.rawText.replace(/-[ \t]*\r?\n[ \t]*/g,'-'));
+    assert.equal(extracted.split(normalize(paragraph.text)).length-1,1,'each complete dimension paragraph remains extractable exactly once');
+    for(const next of card.paragraphs.slice(i+1))assert.ok(paragraph.rect.bottom<=next.rect.y+1,'dimension paragraphs do not overlap');
+   }
+  }
+  const cipa=snap.sheets[0].dimensions[0],sesmt=snap.sheets[0].dimensions[1];
+  assert.equal(cipa.title,result.label==='current'?'CIPA — Resultado do dimensionamento':'CIPA');
+  assert.equal(cipa.paragraphs.length,result.label==='current'?2:1);
+  assert.deepEqual(sesmt.paragraphs.map(p=>p.text),['Sem equipe mínima nesta faixa','Pelo Anexo II da NR-4 não há profissionais mínimos para essa faixa.']);
   for(const sheet of snap.sheets){
    for(const [i,entry] of sheet.cover.entries()){
     assert.ok(entry.rect.bottom<=sheet.rect.bottom+1,'cover entry does not overflow the page');
