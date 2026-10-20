@@ -1,6 +1,8 @@
+import {readAssessmentReport} from './report-rectification.js?v=20261020-rectify1';
 import {companyFromClient,saveAssessment} from './assessment-data.js';
 
 export function reusedAnswers(snapshot,client){
+ // A reused assessment represents a new visit: do not inherit either date key.
  const answers={cnpj:client.cnpj,currentCompany:companyFromClient(client)};
  for(const key of ['employees','dimensionOptions','selectedSectors','jobsBySector','selectedRiskMode','gheList','selectedRisksByTarget','riskSourcesBySelection','epiBySelection']){
   if(snapshot?.[key]!==undefined)answers[key]=structuredClone(snapshot[key]);
@@ -19,8 +21,8 @@ export function addReuseButton(container,sourceId,authClient,getTeamMember,notif
    const access=await getTeamMember();
    if(access.reason==='network')throw Error('Não foi possível verificar seu acesso. Confira a conexão e tente reutilizar novamente.');
    if(!access.member)throw Error(access.reason==='session'?'Sua sessão expirou. Entre novamente para reutilizar o levantamento.':'Seu acesso não está disponível. Entre em contato com o administrador.');
-   const source=await authClient.from('assessments').select('client_id,title,final_snapshot').eq('id',sourceId).eq('status','completed').maybeSingle();
-   if(source.error)throw Error('Não foi possível carregar o relatório. Confira a conexão e tente reutilizar novamente.');
+   const effective=await readAssessmentReport(authClient,sourceId);
+   const source={data:effective.assessment};
    if(!source.data?.final_snapshot?.answers)throw Error('Relatório indisponível para reutilização.');
    const client=await authClient.from('clients').select('*').eq('id',source.data.client_id).eq('archived',false).maybeSingle();
    if(client.error)throw Error('Não foi possível carregar os dados do cliente. Confira a conexão e tente reutilizar novamente.');

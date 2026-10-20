@@ -1,0 +1,370 @@
+{
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "nonblank": true
+    },
+    "client": {
+      "type": "object",
+      "properties": {
+        "legal_name": {
+          "type": "string",
+          "nonblank": true
+        },
+        "trade_name": {
+          "type": "string",
+          "nullable": true
+        },
+        "cnpj": {
+          "type": "string",
+          "nullable": true
+        },
+        "cnae": {
+          "type": "string",
+          "nullable": true
+        },
+        "contact_name": {
+          "type": "string",
+          "nullable": true
+        },
+        "contact_phone": {
+          "type": "string",
+          "nullable": true
+        },
+        "contact_email": {
+          "type": "string",
+          "nullable": true
+        },
+        "address": {
+          "type": "object",
+          "properties": {
+            "street": {
+              "type": "string"
+            },
+            "number": {
+              "type": "string"
+            },
+            "complement": {
+              "type": "string"
+            },
+            "district": {
+              "type": "string"
+            },
+            "city": {
+              "type": "string"
+            },
+            "state": {
+              "type": "string"
+            },
+            "postal_code": {
+              "type": "string"
+            }
+          },
+          "strict": true
+        }
+      },
+      "strict": true
+    },
+    "answers": {
+      "type": "object",
+      "properties": {
+        "visitDate": {
+          "type": "string"
+        },
+        "employees": {
+          "type": [
+            "string",
+            "number"
+          ],
+          "positiveInteger": true
+        },
+        "dimensionOptions": {
+          "type": "object",
+          "properties": {
+            "preponderantRisk": {
+              "type": "string"
+            },
+            "health": {
+              "type": "boolean"
+            }
+          },
+          "strict": false
+        },
+        "selectedSectors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "nonblank": true
+          }
+        },
+        "jobsBySector": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "tuple": [
+              {
+                "type": "string",
+                "nonblank": true
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "nonblank": true
+                    },
+                    "quantity": {
+                      "type": [
+                        "number",
+                        "string"
+                      ],
+                      "positiveInteger": true
+                    },
+                    "activities": {
+                      "type": "string",
+                      "nonblank": true
+                    },
+                    "foodHandling": {
+                      "type": "boolean"
+                    },
+                    "workstations": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "nonblank": true
+                          },
+                          "note": {
+                            "type": "string"
+                          },
+                          "photoPath": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "photoPaths": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "strict": false,
+                        "required": [
+                          "name"
+                        ],
+                        "complete": true
+                      },
+                      "identity": "name"
+                    }
+                  },
+                  "strict": false,
+                  "required": [
+                    "name",
+                    "quantity",
+                    "activities"
+                  ],
+                  "complete": true
+                },
+                "identity": "name"
+              }
+            ]
+          },
+          "identity": 0
+        },
+        "selectedRiskMode": {
+          "type": "string",
+          "enum": [
+            "ghe",
+            "job"
+          ]
+        },
+        "gheList": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "nonblank": true
+              },
+              "name": {
+                "type": "string",
+                "nonblank": true
+              },
+              "linkedJobs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "sectorName": {
+                      "type": "string"
+                    },
+                    "jobName": {
+                      "type": "string"
+                    }
+                  },
+                  "strict": false,
+                  "required": [
+                    "sectorName",
+                    "jobName"
+                  ],
+                  "complete": true
+                },
+                "identity": [
+                  "sectorName",
+                  "jobName"
+                ]
+              }
+            },
+            "strict": false,
+            "required": [
+              "id",
+              "name",
+              "linkedJobs"
+            ],
+            "complete": true,
+            "hardRequired": [
+              "id",
+              "name",
+              "linkedJobs"
+            ]
+          },
+          "identity": "id"
+        },
+        "selectedRisksByTarget": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "tuple": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "identity": 0
+        },
+        "riskSourcesBySelection": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "tuple": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "source": {
+                    "type": "string",
+                    "nonblank": true
+                  },
+                  "note": {
+                    "type": "string"
+                  },
+                  "frequency": {
+                    "type": "string",
+                    "nonblank": true
+                  },
+                  "duration": {
+                    "type": "string",
+                    "nonblank": true
+                  },
+                  "damage": {
+                    "type": "string",
+                    "nonblank": true
+                  },
+                  "measures": {
+                    "type": "string",
+                    "nonblank": true
+                  },
+                  "improve": {
+                    "type": "string"
+                  },
+                  "measure": {
+                    "type": "string",
+                    "enum": [
+                      "Sim",
+                      "Não"
+                    ]
+                  },
+                  "controls": {
+                    "type": "array",
+                    "items": {
+                      "type": "boolean"
+                    },
+                    "maxItems": 3
+                  },
+                  "damageSelections": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "damageOther": {
+                    "type": "string"
+                  },
+                  "damageOtherEnabled": {
+                    "type": "boolean"
+                  }
+                },
+                "strict": false,
+                "complete": true
+              }
+            ]
+          },
+          "identity": 0
+        },
+        "epiBySelection": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "tuple": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "applicable": {
+                    "type": "string",
+                    "enum": [
+                      "Sim",
+                      "Não"
+                    ]
+                  },
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "nonblank": true
+                    }
+                  }
+                },
+                "strict": false,
+                "required": [
+                  "applicable",
+                  "items"
+                ],
+                "complete": true
+              }
+            ]
+          },
+          "identity": 0
+        }
+      },
+      "strict": true
+    }
+  },
+  "strict": true
+}

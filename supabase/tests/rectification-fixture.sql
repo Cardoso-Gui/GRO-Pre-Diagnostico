@@ -1,0 +1,32 @@
+-- SYNTHETIC LOCAL DATABASE ONLY. This file creates its own baseline schema.
+-- Never run this file against a connected or production Supabase project.
+create role anon nologin;
+create role authenticated nologin;
+create role service_role nologin bypassrls;
+create schema auth;
+create schema private;
+create schema storage;
+create table storage.objects(bucket_id text,name text);
+grant usage on schema public,private,auth to authenticated;
+grant usage on schema public,auth to anon;
+create table auth.users(id uuid primary key,is_anonymous boolean default false,banned_until timestamptz,deleted_at timestamptz);
+create table auth.sessions(id uuid primary key,user_id uuid not null references auth.users(id),not_after timestamptz);
+create function auth.jwt() returns jsonb language sql stable as $$ select nullif(current_setting('request.jwt.claims',true),'')::jsonb; $$;
+create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid; $$;
+create table public.teams(id uuid primary key,name text,active boolean not null default true,grants_global_access boolean not null default false);
+create table public.team_members(user_id uuid primary key references auth.users(id),team_id uuid not null references public.teams(id),display_name text not null,role text not null,active boolean not null default true,is_super_admin boolean not null default false);
+create table public.clients(id uuid primary key,team_id uuid not null references public.teams(id),legal_name text,cnpj text,archived boolean default false);
+create table public.assessments(id uuid primary key,client_id uuid not null references public.clients(id),title text,responsible_id uuid,status text,revision bigint,current_step integer not null default 1,updated_by uuid,report_revision integer,created_at timestamptz,updated_at timestamptz,created_by uuid,completed_at timestamptz,completed_by uuid,schema_version integer,answers jsonb,final_snapshot jsonb);
+create function private.current_team_id() returns uuid language sql stable security definer set search_path='' as $$ select m.team_id from public.team_members m join public.teams t on t.id=m.team_id where m.user_id=auth.uid() and m.active and (t.active or m.is_super_admin); $$;
+create function private.is_global_admin() returns boolean language sql stable security definer set search_path='' as $$ select exists(select 1 from public.team_members m join public.teams t on t.id=m.team_id where m.user_id=auth.uid() and m.active and ((m.is_super_admin and m.role='admin') or (t.active and t.grants_global_access))); $$;
+alter table public.assessments enable row level security;
+alter table public.clients enable row level security;
+alter table public.team_members enable row level security;
+create policy clients_read on public.clients for select to authenticated using (private.is_global_admin() or team_id=private.current_team_id());
+create policy assessments_read on public.assessments for select to authenticated using (exists(select 1 from public.clients c where c.id=client_id));
+create policy members_read on public.team_members for select to authenticated using (private.is_global_admin() or team_id=private.current_team_id());
+grant select on public.assessments,public.clients,public.team_members,public.teams to authenticated;
+grant update on public.assessments to authenticated;
+create policy assessments_update on public.assessments for update to authenticated using (exists(select 1 from public.clients c where c.id=client_id));
+create function private.guard_assessment() returns trigger language plpgsql as $$ begin if old.status='completed' then raise exception 'Levantamento concluído não pode ser alterado.' using errcode='23514';end if;return new;end;$$;
+create trigger assessments_b_guard before update on public.assessments for each row execute function private.guard_assessment();

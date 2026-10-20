@@ -29,14 +29,15 @@ export function renderReviewStage(){
   const links=el('div',null,'review-links');links.append(button('Revisar riscos',()=>openGroup(4,'.risk-accordion',group.id)),button('Revisar EPIs',()=>openGroup(5,'.epi-group',group.id)));card.append(links);host.append(card);
  }
  if(points.length){const info=el('details',null,'review-points');info.append(el('summary','Pontos para revisão técnica · '+points.length),el('p','Riscos marcados para medir ou avaliar. Estes pontos não bloqueiam a geração do relatório.'));points.forEach(s=>info.append(el('p',s.targetTitle+' / '+s.risk.name)));host.append(info);}
- const generate=document.querySelector('#generate-report-button');generate.disabled=missing.length>0;
- document.querySelector('#review-generation-hint').textContent=missing.length?'Disponível após corrigir os campos obrigatórios.':'Campos obrigatórios preenchidos. Você pode gerar o relatório.';
+ const generate=document.querySelector('#generate-report-button');generate.disabled=globalThis.GRO_CLOUD?.rectification?Boolean(globalThis.GRO_POSTS?.busy()):missing.length>0;
+ document.querySelector('#review-generation-hint').textContent=globalThis.GRO_CLOUD?.rectification?'Na retificação, confira as diferenças e informe o motivo. Pendências anteriores não exigem alterações não relacionadas.':missing.length?'Disponível após corrigir os campos obrigatórios.':'Campos obrigatórios preenchidos. Você pode gerar o relatório.';
 }
 function openGroup(step,selector,id){
  globalThis.GRO_WIZARD.go(step);const card=[...document.querySelectorAll(selector)].find(n=>n.dataset.target===id);if(card){card.open=true;card.scrollIntoView({block:'center'});card.querySelector('summary')?.focus();}
 }
 function correct(item){
  if(item.section==='EPIs'){openGroup(5,'.epi-group',item.targetId);const card=[...document.querySelectorAll('.epi-group')].find(n=>n.dataset.target===item.targetId);const row=[...(card?.querySelectorAll('.epi-risk-row')||[])].find(n=>n.dataset.riskCode===item.riskCode);row?.querySelector('button')?.click();return;}
+ if(globalThis.GRO_CLOUD?.rectification&&item.destination==='#open-risk-details'){globalThis.GRO_WIZARD.go(4);globalThis.GRO_CLOUD.openRiskDetails?.(item.riskTarget,item.riskCode);return;}
  const node=document.querySelector(item.destination);if(!node)return;
  globalThis.GRO_WIZARD.reveal(node);
  if(item.destination==='#open-risk-details'){node.dataset.target=item.riskTarget;node.dataset.risk=item.riskCode;node.click();return;}

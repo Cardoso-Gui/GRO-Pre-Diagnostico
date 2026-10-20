@@ -1,5 +1,6 @@
 const form = document.querySelector("#cnpj-form");
 const input = document.querySelector("#cnpj-input");
+const visitDateInput = document.querySelector("#visit-date");
 const button = document.querySelector("#search-button");
 const message = document.querySelector("#form-message");
 const companyCard = document.querySelector("#company-card");
@@ -450,6 +451,7 @@ function createJobCard(sectorName) {
   removeSectorButton.setAttribute('aria-label', 'Excluir setor ' + sectorName);
   removeSectorButton.onclick=()=>removeSector(sectorName);
   header.append(removeSectorButton);
+  if(globalThis.GRO_CLOUD?.rectification){const rename=document.createElement('button');rename.type='button';rename.textContent='Corrigir nome do setor';rename.onclick=()=>globalThis.GRO_CLOUD.rename('sector',sectorName);header.append(rename);}
   const list=document.createElement('div');list.className='job-list';renderJobList(sectorName,list);card.append(list);
   const add=document.createElement('button');add.type='button';add.textContent='＋ Adicionar cargo';add.className='add-job';
   const form=document.createElement('form');form.className='job-form';form.hidden=true;
@@ -535,6 +537,7 @@ function renderJobList(sectorName,container) {
     remove.setAttribute('aria-label','Excluir cargo '+job.name);
     remove.onclick=async()=>{if(!await confirmSectorRemoval(job.name,"cargo"))return;removeJobFromSector(sectorName,job.name);renderJobSections();renderEpiSection();updateReportAvailability()};
     const header=document.createElement('div');header.className='job-card-header';header.append(name,remove);
+    if(globalThis.GRO_CLOUD?.rectification){const rename=document.createElement('button');rename.type='button';rename.textContent='Corrigir nome do cargo';rename.onclick=()=>globalThis.GRO_CLOUD.rename('job',job.name,sectorName);header.append(rename);const label=document.createElement('label'),check=document.createElement('input');check.type='checkbox';check.checked=Boolean(job.foodHandling);check.onchange=()=>{job.foodHandling=check.checked;};label.append(check,document.createTextNode('Manipulação de alimentos — controle sanitário'));row.append(label);}
     row.append(header,quantityLabel,activityLabel);if(globalThis.GRO_POSTS)row.append(globalThis.GRO_POSTS.render(job));container.append(row);
   });
 }
@@ -781,7 +784,7 @@ function createRiskCard(target) {
   const detailStatus=document.createElement("span");detailStatus.className="risk-detail-status";
   const detailButton=document.createElement("button");detailButton.type="button";detailButton.className="target-risk-details";
   detailButton.textContent=selectedRiskMode==="ghe"?"Preencher detalhes deste GHE →":"Preencher detalhes deste cargo →";
-  detailButton.onclick=()=>{const open=document.querySelector("#open-risk-details");if(open){open.dataset.target=target.id;open.dataset.risk="";open.click();}};
+  detailButton.onclick=()=>{if(globalThis.GRO_CLOUD?.rectification){globalThis.GRO_CLOUD.openRiskDetails?.(target.id);return;}const open=document.querySelector("#open-risk-details");if(open){open.dataset.target=target.id;open.dataset.risk="";open.click();}};
   detailFooter.append(detailStatus,detailButton);card.append(detailFooter);
   updateRiskCardSummary(card,target.id);
   return card;
@@ -804,6 +807,7 @@ function createGheActions(ghe) {
   const container = document.createElement("div");
   const actions = document.createElement("div");
   actions.className = "ghe-card-actions";
+  if(globalThis.GRO_CLOUD?.rectification){const rename=document.createElement('button');rename.type='button';rename.textContent='Corrigir nome do GHE';rename.onclick=()=>globalThis.GRO_CLOUD.rename('ghe',ghe.name,ghe.id);actions.append(rename);}
   const edit = document.createElement("button");
   edit.type = "button";
   edit.textContent = "Selecionar setores e cargos";
@@ -1065,7 +1069,20 @@ function getSelectableRisks() {
 function renderRiskSourceSection() {
   const selections = getRiskSelections().filter(item => item.risk.code !== "09.01.001");
   riskSourceGrid.replaceChildren();riskSourceSection.hidden = selections.length === 0;
-  if(selections.length){
+  if(selections.length && globalThis.GRO_CLOUD?.rectification){
+    for(const selection of selections){
+      const card=document.createElement('details');card.className='rectification-risk';card.dataset.target=selection.targetId;card.dataset.riskCode=selection.risk.code;
+      const summary=document.createElement('summary');summary.textContent=selection.targetTitle+' · '+selection.risk.name;card.append(summary);
+      const data=getRiskSourceData(selection.targetId,selection.risk.code);
+      for(const [key,label] of Object.entries({source:'Fonte / situação de exposição',note:'Observação',frequency:'Frequência',duration:'Tempo / circunstância',damage:'Possíveis danos / consequências',measures:'Medidas existentes',improve:'Melhorias propostas'})){
+        const caption=document.createElement('label');caption.textContent=label;const field=document.createElement('textarea');field.rows=2;field.maxLength=4000;field.value=data[key]||'';field.oninput=()=>{data[key]=field.value;if(key==='damage'){data.damageSelections=[];data.damageOther=field.value;data.damageOtherEnabled=Boolean(field.value.trim());}};caption.append(field);card.append(caption);
+      }
+      const caption=document.createElement('label');caption.textContent='Precisa medir / avaliar?';const select=document.createElement('select');
+      for(const value of ['','Sim','Não']){const option=document.createElement('option');option.value=value;option.textContent=value||'Selecione';select.append(option);}select.value=data.measure||'';select.onchange=()=>{data.measure=select.value;};caption.append(select);card.append(caption);
+      ['Proteção coletiva','Procedimentos e organização'].forEach((name,index)=>{const label=document.createElement('label');const field=document.createElement('input');field.type='checkbox';field.checked=Boolean(data.controls?.[index]);field.onchange=()=>{data.controls=[Boolean(data.controls?.[0]),Boolean(data.controls?.[1]),Boolean(data.controls?.[2])];data.controls[index]=field.checked;};label.append(field,document.createTextNode(name));card.append(label);});
+      riskSourceGrid.append(card);
+    }
+  } else if(selections.length){
     const note=document.createElement('p');note.textContent='Preencha exposição, danos, medidas existentes e melhorias em uma página dedicada.';
     const button=document.createElement('button');button.type='button';button.id='open-risk-details';button.textContent='Preencher detalhes dos riscos';
     button.onclick=async()=>{if(!globalThis.GRO_CLOUD)return;if(!GRO_VALIDATE.show(getReportMissingFields(true, { checkEmployeeDistribution: false }).filter(item=>!['Detalhamento dos riscos','EPIs'].includes(item.section)).map(item=>({...item,element:document.querySelector(item.destination)}))))return;button.disabled=true;try{const saved=await globalThis.GRO_CLOUD.save(getDraft());if(saved)location.assign('./risk-detail.html?id='+encodeURIComponent(saved.id)+'&target='+encodeURIComponent(button.dataset.target||'')+'&risk='+encodeURIComponent(button.dataset.risk||''));}finally{button.disabled=false}};
@@ -1420,6 +1437,10 @@ function getReportMissingFields(detailed = false, { checkEmployeeDistribution = 
   const filled = value => String(value ?? "").trim().length > 0;
   const employees = Number(employeeCountInput.value);
   if (!currentCompany) add("Selecione a empresa.");
+  if (globalThis.GRO_VISIT_DATE.invalidField(visitDateInput)) {
+    destination = "#visit-date";
+    add("Informe uma data de visita válida ou deixe o campo em branco.");
+  }
   section = "Dimensionamento"; destination = "#employee-count";
   if (!Number.isInteger(employees) || employees < 1) add("Informe o número de funcionários.");
   section = "Setores e cargos"; destination = "#sectors-title";
@@ -1530,6 +1551,11 @@ function validateReport() {
 
 async function renderFinalReport() {
   if (!validateReport()) return;
+  const answers=buildReportAnswers();
+  if(globalThis.GRO_CLOUD?.complete)await globalThis.GRO_CLOUD.complete(answers);
+}
+
+function buildReportAnswers() {
   const selections = getRiskSelections();
   finalReport.innerHTML = "";
   finalReport.hidden = true;
@@ -1547,7 +1573,7 @@ async function renderFinalReport() {
   const serialize=node=>node.nodeType===3?{text:node.textContent}:{tag:node.tagName.toLowerCase(),className:node.className,children:Array.from(node.childNodes,serialize)};
   const answers=getDraft();
   answers.report_document={version:1,children:Array.from(finalReport.childNodes,serialize)};
-  if(globalThis.GRO_CLOUD?.complete)await globalThis.GRO_CLOUD.complete(answers);
+  return answers;
 }
 
 function createCompanyReportBlock() {
@@ -1569,15 +1595,12 @@ function createReportCover() {
   const cover = document.createElement("section");
   const label = document.createElement("span");
   const title = document.createElement("h3");
-  const description = document.createElement("p");
   const summary = document.createElement("div");
 
   cover.className = "report-cover";
   summary.className = "report-summary-grid";
   label.textContent = "Levantamento inicial";
   title.textContent = fields.companyName.textContent || "Relatório preliminar de SST";
-  description.textContent =
-    "Este relatório consolida as informações coletadas no questionário. Ele não substitui PGR, PCMSO, LTCAT, laudos técnicos, avaliações quantitativas ou validação dos responsáveis técnicos.";
 
   summary.appendChild(createReportSummaryItem("CNPJ", formatCnpj(input.value) || "-"));
   summary.appendChild(createReportSummaryItem("Funcionários", employeeCountInput.value || "-"));
@@ -1587,7 +1610,7 @@ function createReportCover() {
 
   cover.appendChild(label);
   cover.appendChild(title);
-  cover.appendChild(description);
+  globalThis.GRO_REPORT_OPENING.apply(cover);
   cover.appendChild(summary);
 
   return cover;
@@ -1936,6 +1959,7 @@ function cleanupPrintMode() {
 function getDraft() {
   const draft = {
     cnpj: input.value,
+    visitDate: visitDateInput.value,
     currentCompany,
     employees: employeeCountInput.value,
     dimensionOptions: {preponderantRisk: document.querySelector("#preponderant-risk").value, health: document.querySelector("#health-establishment").checked},
@@ -1983,6 +2007,7 @@ function clearDraft() {
 
 function restoreDraft(draft) {
   input.value = draft.cnpj || "";
+  visitDateInput.value = globalThis.GRO_VISIT_DATE.read(draft);
   employeeCountInput.value = draft.employees || "";
   currentCompany = draft.currentCompany || null;
 
@@ -2217,7 +2242,7 @@ function setLoading(isLoading) {
   button.textContent = isLoading ? "Consultando..." : "Consultar";
 }
 
-globalThis.GRO_FORM = { restore: restoreDraft, snapshot: getDraft, review:()=>({answers:getDraft(),targets:getRiskTargets(),selections:getRiskSelections(),missing:collectReportMissingFields()}), setEpi(targetId,riskCode,value) {
+globalThis.GRO_FORM = { restore: restoreDraft, snapshot: getDraft, document: buildReportAnswers, review:()=>({answers:getDraft(),targets:getRiskTargets(),selections:getRiskSelections(),missing:collectReportMissingFields()}), setEpi(targetId,riskCode,value) {
   if(!getRiskSelections().some(s=>s.targetId===targetId&&s.risk.code===riskCode))return;
   epiBySelection.set(createTargetId("epi-data",targetId,riskCode),value);
   const data=getRiskSourceData(targetId,riskCode);data.controls=[Boolean(data.controls?.[0]),Boolean(data.controls?.[1]),value.applicable==="Sim"];
