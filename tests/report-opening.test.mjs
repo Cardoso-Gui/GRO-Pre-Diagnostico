@@ -6,8 +6,8 @@ import '../report-opening.js';
 import {installDOM,el} from './helpers/report-dom.mjs';
 
 const approved=[
- 'Este relatório apresenta uma visão inicial das atividades e das condições de trabalho da empresa, com base nas informações registradas durante o levantamento. Seu objetivo é apoiar a identificação dos riscos ocupacionais e orientar a análise das necessidades de prevenção e de avaliação complementar.',
- 'De caráter preliminar, este documento não substitui o PGR, o PCMSO, o LTCAT, os laudos técnicos ou as avaliações quantitativas, nem dispensa a análise e a validação dos responsáveis técnicos.'
+ 'Este relatório apresenta os resultados do levantamento preliminar das atividades e das condições de trabalho da empresa. Reúne informações sobre os setores abrangidos pelo levantamento, os riscos ocupacionais identificados e as medidas de prevenção informadas, com o objetivo de apoiar a definição de prioridades e orientar a análise de eventuais necessidades de avaliação complementar.',
+ 'Seu conteúdo se limita ao escopo do levantamento e às informações registradas na ocasião. Por seu caráter preliminar, não substitui o PGR, o PCMSO, o LTCAT, os laudos técnicos ou as avaliações específicas aplicáveis, nem dispensa a análise dos profissionais responsáveis.'
 ];
 const read=file=>fs.readFileSync(new URL('../'+file,import.meta.url),'utf8');
 const opening=cover=>cover.querySelectorAll('.report-opening').map(node=>node.textContent);
@@ -36,6 +36,23 @@ test('capa histórica recebe abertura atual sem alterar visita, objetivo, dados 
  assert.equal(snapshot.textContent,saved);assert.equal(snapshot.querySelectorAll('.report-opening').length,0);
 });
 
+test('abertura anterior em dois parágrafos recebe apenas a nova apresentação aprovada',t=>{
+ installDOM(t);
+ const previous=[
+  'Este relatório apresenta uma visão inicial das atividades e das condições de trabalho da empresa, com base nas informações registradas durante o levantamento. Seu objetivo é apoiar a identificação dos riscos ocupacionais e orientar a análise das necessidades de prevenção e de avaliação complementar.',
+  'De caráter preliminar, este documento não substitui o PGR, o PCMSO, o LTCAT, os laudos técnicos ou as avaliações quantitativas, nem dispensa a análise e a validação dos responsáveis técnicos.'
+ ];
+ const title=el('h3','Empresa sintética'),visit=el('p','Visita preservada','report-introduction'),objective=el('p','Objetivo preservado','report-objective');
+ const cover=el('section','','report-cover',title,...previous.map(text=>el('p',text,'report-opening')),visit,objective);
+ const snapshot=cover.cloneNode(true),saved=snapshot.textContent;
+ globalThis.GRO_REPORT_OPENING.apply(cover);
+ assert.deepEqual(opening(cover),approved);
+ assert.deepEqual(cover.children,[title,...cover.querySelectorAll('.report-opening'),visit,objective]);
+ assert.equal(snapshot.textContent,saved);assert.deepEqual(opening(snapshot),previous);
+ globalThis.GRO_REPORT_OPENING.apply(cover);
+ assert.deepEqual(opening(cover),approved);assert.equal(cover.children.length,5);
+});
+
 test('parágrafo não reconhecido da capa permanece intacto',t=>{
  installDOM(t);
  const unrelated=el('p','Observação específica preservada');
@@ -54,10 +71,12 @@ test('renderização repetida mantém dois parágrafos, sem duplicação',t=>{
 });
 
 test('gerador e visualizador usam a mesma abertura e carregamento atualizado',()=>{
- const workspace=read('workspace.js'),viewer=read('report.js');
+ const workspace=read('workspace.js'),viewer=read('report.js'),generator=read('report-generator.js');
  assert.match(workspace,/'report-opening\.js','visit-date\.js','script\.js'/);
- assert.match(viewer,/import '\.\/report-opening\.js\?v=20261019-opening1'/);
+ assert.match(viewer,/import '\.\/report-opening\.js\?v=20261020-opening2'/);
+ assert.match(viewer,/report-generator\.js\?v=20261020-opening2/);
+ for(const loader of [workspace,generator])assert.match(loader,/file==='report-opening\.js'\?'20261020-opening2'/);
  assert.match(viewer,/GRO_REPORT_OPENING\.apply\(cover\)/);
- assert.match(read('levantamento.html'),/workspace\.js\?v=20261020-professional1/);
- assert.match(read('report.html'),/report\.js\?v=20261020-professional1/);
+ assert.match(read('levantamento.html'),/workspace\.js\?v=20261020-opening2/);
+ assert.match(read('report.html'),/report\.js\?v=20261020-opening2/);
 });

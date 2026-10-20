@@ -1,8 +1,8 @@
 import {readAssessmentReport} from './report-rectification.js?v=20261020-rectify1';
 import {reportProfessionalIdentity} from './professional-identity.js?v=20261020-professional1';
-import {generateEffectiveDocument} from './report-generator.js?v=20261020-rectify1';
+import {generateEffectiveDocument} from './report-generator.js?v=20261020-opening2';
 import {mountRectificationHistory} from './rectification-history.js?v=20261020-rectify1';
-import './report-opening.js?v=20261019-opening1';
+import './report-opening.js?v=20261020-opening2';
 import {watchPageResume} from './page-resume.js?v=20260930-resume1';
 import {hydrateReportPhotos} from './workstation-photos.js?v=20260928-photos1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
