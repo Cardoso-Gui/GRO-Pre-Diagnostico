@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>GRO synthetic PDF regression</title>
+  <link rel="stylesheet" href="/report.css">
+  <link rel="stylesheet" href="/report-viewer.css">
+  <link rel="stylesheet" href="/report-print.css">
+</head>
+<body>
+  <main class="report-page report-viewer-page">
+    <div class="viewer-heading"><h1 id="report-title"></h1><p id="report-dates"></p></div>
+    <section id="report-overview"></section>
+    <div id="report-shell">
+      <aside class="viewer-sidebar"><nav id="report-index"></nav><p id="report-mode"></p></aside>
+      <div class="viewer-main">
+        <div class="viewer-tools"><input id="report-find"><span id="report-find-status"></span><select id="report-section-select"></select><button id="report-expand">Expandir</button><button id="report-collapse">Recolher</button></div>
+        <div id="report-content"></div>
+      </div>
+    </div>
+  </main>
+  <dialog id="report-photo-dialog"><h2 id="report-photo-title"></h2><button id="report-photo-close">Fechar</button><img id="report-photo-large" alt=""></dialog>
+  <script type="module" src="/tests/browser/report-print-fixture.mjs"></script>
+</body>
+</html>

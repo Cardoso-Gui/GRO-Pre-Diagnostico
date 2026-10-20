@@ -1,7 +1,8 @@
 import {reportProfessionalIdentity} from './professional-identity.js?v=20261020-professional1';
 import './visit-date.js?v=20261019-visit1';
-import {paginateReport} from './report-pagination.js?v=20261019-layout2';
+import {paginateReport} from './report-pagination.js?v=20261020-printfix1';
 import {compactPrintReport} from './report-print-compact.js?v=20261019-layout2';
+import {reusePrintImages} from './report-print-images.js?v=20261020-printfix1';
 const make=(tag,text='',className='')=>{const el=document.createElement(tag);el.textContent=text;el.className=className;return el;};
 const normalized=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 export function reportVisitDate(answers){return globalThis.GRO_VISIT_DATE.format(answers);}
@@ -104,7 +105,7 @@ export function mountReportViewer(content,data){
  const printStyle=make('style');printStyle.textContent='@page { @top-left { content: '+JSON.stringify(companyName.replace(/[\r\n]/g,' ').slice(0,110))+'; font: 8pt Arial; color: #36584e; } @top-right { content: '+JSON.stringify(revision)+'; font: 8pt Arial; color: #36584e; } }';document.head.append(printStyle);
  const sections=[...content.children],index=$('#report-index'),select=$('#report-section-select');
  index.replaceChildren();select.replaceChildren();
- let active=0,searchState=null,printState=null,printLayoutStyle=null;
+ let active=0,searchState=null,printState=null,printLayoutStyle=null,restorePrintImages=null;
  const titles=sections.map((section,i)=>{section.classList.add('viewer-section');section.id='report-section-'+i;return section===cover?'Visão geral':section.querySelector('h3')?.textContent||'Informações complementares';});
  const activate=(i,focus=false)=>{
   active=i;sections.forEach((el,n)=>el.dataset.active=String(i===n));
@@ -153,6 +154,7 @@ export function mountReportViewer(content,data){
  const beforePrint=()=>{
   if(printState)return;
   printState=[...content.childNodes];
+  const images=[...content.querySelectorAll('img')];
   const copies=printState.map(el=>el.cloneNode(true));
   content.replaceChildren(...copies);
   try{
@@ -169,9 +171,11 @@ export function mountReportViewer(content,data){
    for(const sheet of [...document.styleSheets]){try{for(const rule of sheet.cssRules)if(rule.type===CSSRule.MEDIA_RULE&&rule.conditionText==='print')rules.push(...[...rule.cssRules].map(r=>r.cssText));}catch{}}
    printLayoutStyle.textContent=rules.join('\n');document.head.append(printLayoutStyle);
    document.body.classList.add('report-paginated');paginateReport(content,document.querySelector('#report-title')?.textContent||'Relatório do levantamento');
-  }catch(error){printLayoutStyle?.remove();printLayoutStyle=null;document.body.classList.remove('report-paginated');content.replaceChildren(...printState);printState=null;throw error;}
+   restorePrintImages=reusePrintImages(images,content);
+  }catch(error){restorePrintImages?.();restorePrintImages=null;printLayoutStyle?.remove();printLayoutStyle=null;document.body.classList.remove('report-paginated');content.replaceChildren(...printState);printState=null;throw error;}
  };
  const afterPrint=()=>{
+  restorePrintImages?.();restorePrintImages=null;
   printLayoutStyle?.remove();printLayoutStyle=null;
   document.body.classList.remove('report-paginated');
   if(printState){content.replaceChildren(...printState);printState=null;}

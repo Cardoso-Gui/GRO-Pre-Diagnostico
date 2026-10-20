@@ -36,25 +36,71 @@ test('19 riscos mantêm cartões, categorias, grupos e referências nas folhas c
  checkSheets(content);
 });
 
-test('quebra de par de categorias preserva duas colunas sem aninhamento ou perda',t=>{
+test('categorias consecutivas aproveitam a mesma folha, sem juntar cargos ou setores',t=>{
+ installDOM(t);
+ const fixed=index=>{const card=risk(index);card.dataset.testHeight='230';return card;};
+ const content=el('div','','',section('Riscos e detalhamento',
+  group('Setor A · Cargo de teste',category('physical',fixed(1),fixed(2),fixed(3)),category('chemical',fixed(4)),category('ergonomic',fixed(5))),
+  group('Setor B · Cargo de teste',category('accident',fixed(6)))));
+ compactPrintReport(content);
+ const before=content.querySelectorAll('.viewer-risk').map(card=>card.textContent);
+ const separateGrids=content.cloneNode(true);
+ // Invisible boundaries model separate category grids without adding height.
+ for(const item of separateGrids.querySelectorAll('.viewer-category')){
+  const boundary=el('span');boundary.dataset.testHidden='true';item.after(boundary);
+ }
+ assert.equal(paginateReport(separateGrids),3,'separate category grids leave a partly empty extra sheet');
+ assert.equal(paginateReport(content),2,'five same-group cards fit one sheet rather than separate category grids');
+ const pages=content.querySelectorAll('.report-sheet');
+ assert.equal(pages[0].querySelectorAll('.viewer-risk').length,5);
+ assert.equal(pages[1].querySelectorAll('.viewer-risk').length,1);
+ assert.equal(pages[0].querySelectorAll('.print-risk-columns').length,1);
+ assert.equal(pages[0].querySelector('.viewer-group > summary > strong').textContent,'Setor A · Cargo de teste');
+ assert.equal(pages[1].querySelector('.viewer-group > summary > strong').textContent,'Setor B · Cargo de teste');
+ assert.equal(pages[1].querySelector('.report-sheet-context').textContent,'');
+ assert.deepEqual(content.querySelectorAll('.viewer-risk').map(card=>card.textContent).sort(),before.sort());
+ for(const page of pages){
+  const groups=new Set(page.querySelectorAll('.viewer-risk').map(card=>card.closest('.viewer-group')));
+  assert.equal(groups.size,1,'a sheet never combines risks from distinct cargo/sector groups');
+ }
+ for(const segment of content.querySelectorAll('.print-risk-column .viewer-category')){
+  assert.ok(segment.querySelector(':scope > h4'));
+  assert.ok(segment.querySelector('.viewer-risk'),'no orphaned category heading');
+ }
+ checkSheets(content);
+});
+
+test('conteúdo adicional da categoria não é descartado para compactar os cartões',t=>{
+ installDOM(t);
+ const withNote=category('chemical',risk(2));withNote.append(el('p','Observação sintética preservada.'));
+ const content=el('div','','',section('Riscos e detalhamento',
+  group('Cargo com observação',category('physical',risk(1)),withNote,category('ergonomic',risk(3)))));
+ compactPrintReport(content);paginateReport(content);
+ assert.equal(content.querySelectorAll('.viewer-risk').length,3);
+ const notes=content.querySelectorAll('p').filter(node=>node.textContent==='Observação sintética preservada.');
+ assert.equal(notes.length,1);assert.equal(notes[0].closest('.viewer-category').dataset.type,'chemical');
+ checkSheets(content);
+});
+
+test('quebra entre categorias preserva duas colunas, cabeçalhos e conteúdo sem aninhamento',t=>{
  installDOM(t);
  const filler=el('p','Introdução sintética');filler.dataset.testHeight='650';
  const tall=index=>{const card=risk(index);card.dataset.testHeight='430';return card;};
  const content=prepare(section('Riscos e detalhamento',filler,group('Cargo de teste',category('physical',tall(1),tall(2)),category('ergonomic',tall(3),tall(4)))));
  paginateReport(content);
  assert.equal(content.querySelectorAll('.viewer-risk').length,4);
- assert.ok(content.querySelectorAll('.print-category-pair').length>1,'exercise pair splitting, not just moving the complete pair');
+ assert.ok(content.querySelectorAll('.print-risk-columns').length>1,'exercise column flow across sheet breaks');
  assert.equal(content.querySelectorAll('.print-risk-columns .print-risk-columns').length,0);
  for(const card of content.querySelectorAll('.viewer-risk')){
   const code=card.querySelector('.viewer-risk-heading strong').textContent.slice(0,3),physical=['K01','K02'].includes(code);
   const column=card.closest('.print-risk-column');assert.ok(column);
   assert.equal(card.closest('.viewer-category').dataset.type,physical?'physical':'ergonomic');
-  assert.equal(column.parentElement.children.indexOf(column),physical?0:1);
+  assert.equal(card.closest('.viewer-category').querySelector(':scope > h4').textContent,physical?'physical':'ergonomic');
  }
  checkSheets(content);
 });
 
-test('par que não acomoda nenhum cartão usa fallback sem perder categoria ou conteúdo',t=>{
+test('categorias com cartões altos usam fallback sem perder categoria ou conteúdo',t=>{
  installDOM(t);
  const filler=el('p','Introdução sintética');filler.dataset.testHeight='650';
  const content=prepare(section('Riscos e detalhamento',filler,group('Cargo do par alto',category('physical',risk(1,{length:88})),category('ergonomic',risk(2,{length:88})))));

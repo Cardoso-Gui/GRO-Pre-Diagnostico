@@ -60,7 +60,7 @@ export function paginateReport(content,title='Relatório do levantamento'){
  }
  // Keep the same card width and field layout, even for a single risk or a
  // partly filled sheet. Packing must not silently turn cards into wide tables.
- function putCategory(category,chain,ctx){
+ function putSeparateCategory(category,chain,ctx){
   const nested=[...chain,category];
   let grid=null,columns=[];
   function startColumns(){
@@ -94,74 +94,78 @@ export function paginateReport(content,title='Relatório do levantamento'){
    hasContent=true;pendingHeadings=[];
   }
  }
- // Keep the two categories in their own columns, including across page breaks.
- function categoryPair(left,right){
-  if(left?.dataset?.type!=='physical'||right?.dataset?.type!=='ergonomic')return null;
-  const grid=document.createElement('div');grid.className='print-risk-columns print-category-pair';
-  for(const category of [left,right]){
-   const column=category.cloneNode(true);column.classList.add('print-risk-column');
-   for(const risk of column.querySelectorAll('.viewer-risk'))risk.classList.add('print-risk-card');
-   grid.append(column);
-  }
-  const measure=document.createElement('div');measure.className='print-risk-measure';measure.append(grid);content.append(measure);
-  const height=grid.getBoundingClientRect().height;measure.remove();
-  // Avoid making large categories consume many half-empty pages. A selected
-  // pair still has dedicated overflow handling if the real page is tighter.
-  return height>0&&height<=900?grid:null;
+ const isWhitespace=node=>node.nodeType===3&&!node.textContent.trim();
+ function canFlowCategory(category){
+  if(category?.nodeType!==1||!category.classList.contains('viewer-category'))return false;
+  const heading=category.querySelector(':scope > h4');
+  return !!heading&&[...category.children].some(child=>child.classList.contains('viewer-risk'))&&
+   [...category.childNodes].every(child=>isWhitespace(child)||child===heading||child.nodeType===1&&child.classList.contains('viewer-risk'));
  }
- function putCategoryPair(original,chain,ctx){
-  const queues=[...original.children].map(col=>[...col.querySelectorAll('.viewer-risk')]);
-  let first=true;
-  while(queues.some(q=>q.length)){
-   const grid=original.cloneNode(false);
-   const columns=[...original.children].map((col,i)=>{
-    const copy=col.cloneNode(false);const heading=col.querySelector('h4');
-    if(heading&&queues[i].length)copy.append(heading.cloneNode(true));grid.append(copy);return copy;
-   });
-   parent(chain).append(grid);
-   // Retry the complete categories on a fresh sheet before splitting cards.
-   if(first){
-    columns.forEach((col,i)=>queues[i].forEach(r=>col.append(r.cloneNode(true))));
-    if(fits()){hasContent=true;pendingHeadings=[];return;}
-    grid.remove();
-    if(hasContent){next(ctx);first=false;continue;}
-    parent(chain).append(grid);
-    columns.forEach(col=>col.querySelectorAll('.viewer-risk').forEach(r=>r.remove()));
-   }
-   first=false;let placed=0;
-   for(let i=0;i<2;i++){
-    while(queues[i].length){
-     const card=queues[i][0].cloneNode(true);columns[i].append(card);
-     if(!fits()){card.remove();break;}
-     queues[i].shift();placed++;hasContent=true;pendingHeadings=[];
+ // Consecutive categories of one cargo/GHE share available column space.
+ // Every segment keeps its category identity and its own repeated heading.
+ function putCategoryRun(categories,chain,ctx){
+  let grid=null,columns,segments;
+  function startColumns(){
+   grid=document.createElement('div');grid.className='print-risk-columns';
+   columns=[0,1].map(()=>{const column=document.createElement('div');column.className='print-risk-column';grid.append(column);return column;});
+   segments=[new Map(),new Map()];parent(chain).append(grid);
+  }
+  function place(category,card){
+   const order=[0,1].sort((a,b)=>columns[a].getBoundingClientRect().height-columns[b].getBoundingClientRect().height);
+   for(const index of order){
+    let segment=segments[index].get(category);const fresh=!segment;
+    if(fresh){
+     segment=category.cloneNode(false);segment.removeAttribute('id');
+     const heading=category.querySelector(':scope > h4').cloneNode(true);heading.removeAttribute('id');
+     segment.append(heading);columns[index].append(segment);segments[index].set(category,segment);
     }
+    segment.append(card);
+    if(fits())return true;
+    card.remove();
+    if(fresh){segment.remove();segments[index].delete(category);}
    }
-   if(!placed){
-    grid.remove();cleanEmpty();
-    // An exceptionally tall card uses the existing full-width splitter;
-    // never send the column wrapper through generic recursive pagination.
-    const queue=queues.find(q=>q.length),card=queue.shift().cloneNode(true);
-    card.classList.add('print-risk-card');
-    const sourceCategory=original.children[queues.indexOf(queue)],category=sourceCategory.cloneNode(false);
-    category.classList.remove('print-risk-column');
-    const heading=sourceCategory.querySelector('h4');if(heading)put(heading,[...chain,category],ctx);
-    put(card,[...chain,category],ctx);
+   return false;
+  }
+  for(const category of categories){
+   for(const original of [...category.children].filter(child=>child.classList.contains('viewer-risk'))){
+    const card=original.cloneNode(true);card.classList.add('print-risk-card');
+    if(!grid)startColumns();
+    if(!place(category,card)){
+     if(!grid.querySelector('.viewer-risk'))grid.remove();
+     grid=null;cleanEmpty();
+     if(hasContent)next(ctx);
+     startColumns();
+     if(!place(category,card)){
+      grid.remove();grid=null;cleanEmpty();
+      // Only an exceptionally tall record falls back to full-width fields.
+      // Never recursively paginate a two-column wrapper.
+      const nested=[...chain,category];
+      put(category.querySelector(':scope > h4'),nested,ctx);
+      put(card,nested,ctx);continue;
+     }
+    }
+    hasContent=true;pendingHeadings=[];
    }
-   if(queues.some(q=>q.length))next(ctx);
   }
  }
  function put(original,chain=[],ctx=''){
   if(original.nodeType===3){if(original.textContent.trim())textPieces(original,chain,ctx);return;}
   if(original.nodeType!==1)return;
   const tag=original.tagName;
-  if(original.classList.contains('print-category-pair')){putCategoryPair(original,chain,ctx);return;}
-  if(original.classList.contains('viewer-category')){putCategory(original,chain,ctx);return;}
+  if(original.classList.contains('viewer-category')){
+   if(canFlowCategory(original))putCategoryRun([original],chain,ctx);else putSeparateCategory(original,chain,ctx);
+   return;
+  }
   // Group and section containers may naturally span sheets.
   const container=original.matches('.report-block,.viewer-group,.viewer-category,.report-card-list,.viewer-inventory,table,tbody');
   if(container){
    // Keep the sector section out of the cover, including its heading.
    if(original.classList.contains('report-sectors')&&hasContent)next();
-   if(original.matches('.viewer-group')&&original.querySelector('.viewer-risk'))ctx=original.querySelector(':scope > summary > strong')?.textContent.trim()||ctx;
+   if(original.matches('.viewer-group')&&original.querySelector('.viewer-risk')){
+    ctx=original.querySelector(':scope > summary > strong')?.textContent.trim()||ctx;
+    // A different cargo/sector remains visually separate, even if it would fit.
+    if(body.querySelector('.viewer-risk'))next(ctx,original.querySelector(':scope > summary'));
+   }
    if(original.classList.contains('report-block')){
     const title=original.querySelector(':scope > h3')?.textContent.trim();
     if(title)ctx=title+' — continuação';
@@ -170,8 +174,16 @@ export function paginateReport(content,title='Relatório do levantamento'){
    const children=[...original.childNodes];
    for(let i=0;i<children.length;i++){
     const child=children[i];if(child.nodeType===1&&child.tagName==='THEAD')continue;
-    const pair=original.classList.contains('viewer-group')?categoryPair(child,children[i+1]):null;
-    if(pair){put(pair,[...chain,original],ctx);i++;}else put(child,[...chain,original],ctx);
+    if(original.classList.contains('viewer-group')&&canFlowCategory(child)){
+     const categories=[child];
+     while(i+1<children.length){
+      const following=children[i+1];
+      if(isWhitespace(following)){i++;continue;}
+      if(!canFlowCategory(following))break;
+      categories.push(following);i++;
+     }
+     putCategoryRun(categories,[...chain,original],ctx);
+    }else put(child,[...chain,original],ctx);
    }
    return;
   }
