@@ -26,7 +26,7 @@ test('append-only rectification SQL authorization, isolation, validation, histor
  await db.exec(await readFile(new URL('supabase/tests/rectification-fixture.sql',root),'utf8'));
  const permissionsBefore=await q("select c.oid::regclass::text as name,c.relacl::text as acl from pg_class c where c.relnamespace in ('public'::regnamespace,'auth'::regnamespace) and c.relkind='r' order by 1");
  const existingPoliciesBefore=await q("select schemaname,tablename,policyname,roles,cmd,qual,with_check from pg_policies where schemaname='public' order by tablename,policyname");
- const migration=await readFile(new URL('supabase/migrations/20261019235450_report_rectification.sql',root),'utf8');
+ const migration=await readFile(new URL('supabase/migrations/20261020001758_report_rectification.sql',root),'utf8');
  const embedded=JSON.parse(migration.match(/patch_schema jsonb:='(.*)'::jsonb;/)[1]);assert.deepEqual(embedded,JSON.parse(await readFile(new URL('supabase/rectification-patch-schema.json',root),'utf8')));
  await db.exec(migration);
  assert.deepEqual(await q("select c.oid::regclass::text as name,c.relacl::text as acl from pg_class c where c.relnamespace in ('public'::regnamespace,'auth'::regnamespace) and c.relkind='r' order by 1"),permissionsBefore);
