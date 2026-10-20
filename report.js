@@ -1,7 +1,8 @@
+import './report-cipa.js?v=20261020-cipa1';
 import {createReportVisitIntroduction} from './report-visit-introduction.js?v=20261020-visitcopy1';
 import {readAssessmentReport} from './report-rectification.js?v=20261020-rectify1';
 import {reportProfessionalIdentity} from './professional-identity.js?v=20261020-professional1';
-import {generateEffectiveDocument} from './report-generator.js?v=20261020-objective1';
+import {generateEffectiveDocument} from './report-generator.js?v=20261020-cipa1';
 import {mountRectificationHistory} from './rectification-history.js?v=20261020-rectify1';
 import './report-opening.js?v=20261020-objective1';
 import {watchPageResume} from './page-resume.js?v=20260930-resume1';
@@ -108,6 +109,7 @@ async function load(){
    }
    cover.append(grid);sizingBlock.remove();
  }
+ globalThis.GRO_REPORT_CIPA.apply(cover);
  if(cover){const summary=cover.querySelector('.report-summary-grid');if(summary)summary.before(introduction);else cover.append(introduction);}
  const closing=document.createElement('section');closing.className='report-closing';
  const heading=document.createElement('h3');heading.textContent='Considerações finais';
