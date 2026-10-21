@@ -1086,7 +1086,7 @@ function renderRiskSourceSection() {
   } else if(selections.length){
     const note=document.createElement('p');note.textContent='Preencha exposição, danos, medidas existentes e melhorias em uma página dedicada.';
     const button=document.createElement('button');button.type='button';button.id='open-risk-details';button.textContent='Preencher detalhes dos riscos';
-    button.onclick=async()=>{if(!globalThis.GRO_CLOUD)return;if(!GRO_VALIDATE.show(getReportMissingFields(true, { checkEmployeeDistribution: false }).filter(item=>!['Detalhamento dos riscos','EPIs'].includes(item.section)).map(item=>({...item,element:document.querySelector(item.destination)}))))return;button.disabled=true;try{const saved=await globalThis.GRO_CLOUD.save(getDraft());if(saved)location.assign('./risk-detail.html?id='+encodeURIComponent(saved.id)+'&target='+encodeURIComponent(button.dataset.target||'')+'&risk='+encodeURIComponent(button.dataset.risk||''));}finally{button.disabled=false}};
+    button.onclick=async()=>{if(!globalThis.GRO_CLOUD)return;if(!GRO_VALIDATE.show(getReportMissingFields(true, { checkEmployeeDistribution: false, checkDimensionCalculation: false }).filter(item=>!['Detalhamento dos riscos','EPIs'].includes(item.section)).map(item=>({...item,element:document.querySelector(item.destination)}))))return;button.disabled=true;try{const saved=await globalThis.GRO_CLOUD.save(getDraft());if(saved)location.assign('./risk-detail.html?id='+encodeURIComponent(saved.id)+'&target='+encodeURIComponent(button.dataset.target||'')+'&risk='+encodeURIComponent(button.dataset.risk||''));}finally{button.disabled=false}};
     riskSourceGrid.append(note,button);
   }
   renderEpiSection();
@@ -1431,7 +1431,7 @@ function getCurrentCnaeText() {
   };
 }
 
-function getReportMissingFields(detailed = false, { checkEmployeeDistribution = true } = {}) {
+function getReportMissingFields(detailed = false, { checkEmployeeDistribution = true, checkDimensionCalculation = true } = {}) {
   const missing = [];
   let section = "Dados da empresa", destination = "#company-card", riskTarget = "", riskCode = "";
   const add = (text,targetId=riskTarget) => missing.push({text, section, destination, riskTarget, riskCode, targetId});
@@ -1472,7 +1472,7 @@ function getReportMissingFields(detailed = false, { checkEmployeeDistribution = 
     if (!getSelectedRiskCodes(target.id).size) add(`${target.title}: selecione os riscos ou a opção de ausência aplicável.`,target.id);
   });
   section = "Dimensionamento"; destination = "#employee-count";
-  if (/pendente|necessária/i.test(dimensionFields.cipaSummary.textContent) || /pendente/i.test(dimensionFields.sesmtSummary.textContent)) add("Calcule ou revise o dimensionamento.");
+  if (checkDimensionCalculation && (/pendente|necessária/i.test(dimensionFields.cipaSummary.textContent) || /pendente/i.test(dimensionFields.sesmtSummary.textContent))) add("Calcule ou revise o dimensionamento.");
   getRiskSelections().filter(s => s.risk.code !== "09.01.001").forEach(selection => {
     section = "Detalhamento dos riscos"; destination = "#open-risk-details"; riskTarget = selection.targetId; riskCode = selection.risk.code;
     const data = getRiskSourceData(selection.targetId, selection.risk.code);
