@@ -24,3 +24,31 @@ Publicar a raiz da branch no GitHub Pages. Todos os caminhos são relativos e fu
 
 Executar `npm test` com Node.js 22 ou superior. Os testes simulam respostas de autenticação; não criam contas nem enviam e-mails. A entrada bem-sucedida com conta real requer uma conta Auth vinculada a um membro ativo.
 
+
+### Salvamento automático de rascunhos
+
+O levantamento e o detalhamento dos riscos salvam textos e seleções após cerca de
+um segundo sem alterações. Os envios são serializados e usam a revisão do
+rascunho: uma edição concorrente nunca é sobrescrita automaticamente. O botão
+**Salvar rascunho** e **Salvar e continuar** continuam disponíveis.
+
+- **Salvo no servidor** confirma a gravação remota. **Aguardando conexão** indica
+  apenas uma cópia local; o evento de reconexão tenta sincronizá-la novamente.
+- A recuperação é separada por conta, equipe, empresa, rascunho, página e aba.
+  Ao reabrir, uma cópia compatível pode ser recuperada mediante escolha. Se a
+  revisão do servidor mudou, a cópia só pode ser baixada para comparação ou
+  descartada, não aplicada automaticamente.
+- Cópias locais são temporárias (até sete dias; limpeza ao consultar o escopo),
+  removidas após confirmação do salvamento ou ao sair/trocar de conta na tela de
+  edição. Em computadores compartilhados, saia da conta ao terminar. Se o
+  navegador impedir armazenamento, a tela avisa para não fechá-la.
+- Campos parciais dos formulários **Adicionar setor/cargo/GHE** são guardados no
+  rascunho, mas só viram entidades após **Adicionar** e não entram no relatório.
+- Fotos continuam no fluxo de upload online. O salvamento espera uploads
+  pendentes terminarem. Não existe fila offline de imagens.
+- Isto não é um modo offline completo: carregar/reabrir páginas, verificar
+  acesso, abrir o detalhamento e concluir ainda podem exigir internet. Não há
+  garantia de recuperação se o armazenamento do navegador for apagado.
+
+Testes de autosave usam apenas dados sintéticos e clientes simulados; não gravam
+levantamentos reais nem alteram permissões ou o banco de produção.

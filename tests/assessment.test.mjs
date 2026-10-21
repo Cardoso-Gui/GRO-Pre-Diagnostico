@@ -13,7 +13,7 @@ test('new assessment starts and discards without database writes',async()=>{
  const source=fs.readFileSync(new URL('../workspace.js',import.meta.url),'utf8');
  const begin=source.indexOf("$('#create-assessment').addEventListener");const end=source.indexOf('async function loadForm()',begin);
  const elements=new Map();let submit,leave;const $=selector=>{if(!elements.has(selector))elements.set(selector,{value:'Teste',addEventListener:(_,fn)=>{if(selector==='#create-assessment')submit=fn;else leave=fn;}});return elements.get(selector)};
- const ctx=vm.createContext({$,selected:{id:'client',cnpj:'123'},saving:false,creationId:null,crypto:{randomUUID:()=> 'new-id'},access:async()=>{},member:{user_id:'user'},companyFromClient:()=>({}),loadForm:async()=>{},say:()=>{},authClient:{from:()=>{throw Error('Unexpected database write')}},row:null,dirty:true,leaveDialog:{close(){}},location:{assign(){} }});
+ const ctx=vm.createContext({$,selected:{id:'client',cnpj:'123'},saving:false,creationId:null,crypto:{randomUUID:()=> 'new-id'},access:async()=>{},member:{user_id:'user'},companyFromClient:()=>({}),loadForm:async()=>{},say:()=>{},authClient:{from:()=>{throw Error('Unexpected database write')}},row:null,dirty:true,autosave:null,leaveDialog:{close(){}},location:{assign(){} }});
  vm.runInContext(source.slice(begin,end),ctx);await submit({preventDefault(){}});assert.equal(ctx.row.unsaved,true);
  const leaveStart=source.indexOf("$('#leave-without-saving').addEventListener");vm.runInContext(source.slice(leaveStart,source.indexOf('\n',leaveStart)),ctx);leave();assert.equal(ctx.dirty,false);
 });

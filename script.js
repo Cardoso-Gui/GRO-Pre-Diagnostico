@@ -163,7 +163,7 @@ riskModeForm.addEventListener("change", (event) => {
   const nextMode = event.target.value;
   if (!["ghe", "job"].includes(nextMode) || nextMode === selectedRiskMode) return;
   const hasExistingData = gheList.length > 0 || Array.from(selectedRisksByTarget.values()).some(codes => codes.size > 0) || riskSourcesBySelection.size > 0 || epiBySelection.size > 0;
-  if (hasExistingData && !confirm("Trocar a organização dos riscos? Os GHEs, riscos, fontes e EPIs deste modelo serão removidos do preenchimento. Setores e cargos serão mantidos. A mudança só será gravada ao salvar o rascunho.")) {
+  if (hasExistingData && !confirm("Trocar a organização dos riscos? Os GHEs, riscos, fontes e EPIs deste modelo serão removidos do preenchimento. Setores e cargos serão mantidos." + (globalThis.GRO_CLOUD?.autoSaving ? " A alteração será salva automaticamente no rascunho." : " A mudança só será gravada ao salvar o rascunho."))) {
     setRiskModeInput(selectedRiskMode);
     return;
   }
@@ -474,8 +474,9 @@ function confirmSectorRemoval(sectorName, kind = "setor") {
     const description = document.createElement("p");
     description.id = "sector-delete-description";
     description.textContent = kind === "cargo"
-      ? "Os postos de trabalho e os vínculos deste cargo nos GHEs também serão removidos. Os demais cargos serão mantidos. Salve o rascunho para gravar a alteração."
-      : "Os cargos deste setor e seus vínculos nos GHEs também serão removidos. Os demais setores serão mantidos. Salve o rascunho para gravar a alteração.";
+      ? "Os postos de trabalho e os vínculos deste cargo nos GHEs também serão removidos. Os demais cargos serão mantidos."
+      : "Os cargos deste setor e seus vínculos nos GHEs também serão removidos. Os demais setores serão mantidos.";
+    description.textContent += globalThis.GRO_CLOUD?.autoSaving ? " A alteração será salva automaticamente no rascunho." : " Salve o rascunho para gravar a alteração.";
     const actions = document.createElement("div");
     actions.className = "ghe-dialog-actions";
     const cancel = document.createElement("button");
@@ -899,7 +900,7 @@ function createGheActions(ghe) {
 function deleteGhe(id) {
   const index = gheList.findIndex(ghe => ghe.id === id);
   if (index < 0) return;
-  if (!confirm('Excluir o GHE "' + gheList[index].name + '" e seus riscos e respostas? Os setores e cargos cadastrados serão mantidos. Salve o rascunho para gravar a exclusão.')) return;
+  if (!confirm('Excluir o GHE "' + gheList[index].name + '" e seus riscos e respostas? Os setores e cargos cadastrados serão mantidos.' + (globalThis.GRO_CLOUD?.autoSaving ? ' A exclusão será salva automaticamente no rascunho.' : ' Salve o rascunho para gravar a exclusão.'))) return;
   const codes = selectedRisksByTarget.get(id) || new Set();
   codes.forEach(code => {
     riskSourcesBySelection.delete(createTargetId("source", id, code));

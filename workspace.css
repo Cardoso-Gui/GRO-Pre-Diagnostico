@@ -99,3 +99,10 @@
 .ghe-card-actions .add-risks-button{margin:0}
 .ghe-card-actions .ghe-delete{grid-column:1/-1;justify-self:end;width:auto;min-width:150px}
 @media(max-width:600px){.ghe-card-actions{gap:10px}.ghe-card-actions>button{font-size:14px}.ghe-card-actions .ghe-delete{width:100%}}
+
+/* Recovery remains usable on a phone and never covers the form without a choice. */
+.draft-recovery-dialog{max-width:min(560px,calc(100vw - 32px));border:1px solid #cbd5e1;border-radius:16px;padding:24px;color:#173c37}
+.draft-recovery-dialog::backdrop{background:#102b2780}
+.draft-recovery-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.draft-recovery-actions button{white-space:normal}
+#wizard-save-status[data-state="error"],#wizard-save-status[data-state="blocked"]{color:#a32929}
