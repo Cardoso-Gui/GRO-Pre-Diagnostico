@@ -9,7 +9,7 @@ addClientPickerSearch(document.querySelector('#client-select'));
 import {uploadPhoto,photoUrl} from './workstation-photos.js?v=20260928-photos1';
 import {updateHeader} from './app-header.js?v=20261019-access1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
-import {companyFromClient,saveAssessment,clientOptionLabel,deleteDraft,completeAssessment} from './assessment-data.js?v=20261021-autosave1';
+import {companyFromClient,saveAssessment,clientOptionLabel,canDeleteDraft,deleteDraft,completeAssessment} from './assessment-data.js?v=20261021-team1delete1';
 const $=s=>document.querySelector(s);
 const workspace=$('#protected-workspace'), notice=$('#session-check');
 let visitResponsiblePicker, autosave, autosaveWatch;
@@ -37,23 +37,23 @@ async function historyList(reset=true){
  const clientId=selected.id;if(reset){historyOffset=0;$('#draft-list').replaceChildren();}$('#more-drafts').hidden=true;
  const start=historyOffset;
  $('#history-status').textContent='Carregando histórico…';
- try{const {data,error}=await authClient.from('assessments').select('id,title,status,revision,updated_at,responsible_id,team_members!assessments_responsible_id_fkey(display_name)').eq('client_id',clientId).order('created_at',{ascending:false}).order('id').range(start,start+20);
+ try{const {data,error}=await authClient.from('assessments').select('id,client_id,title,status,revision,updated_at,responsible_id,team_members!assessments_responsible_id_fkey(display_name)').eq('client_id',clientId).order('created_at',{ascending:false}).order('id').range(start,start+20);
  if(selected?.id!==clientId)return;if(error)throw error;
  for(const item of data.slice(0,20)){const article=document.createElement('article');const label=document.createElement('p');label.textContent=`${item.title} · ${item.status==='draft'?'Rascunho':'Concluído'} · ${new Date(item.updated_at).toLocaleString('pt-BR')} · ${item.team_members?.display_name || 'Equipe'}`;article.append(label);
- if(item.status==='draft'&&(member.role==='admin'||item.responsible_id===member.user_id)){const a=document.createElement('a');a.href=`./levantamento.html?id=${encodeURIComponent(item.id)}`;a.textContent='Continuar rascunho';article.append(a);const remove=document.createElement('button');remove.type='button';remove.className='delete-draft';remove.textContent='Excluir rascunho';remove.addEventListener('click',()=>askDelete(item));article.append(remove);}$('#draft-list').append(article);}
+ if(item.status==='draft'&&(member.role==='admin'||item.responsible_id===member.user_id)){const a=document.createElement('a');a.href=`./levantamento.html?id=${encodeURIComponent(item.id)}`;a.textContent='Continuar rascunho';article.append(a);}if(canDeleteDraft(member,item)){const remove=document.createElement('button');remove.type='button';remove.className='delete-draft';remove.textContent='Excluir rascunho';remove.addEventListener('click',()=>askDelete(item));article.append(remove);}$('#draft-list').append(article);}
  historyOffset+=Math.min(data.length,20);$('#more-drafts').hidden=data.length<=20;$('#history-status').textContent=historyOffset?'':'Nenhum levantamento para este cliente ainda.';
  }catch{$('#history-status').textContent='Não foi possível carregar o histórico. Selecione o cliente novamente para tentar.';}
 }
 let creationId=null;
-let pendingDelete=null,deleting=false;
+let pendingDelete=null,pendingDeleteActor=null,deleting=false;
 const deleteDialog=$('#delete-dialog');
-function askDelete(item){if(deleting)return;pendingDelete=item;$('#delete-name').textContent=item.title;$('#delete-status').textContent='';deleteDialog.showModal();}
-$('#cancel-delete').addEventListener('click',()=>{if(!deleting)deleteDialog.close();});
-deleteDialog.addEventListener('cancel',event=>{if(deleting)event.preventDefault();});
+function askDelete(item){if(deleting||!canDeleteDraft(member,item))return;pendingDelete=item;pendingDeleteActor={userId:member.user_id,teamId:member.team_id};$('#delete-name').textContent=item.title;$('#delete-status').textContent='';deleteDialog.showModal();}
+$('#cancel-delete').addEventListener('click',()=>{if(!deleting){deleteDialog.close();pendingDelete=null;pendingDeleteActor=null;}});
+deleteDialog.addEventListener('cancel',event=>{if(deleting)event.preventDefault();else{pendingDelete=null;pendingDeleteActor=null;}});
 $('#confirm-delete').addEventListener('click',async()=>{
  if(!pendingDelete||deleting)return;deleting=true;$('#confirm-delete').disabled=true;$('#cancel-delete').disabled=true;
  $('#delete-status').textContent='Excluindo rascunho…';
- try{await access();await deleteDraft(authClient,pendingDelete);deleteDialog.close();pendingDelete=null;await historyList(true);say('Rascunho excluído.');}
+ try{await access();if(member.user_id!==pendingDeleteActor?.userId||member.team_id!==pendingDeleteActor?.teamId)throw Error('Seu acesso mudou. Feche esta confirmação e atualize o histórico antes de excluir.');const target=pendingDelete;await deleteDraft(authClient,target,member);clearDraftRecovery({userId:member.user_id,teamId:member.team_id,clientId:target.client_id,draftId:target.id});deleteDialog.close();pendingDelete=null;pendingDeleteActor=null;if(selected?.id===target.client_id)await historyList(true);say('Rascunho excluído.');}
  catch(error){$('#delete-status').textContent=error.message;}
  finally{deleting=false;$('#confirm-delete').disabled=false;$('#cancel-delete').disabled=false;}
 });

@@ -8,6 +8,11 @@ export function companyFromClient(client) {
  const a=client.address || {};
  return {cnpj:client.cnpj || '',razao_social:client.legal_name,nome_fantasia:client.trade_name || '',cnae_fiscal:client.cnae || '',logradouro:a.street || '',numero:a.number || '',complemento:a.complement || '',bairro:a.district || '',municipio:a.city || '',uf:a.state || '',cep:a.postal_code || '',contact_name:client.contact_name || '',ddd_telefone_1:client.contact_phone || '',email:client.contact_email || '',descricao_situacao_cadastral:'Cadastro da equipe'};
 }
+// Equipe 1 is a stable identity, not an admin role, display name or browser claim.
+export function canDeleteDraft(member, draft) {
+ return Boolean(member?.user_id && member.active === true && member.teams?.active === true
+  && member.team_id === '10888888-c3e9-4bf7-ac23-76e7b1e8fe6d' && draft?.status === 'draft');
+}
 export async function saveAssessment(client, row, answers) {
  if(row.unsaved){
   const payload={id:row.id,client_id:row.client_id,title:row.title,responsible_id:row.responsible_id,visit_responsible_id:row.visit_responsible_id||null,status:'draft',answers};
@@ -27,7 +32,8 @@ export async function saveAssessment(client, row, answers) {
  if(!data) throw Object.assign(new Error('Este rascunho foi alterado por outra pessoa ou ficou indisponível. Suas respostas continuam nesta tela. Abra o levantamento em outra aba para comparar antes de recarregar.'),{code:'DRAFT_CONFLICT'});
  return {...row,...data,answers};
 }
-export async function deleteDraft(client, draft) {
+export async function deleteDraft(client, draft, member) {
+ if(!canDeleteDraft(member,draft))throw new Error('Somente a Equipe 1 pode excluir levantamentos não concluídos.');
  const {data,error}=await client.from('assessments').delete().eq('id',draft.id).eq('revision',draft.revision).eq('status','draft').select('id').maybeSingle();
  if(error)throw new Error('Não foi possível confirmar a exclusão. Atualize o histórico antes de tentar novamente.');
  if(!data)throw new Error('O rascunho foi alterado, já foi excluído ou seu acesso mudou. Atualize o histórico antes de tentar novamente.');

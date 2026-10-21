@@ -54,7 +54,7 @@ test('gerador novo emite os mesmos avisos sem alterar valores informados',t=>{
 });
 test('cache atualizado alcança gerador, visualizador e impressão sem persistência na normalização',()=>{
  for(const file of ['workspace.js','report-generator.js'])assert.ok(read(file).includes("file==='script.js'?'"+(file==='workspace.js'?'20261021-autosave1':'20261020-notices1')+"'"));
- for(const [file,dependency]of [['report.html','report.js'],['levantamento.html','workspace.js'],['rectify.html','rectification-workspace.js'],['report.js','report-layout.js'],['report.js','report-viewer.js'],['report.js','report-generator.js'],['rectification-workspace.js','report-generator.js'],['report-viewer.js','report-print-compact.js']])assert.ok(read(file).includes(dependency+'?v='+(dependency==='workspace.js'?'20261021-autosave1':'20261020-notices1')),file+' cache dependency '+dependency);
+ for(const [file,dependency]of [['report.html','report.js'],['levantamento.html','workspace.js'],['rectify.html','rectification-workspace.js'],['report.js','report-layout.js'],['report.js','report-viewer.js'],['report.js','report-generator.js'],['rectification-workspace.js','report-generator.js'],['report-viewer.js','report-print-compact.js']])assert.ok(read(file).includes(dependency+'?v='+(dependency==='workspace.js'?'20261021-team1delete1':'20261020-notices1')),file+' cache dependency '+dependency);
  for(const file of ['report.js','report-layout.js','report-print-compact.js'])assert.ok(read(file).includes('report-notices.js?v=20261020-notices1'));
  assert.doesNotMatch(read('report-notices.js'),/innerHTML|\.rpc\(|authClient\.from\(|supabase\.from\(|fetch\(|localStorage|sessionStorage/);
  assert.ok(read('script.js').includes(REPORT_NOTICES.normsIntroduction));

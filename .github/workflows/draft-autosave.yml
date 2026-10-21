@@ -9,6 +9,7 @@ on:
       - 'risk-detail*'
       - 'assessment-data.js'
       - 'tests/browser/draft-autosave.mjs'
+      - 'tests/browser/draft-deletion.mjs'
       - '.github/workflows/draft-autosave.yml'
   workflow_dispatch:
 permissions:
@@ -30,6 +31,8 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Exercise autosave without contacting production
         run: node tests/browser/draft-autosave.mjs
+      - name: Exercise draft deletion permissions without production
+        run: node tests/browser/draft-deletion.mjs
       - name: Preserve synthetic browser evidence
         if: always()
         uses: actions/upload-artifact@v4
