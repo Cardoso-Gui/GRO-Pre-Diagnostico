@@ -15,7 +15,7 @@ export async function saveAssessment(client, row, answers) {
   if(error?.code==='23505'){
    const existing=await client.from('assessments').select('*').eq('id',row.id).maybeSingle();
    if(!existing.error&&existing.data?.status==='draft'&&existing.data.responsible_id===row.responsible_id&&existing.data.client_id===row.client_id){
-    throw new Error('Este registro já foi recebido pelo sistema. Abra o histórico em outra aba para conferir a versão salva antes de continuar.');
+    throw Object.assign(new Error('Este registro já foi recebido pelo sistema. Abra o histórico em outra aba para conferir a versão salva antes de continuar.'),{code:'DRAFT_CONFLICT'});
    }
   }
   if(error||!data)throw new Error('Não foi possível confirmar o salvamento. Mantenha esta página aberta e tente novamente.');
@@ -24,7 +24,7 @@ export async function saveAssessment(client, row, answers) {
 
  const {data,error}=await client.from('assessments').update({answers,visit_responsible_id:row.visit_responsible_id||null}).eq('id',row.id).eq('revision',row.revision).eq('status','draft').select('id,revision,updated_at').maybeSingle();
  if(error) throw new Error('Não foi possível confirmar o salvamento. Mantenha esta página aberta e tente novamente.');
- if(!data) throw new Error('Este rascunho foi alterado por outra pessoa ou ficou indisponível. Suas respostas continuam nesta tela. Abra o levantamento em outra aba para comparar antes de recarregar.');
+ if(!data) throw Object.assign(new Error('Este rascunho foi alterado por outra pessoa ou ficou indisponível. Suas respostas continuam nesta tela. Abra o levantamento em outra aba para comparar antes de recarregar.'),{code:'DRAFT_CONFLICT'});
  return {...row,...data,answers};
 }
 export async function deleteDraft(client, draft) {

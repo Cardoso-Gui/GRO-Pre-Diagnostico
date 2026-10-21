@@ -1,0 +1,39 @@
+name: Draft autosave browser (synthetic only)
+on:
+  pull_request:
+    paths:
+      - 'draft-*.js'
+      - 'workspace.js'
+      - 'workspace.css'
+      - 'levantamento.html'
+      - 'risk-detail*'
+      - 'assessment-data.js'
+      - 'tests/browser/draft-autosave.mjs'
+      - '.github/workflows/draft-autosave.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: draft-autosave-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  synthetic-chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Exercise autosave without contacting production
+        run: node tests/browser/draft-autosave.mjs
+      - name: Preserve synthetic browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: draft-autosave-browser
+          path: test-results/draft-autosave
+          if-no-files-found: ignore

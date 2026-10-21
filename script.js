@@ -163,7 +163,7 @@ riskModeForm.addEventListener("change", (event) => {
   const nextMode = event.target.value;
   if (!["ghe", "job"].includes(nextMode) || nextMode === selectedRiskMode) return;
   const hasExistingData = gheList.length > 0 || Array.from(selectedRisksByTarget.values()).some(codes => codes.size > 0) || riskSourcesBySelection.size > 0 || epiBySelection.size > 0;
-  if (hasExistingData && !confirm("Trocar a organização dos riscos? Os GHEs, riscos, fontes e EPIs deste modelo serão removidos do preenchimento. Setores e cargos serão mantidos. A mudança só será gravada ao salvar o rascunho.")) {
+  if (hasExistingData && !confirm("Trocar a organização dos riscos? Os GHEs, riscos, fontes e EPIs deste modelo serão removidos do preenchimento. Setores e cargos serão mantidos." + (globalThis.GRO_CLOUD?.autoSaving ? " A alteração será salva automaticamente no rascunho." : " A mudança só será gravada ao salvar o rascunho."))) {
     setRiskModeInput(selectedRiskMode);
     return;
   }
@@ -474,8 +474,9 @@ function confirmSectorRemoval(sectorName, kind = "setor") {
     const description = document.createElement("p");
     description.id = "sector-delete-description";
     description.textContent = kind === "cargo"
-      ? "Os postos de trabalho e os vínculos deste cargo nos GHEs também serão removidos. Os demais cargos serão mantidos. Salve o rascunho para gravar a alteração."
-      : "Os cargos deste setor e seus vínculos nos GHEs também serão removidos. Os demais setores serão mantidos. Salve o rascunho para gravar a alteração.";
+      ? "Os postos de trabalho e os vínculos deste cargo nos GHEs também serão removidos. Os demais cargos serão mantidos."
+      : "Os cargos deste setor e seus vínculos nos GHEs também serão removidos. Os demais setores serão mantidos.";
+    description.textContent += globalThis.GRO_CLOUD?.autoSaving ? " A alteração será salva automaticamente no rascunho." : " Salve o rascunho para gravar a alteração.";
     const actions = document.createElement("div");
     actions.className = "ghe-dialog-actions";
     const cancel = document.createElement("button");
@@ -899,7 +900,7 @@ function createGheActions(ghe) {
 function deleteGhe(id) {
   const index = gheList.findIndex(ghe => ghe.id === id);
   if (index < 0) return;
-  if (!confirm('Excluir o GHE "' + gheList[index].name + '" e seus riscos e respostas? Os setores e cargos cadastrados serão mantidos. Salve o rascunho para gravar a exclusão.')) return;
+  if (!confirm('Excluir o GHE "' + gheList[index].name + '" e seus riscos e respostas? Os setores e cargos cadastrados serão mantidos.' + (globalThis.GRO_CLOUD?.autoSaving ? ' A exclusão será salva automaticamente no rascunho.' : ' Salve o rascunho para gravar a exclusão.'))) return;
   const codes = selectedRisksByTarget.get(id) || new Set();
   codes.forEach(code => {
     riskSourcesBySelection.delete(createTargetId("source", id, code));
@@ -1085,7 +1086,7 @@ function renderRiskSourceSection() {
   } else if(selections.length){
     const note=document.createElement('p');note.textContent='Preencha exposição, danos, medidas existentes e melhorias em uma página dedicada.';
     const button=document.createElement('button');button.type='button';button.id='open-risk-details';button.textContent='Preencher detalhes dos riscos';
-    button.onclick=async()=>{if(!globalThis.GRO_CLOUD)return;if(!GRO_VALIDATE.show(getReportMissingFields(true, { checkEmployeeDistribution: false }).filter(item=>!['Detalhamento dos riscos','EPIs'].includes(item.section)).map(item=>({...item,element:document.querySelector(item.destination)}))))return;button.disabled=true;try{const saved=await globalThis.GRO_CLOUD.save(getDraft());if(saved)location.assign('./risk-detail.html?id='+encodeURIComponent(saved.id)+'&target='+encodeURIComponent(button.dataset.target||'')+'&risk='+encodeURIComponent(button.dataset.risk||''));}finally{button.disabled=false}};
+    button.onclick=async()=>{if(!globalThis.GRO_CLOUD)return;if(!GRO_VALIDATE.show(getReportMissingFields(true, { checkEmployeeDistribution: false, checkDimensionCalculation: false }).filter(item=>!['Detalhamento dos riscos','EPIs'].includes(item.section)).map(item=>({...item,element:document.querySelector(item.destination)}))))return;button.disabled=true;try{const saved=await globalThis.GRO_CLOUD.save(getDraft());if(saved)location.assign('./risk-detail.html?id='+encodeURIComponent(saved.id)+'&target='+encodeURIComponent(button.dataset.target||'')+'&risk='+encodeURIComponent(button.dataset.risk||''));}finally{button.disabled=false}};
     riskSourceGrid.append(note,button);
   }
   renderEpiSection();
@@ -1430,7 +1431,7 @@ function getCurrentCnaeText() {
   };
 }
 
-function getReportMissingFields(detailed = false, { checkEmployeeDistribution = true } = {}) {
+function getReportMissingFields(detailed = false, { checkEmployeeDistribution = true, checkDimensionCalculation = true } = {}) {
   const missing = [];
   let section = "Dados da empresa", destination = "#company-card", riskTarget = "", riskCode = "";
   const add = (text,targetId=riskTarget) => missing.push({text, section, destination, riskTarget, riskCode, targetId});
@@ -1471,7 +1472,7 @@ function getReportMissingFields(detailed = false, { checkEmployeeDistribution = 
     if (!getSelectedRiskCodes(target.id).size) add(`${target.title}: selecione os riscos ou a opção de ausência aplicável.`,target.id);
   });
   section = "Dimensionamento"; destination = "#employee-count";
-  if (/pendente|necessária/i.test(dimensionFields.cipaSummary.textContent) || /pendente/i.test(dimensionFields.sesmtSummary.textContent)) add("Calcule ou revise o dimensionamento.");
+  if (checkDimensionCalculation && (/pendente|necessária/i.test(dimensionFields.cipaSummary.textContent) || /pendente/i.test(dimensionFields.sesmtSummary.textContent))) add("Calcule ou revise o dimensionamento.");
   getRiskSelections().filter(s => s.risk.code !== "09.01.001").forEach(selection => {
     section = "Detalhamento dos riscos"; destination = "#open-risk-details"; riskTarget = selection.targetId; riskCode = selection.risk.code;
     const data = getRiskSourceData(selection.targetId, selection.risk.code);

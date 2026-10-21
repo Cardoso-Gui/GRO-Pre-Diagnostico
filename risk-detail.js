@@ -1,13 +1,17 @@
+import {createDraftAutosave,showDraftRecovery,clearDraftRecovery} from './draft-autosave.js?v=20261021-autosave1';
 import {mountDamageEditor} from './risk-damage-editor.js?v=20261019-damage1';
 import {riskDetailStatus} from './risk-detail-status.js?v=20261019-epi1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
-import {saveAssessment} from './assessment-data.js?v=20261020-professional1';
+import {saveAssessment} from './assessment-data.js?v=20261021-autosave1';
 import {detailKey,detailTargets,detailAnswers} from './risk-detail-data.js';
 const $=s=>document.querySelector(s),id=new URLSearchParams(location.search).get('id');
+let autosave,member,accessEnded=false;
 let row,targets=[],details=new Map(),epis=new Map(),current=0,index=0,saving=false,baseline='';
 const fingerprint=()=>JSON.stringify({details:Array.from(details.entries()),epis:Array.from(epis.entries())});
-const dirty=()=>fingerprint()!==baseline;
+const dirty=()=>autosave ? autosave.dirty() : fingerprint()!==baseline;
+const savingInBackground=()=>Boolean(autosave?.isSaving());
+function changed(){autosave?.changed();}
 const say=text=>{ $('#message').textContent=text; $('#message').hidden=!$('#editor').hidden; $('#save-status').textContent=text; if(!$('#editor').hidden) updateProgress(); };
 const catalog=[...ESOCIAL_RISK_TABLE_24.map(r=>({...r,source:'eSocial · Tabela 24'})),...OCCUPATIONAL_RISK_TABLE.map(r=>({...r,source:'GRO complementar · identificador interno'}))];
 function render(){
@@ -38,10 +42,10 @@ function render(){
  const key=detailKey('source',target.id,risk.code),data=details.get(key)||{};
  const article=document.createElement('article');article.append($('#detail-template').content.cloneNode(true));article.querySelector('h2').textContent=risk.name;article.querySelector('.tag').textContent=`${risk.group} · ${risk.code} · ${risk.source}`;article.dataset.group=groupKey(risk.group);
  if(risk.code==='SAN.001') article.querySelector('.hint').textContent='Contato do trabalhador com vírus, bactérias, fungos ou parasitas presentes em alimentos, resíduos, utensílios ou superfícies contaminadas.';
- article.querySelectorAll('[data-field]').forEach(field=>{field.maxLength=4000;field.value=data[field.dataset.field]||'';field.addEventListener('input',()=>{data[field.dataset.field]=field.value;details.set(key,data);say('Alterações ainda não salvas. Você pode alternar entre cargos ou GHEs antes de salvar.');});});
- mountDamageEditor(article,risk,data,()=>{details.set(key,data);say('Alterações ainda não salvas.');});
+ article.querySelectorAll('[data-field]').forEach(field=>{field.maxLength=4000;field.value=data[field.dataset.field]||'';const update=()=>{data[field.dataset.field]=field.value;details.set(key,data);changed();};field.addEventListener('input',update);field.addEventListener('change',update);});
+ mountDamageEditor(article,risk,data,()=>{details.set(key,data);changed();});
  const choices=Array.from(article.querySelectorAll('.choices input'));
- choices.forEach((field,i)=>{field.checked=Boolean(data.controls?.[i]);field.onchange=()=>{data.controls=[...choices.map(el=>el.checked),Boolean(data.controls?.[2])];details.set(key,data);say('Alterações ainda não salvas.');};});
+ choices.forEach((field,i)=>{field.checked=Boolean(data.controls?.[i]);field.onchange=()=>{data.controls=[...choices.map(el=>el.checked),Boolean(data.controls?.[2])];details.set(key,data);changed();};});
  $('#cards').append(article);updateProgress();
  if(moveFocus){const title=article.querySelector('h2');title.tabIndex=-1;title.focus({preventScroll:true});article.scrollIntoView({block:'start'});}
 }
@@ -50,23 +54,38 @@ $('#mobile-risk-select').onchange=()=>{if(saving){$('#mobile-risk-select').value
 $('#previous').onclick=()=>{if(saving||index===0)return;index--;render()};
 $('#next').onclick=async()=>{
  if(saving||!targets[current]||!validateCurrentRisk())return;
- if(!await persistDetails())return;
+ if(!await persistDetails()||!validateCurrentRisk())return;
  if(index<targets[current].risks.length-1){index++;render();return;}
  const nextTarget=targets.findIndex((item,i)=>i>current&&item.risks.length>0);
  if(nextTarget!==-1){current=nextTarget;index=0;$('#target-select').value=String(current);render();return;}
  location.assign('./levantamento.html?id='+encodeURIComponent(id)+'#risk-source-section');
 };
-$('#back').onclick=e=>{if(saving){e.preventDefault();say('Aguarde o salvamento terminar.');return;}if(dirty()&&!confirm('Voltar sem salvar o detalhamento? As alterações desta página serão descartadas.')){e.preventDefault();return;}baseline=fingerprint()};
-window.addEventListener('beforeunload',event=>{if(dirty()||saving){event.preventDefault();event.returnValue=''}});
+$('#back').onclick=e=>{if(saving){e.preventDefault();say('Aguarde o salvamento terminar.');return;}if(savingInBackground()){e.preventDefault();say('Aguarde o salvamento terminar antes de voltar.');return;}if(dirty()&&!confirm('Voltar sem salvar o detalhamento? As alterações pendentes desta página serão descartadas.')){e.preventDefault();return;}autosave?.discard();autosave?.dispose();baseline=fingerprint()};
+window.addEventListener('beforeunload',event=>{if(dirty()||saving||savingInBackground()){event.preventDefault();event.returnValue=''}});
 
 async function persistDetails(){
- if(saving||!row)return false;saving=true;$('#next').disabled=true;const version=fingerprint();const snapshot=JSON.parse(JSON.stringify(detailAnswers(row.answers,details)));
- try{const access=await getTeamMember();if(!access.member)throw Error('Não foi possível confirmar seu acesso. Mantenha esta página aberta e tente novamente.');row=await saveAssessment(authClient,row,snapshot);baseline=version;say(dirty()?'Detalhamento salvo. Há alterações posteriores ainda não salvas.':'Detalhamento salvo no rascunho.');return !dirty();}
- catch(error){say(error.message);return false}finally{saving=false;$('#next').disabled=false}
+ if(saving||!row||!autosave||accessEnded)return false;saving=true;$('#next').disabled=true;
+ try{return Boolean(await autosave.flush())&&!dirty();}
+ finally{saving=false;$('#next').disabled=accessEnded;}
+}
+function endAccess(message){
+ accessEnded=true;autosave?.dispose();$('#editor').hidden=true;$('#next').disabled=true;say(message);
+}
+async function persistSnapshot(snapshot){
+ const access=await getTeamMember();
+ if(access.reason==='network')throw Error('Não foi possível verificar seu acesso. Aguardando conexão; mantenha esta página aberta.');
+ if(!access.member||access.member.user_id!==member.user_id||access.member.team_id!==member.team_id||
+   (access.member.role!=='admin'&&row.responsible_id!==access.member.user_id)){
+  endAccess('Seu acesso mudou. Entre novamente na conta autorizada para continuar.');
+  throw Object.assign(Error('Seu acesso mudou. O salvamento automático foi interrompido.'),{code:'DRAFT_ACCESS'});
+ }
+ if(accessEnded)throw Object.assign(Error('O salvamento foi interrompido porque sua sessão mudou.'),{code:'DRAFT_ACCESS'});
+ row=await saveAssessment(authClient,row,snapshot.answers);
+ return row;
 }
 async function load(){try{
  const access=await getTeamMember();if(!access.member)throw Error('Entre na sua conta para acessar o detalhamento.');
- updateHeader(access.member);
+ member=access.member;updateHeader(member);
  if(!id||!/^[0-9a-f-]{36}$/i.test(id))throw Error('Abra o detalhamento a partir de um levantamento.');
  const result=await authClient.from('assessments').select('*').eq('id',id).maybeSingle();if(result.error||!result.data)throw Error('Não foi possível carregar o levantamento. Recarregue para tentar novamente.');
  row=result.data;if(row.status!=='draft'||(access.member.role!=='admin'&&row.responsible_id!==access.member.user_id))throw Error('Somente o responsável ou administrador pode editar um rascunho.');
@@ -76,13 +95,39 @@ async function load(){try{
  const params=new URLSearchParams(location.search);
  const requested=targets.findIndex(t=>t.id===params.get('target'));
  if(requested>=0){current=requested;index=Math.max(0,targets[current].risks.findIndex(r=>r.code===params.get('risk')));$('#target-select').value=String(current);}
- $('#editor').hidden=false;say('Use Salvar e continuar para guardar as alterações e avançar.');render();
+ autosave=createDraftAutosave({
+  scope:{userId:member.user_id,teamId:member.team_id,clientId:row.client_id,draftId:row.id,page:'details'},
+  getSnapshot:()=>({answers:detailAnswers(row.answers,details),visit_responsible_id:row.visit_responsible_id||null}),
+  getRevision:()=>row.revision??null,
+  persist:persistSnapshot,
+  canSave:()=>!accessEnded,
+  onStatus:({message})=>{if(!accessEnded)say(message);},
+  onSaved:snapshot=>{baseline=JSON.stringify({details:snapshot.answers.riskSourcesBySelection||[],epis:snapshot.answers.epiBySelection||[]});}
+ });
+ autosave.initialize();
+ await showDraftRecovery(autosave,{revision:row.revision??null,restore:snapshot=>{
+  details=new Map(snapshot.answers.riskSourcesBySelection||[]);epis=new Map(row.answers.epiBySelection||[]);
+ }});
+ if(accessEnded)return;
+ $('#editor').hidden=false;say($('#save-status').textContent||'Salvamento automático ativo. As alterações serão salvas após uma breve pausa.');render();
  }catch(error){say(error.message)}}
 for(const link of document.querySelectorAll('.gro-header a'))link.onclick=event=>$('#back').onclick(event);
-$('#sign-out').onclick=async()=>{if(saving)return;if(dirty()&&!confirm('Sair sem salvar o detalhamento?'))return;baseline=fingerprint();await authClient.auth.signOut({scope:'local'});location.assign('./index.html?reason=signedout');};
+$('#sign-out').onclick=async()=>{
+ if(saving||savingInBackground()){say('Aguarde o salvamento terminar antes de sair.');return;}
+ if(dirty()&&!confirm('Sair sem salvar o detalhamento pendente? A cópia de recuperação desta conta será removida deste aparelho.'))return;
+ autosave?.discard();autosave?.dispose();if(member)clearDraftRecovery({userId:member.user_id,teamId:member.team_id});
+ baseline=fingerprint();await authClient.auth.signOut({scope:'local'});location.assign('./index.html?reason=signedout');
+};
+authClient.auth.onAuthStateChange((event,session)=>{
+ if(!member)return;
+ if(event==='SIGNED_OUT'||(session?.user&&session.user.id!==member.user_id)){
+  autosave?.dispose();clearDraftRecovery({userId:member.user_id,teamId:member.team_id});
+  endAccess('Sua sessão mudou. Entre novamente na conta autorizada para continuar.');
+ }
+});
 await load();
 
-window.addEventListener('pageshow',event=>{if(event.persisted){if(!dirty()&&!saving)location.reload();else say('Há alterações não salvas nesta tela. Salve antes de sair; se houver conflito, mantenha a página aberta.');}});
+window.addEventListener('pageshow',event=>{if(event.persisted){if(!dirty()&&!saving&&!savingInBackground())location.reload();else say('Há alterações pendentes nesta tela. Aguarde o salvamento; se houver conflito, mantenha a página aberta.');}});
 
 function validateCurrentRisk(){
  const card=$('#cards'),missing=[];
@@ -116,7 +161,7 @@ $('#switch-target').onclick=()=>{
   const bar=document.createElement('progress');bar.max=Math.max(1,target.risks.length);bar.value=count;bar.setAttribute('aria-label',caption.textContent);button.append(name,desc,caption,bar);
   button.onclick=()=>{current=i;index=0;$('#target-select').value=String(i);dialog.close();render();};dialog.append(button);
  });
- const note=document.createElement('p');note.className='hint';note.textContent='Ao trocar de grupo, suas edições continuam nesta página. Use Salvar e continuar para guardá-las.';
+ const note=document.createElement('p');note.className='hint';note.textContent='As edições são salvas automaticamente. Confira o status de salvamento antes de sair.';
  const cancel=document.createElement('button');cancel.type='button';cancel.className='target-cancel';cancel.textContent='Cancelar';cancel.onclick=()=>dialog.close();dialog.append(note,cancel);
  dialog.addEventListener('close',()=>{dialog.remove();$('#switch-target').focus();});document.body.append(dialog);dialog.showModal();
 };

@@ -1,3 +1,5 @@
+import {captureDraftInputs,restoreDraftInputs} from './draft-form-state.js?v=20261021-autosave1';
+import {createDraftAutosave,showDraftRecovery,findDraftRecovery,clearDraftRecovery} from './draft-autosave.js?v=20261021-autosave1';
 import {createVisitResponsiblePicker} from './visit-responsible.js?v=20261020-professional1';
 import {initAssessmentWizard} from './assessment-wizard.js?v=20261020-professional1';
 const assessmentWizard=initAssessmentWizard();
@@ -7,14 +9,15 @@ addClientPickerSearch(document.querySelector('#client-select'));
 import {uploadPhoto,photoUrl} from './workstation-photos.js?v=20260928-photos1';
 import {updateHeader} from './app-header.js?v=20261019-access1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
-import {companyFromClient,saveAssessment,clientOptionLabel,deleteDraft,completeAssessment} from './assessment-data.js?v=20261020-professional1';
+import {companyFromClient,saveAssessment,clientOptionLabel,deleteDraft,completeAssessment} from './assessment-data.js?v=20261021-autosave1';
 const $=s=>document.querySelector(s);
 const workspace=$('#protected-workspace'), notice=$('#session-check');
-let visitResponsiblePicker;
+let visitResponsiblePicker, autosave, autosaveWatch;
+let accessEnded=false;
 let member, row, selected, saving=false, dirty=false, loading=false, loaded=false, sequence=0, offset=0, historyOffset=0;
 const login=()=>location.replace('./index.html?reason=expired');
 const say=(text,error=false)=>{ $('#cloud-status').textContent=text; $('#cloud-status').hidden=!error; $('#cloud-status').classList.toggle('error',error); };
-async function access(){const result=await getTeamMember();if(result.reason==='network')throw Error('Não foi possível verificar seu acesso. Mantenha esta página aberta para preservar o preenchimento, confira a conexão e tente a ação novamente.');if(!result.member){dirty=false;login();throw Error('Sua sessão terminou.');}member=result.member;updateHeader(member);$('#session-name').textContent=member.display_name;$('#profile-short-name').textContent=(member.display_name||'Equipe').trim().split(/\s+/)[0];}
+async function access(){const result=await getTeamMember();if(result.reason==='network')throw Error('Não foi possível verificar seu acesso. Mantenha esta página aberta para preservar o preenchimento, confira a conexão e tente a ação novamente.');if(!result.member){autosave?.dispose();dirty=false;login();throw Object.assign(Error('Sua sessão terminou.'),{code:'DRAFT_ACCESS'});}if(member&&row&&(result.member.user_id!==member.user_id||result.member.team_id!==member.team_id||(result.member.role!=='admin'&&row.responsible_id!==result.member.user_id))){accessEnded=true;autosave?.dispose();workspace.hidden=true;throw Object.assign(Error('Seu acesso mudou. Entre novamente para continuar.'),{code:'DRAFT_ACCESS'});}member=result.member;updateHeader(member);$('#session-name').textContent=member.display_name;$('#profile-short-name').textContent=(member.display_name||'Equipe').trim().split(/\s+/)[0];}
 const clientChoices = new Map();
 async function clientList(){
  const ticket=++sequence;const select=$('#client-select');select.disabled=true;select.replaceChildren();clientChoices.clear();selected=null;$('#client-history').hidden=true;$('#retry-clients').hidden=true;say('Carregando empresas cadastradas…');
@@ -68,57 +71,82 @@ async function loadForm(){
  const id=new URLSearchParams(location.search).get('id');
  if(!id&&!row?.unsaved){$('#assessment-picker').hidden=false;await clientList();return;}
  if(!row?.unsaved&&!/^[0-9a-f-]{36}$/i.test(id))throw Error('Endereço de levantamento inválido. Volte ao início.');
- const {data,error}=row?.unsaved ? {data:row,error:null} : await authClient.from('assessments').select('*').eq('id',id).maybeSingle();
+ let {data,error}=row?.unsaved ? {data:row,error:null} : await authClient.from('assessments').select('*').eq('id',id).maybeSingle();
  if(error)throw Error('Não foi possível carregar o levantamento. Recarregue para tentar novamente.');
+ if(!data){const local=findDraftRecovery({userId:member.user_id,teamId:member.team_id,draftId:id,page:'wizard'}).find(entry=>entry.metadata?.unsaved&&entry.metadata.id===id&&entry.metadata.client_id===entry.scope.clientId&&entry.metadata.responsible_id===member.user_id);if(local){const visible=await authClient.from('clients').select('id').eq('id',local.scope.clientId).eq('archived',false).maybeSingle();if(visible.error||!visible.data)throw Error('Não foi possível confirmar o acesso à empresa desta cópia local. Confira sua conexão e seu acesso antes de tentar novamente.');data=local.metadata;}}
  if(!data)throw Error('Levantamento não encontrado. Volte ao início.');
  if(data.status!=='draft')throw Error('Este levantamento está concluído e preservado no histórico.');
  if(member.role!=='admin'&&data.responsible_id!==member.user_id)throw Error('Somente o operador do rascunho ou administrador pode editar este rascunho.');
  row=data;
- globalThis.GRO_CLOUD={visitResponsible:()=>visitResponsiblePicker?.summary(),uploadPhoto:async file=>{await access();return uploadPhoto(authClient,file,row.client_id,member.user_id);},photoUrl:path=>photoUrl(authClient,path,row.client_id),save:async answers=>{
- if(globalThis.GRO_POSTS?.busy()){say('Aguarde o envio das fotos terminar antes de salvar.',true);return null;}
- if(saving)return;saving=true;$('#save-draft-button').disabled=true;$('#wizard-save-status').textContent='Salvando rascunho…';
- const version=fingerprint(); const snapshot=JSON.parse(JSON.stringify(answers));
- try{await access();row=await saveAssessment(authClient,{...row,visit_responsible_id:visitResponsiblePicker.value()},snapshot);history.replaceState(null,'',`./levantamento.html?id=${encodeURIComponent(row.id)}`);cleanState=version;dirty=fingerprint()!==cleanState;$('#wizard-save-status').textContent=dirty?'Rascunho salvo; há novas alterações para salvar.':'Rascunho salvo.';say(dirty?'Rascunho salvo. Há alterações novas nesta tela; salve novamente.':'',dirty);}
- catch(error){$('#wizard-save-status').textContent='Não foi possível salvar. Confira o aviso acima.';say(error.message,true);return null;}finally{saving=false;$('#save-draft-button').disabled=false;}
- return row;
+ globalThis.GRO_CLOUD={autoSaving:true,visitResponsible:()=>visitResponsiblePicker?.summary(),uploadPhoto:async file=>{await access();return uploadPhoto(authClient,file,row.client_id,member.user_id);},photoUrl:path=>photoUrl(authClient,path,row.client_id),save:async answers=>{
+ if(!autosave||accessEnded)return null;
+ return autosave.flush();
  },complete:async answers=>{
  if(globalThis.GRO_POSTS?.busy()){say('Aguarde o envio das fotos terminar.',true);return false;}
- if(saving)return false;if(!visitResponsiblePicker.validate()){say('Selecione um responsável profissional válido na identificação da visita antes de concluir.',true);return false;}saving=true;$('#generate-report-button').disabled=true;
+ if(autosave?.isSaving()){say('Aguarde o salvamento automático terminar antes de concluir.',true);return false;}if(saving)return false;if(!visitResponsiblePicker.validate()){say('Selecione um responsável profissional válido na identificação da visita antes de concluir.',true);return false;}autosave?.pause();saving=true;$('#generate-report-button').disabled=true;
  const fields=[...$('#questionnaire').querySelectorAll('input,select,textarea,button')];
  const states=fields.map(field=>field.disabled);fields.forEach(field=>field.disabled=true);
  visitResponsiblePicker.lock(true);
- try{await access();row=await completeAssessment(authClient,{...row,visit_responsible_id:visitResponsiblePicker.value()},JSON.parse(JSON.stringify(answers)));dirty=false;saving=false;cleanState=fingerprint();location.assign('./reports.html?client='+encodeURIComponent(row.client_id));return true;}
+ try{await access();row=await completeAssessment(authClient,{...row,visit_responsible_id:visitResponsiblePicker.value()},JSON.parse(JSON.stringify(answers)));dirty=false;saving=false;cleanState=fingerprint();autosave?.discard();autosave?.dispose();clearDraftRecovery({userId:member.user_id,teamId:member.team_id,clientId:row.client_id,draftId:row.id});location.assign('./reports.html?client='+encodeURIComponent(row.client_id));return true;}
  catch(error){say(error.message,true);return false;}
- finally{saving=false;fields.forEach((field,i)=>field.disabled=states[i]);visitResponsiblePicker.lock(false);$('#generate-report-button').disabled=false;}
-},reload:()=>{if(!dirty||confirm('Descartar alterações não salvas e recarregar o rascunho?')){dirty=false;location.reload();}}};
- for(const file of ['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js', 'workstation-editor.js','report-opening.js','report-cipa.js','report-sesmt.js','visit-date.js','script.js'])await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=file+'?v='+(file==='script.js'?'20261020-notices1':file==='report-sesmt.js'?'20261020-sesmt1':file==='report-cipa.js'?'20261020-cipa1':file==='report-opening.js'?'20261020-objective1':'20261019-visit1');script.onload=resolve;script.onerror=reject;document.body.append(script);});
+ finally{saving=false;fields.forEach((field,i)=>field.disabled=states[i]);visitResponsiblePicker.lock(false);$('#generate-report-button').disabled=false;if(row.status==='draft')autosave?.resume();}
+},reload:()=>{if(autosave?.isSaving())return say('Aguarde o salvamento terminar.',true);if(!dirty||confirm('Descartar alterações não salvas e recarregar o rascunho?')){autosave?.discard();autosave?.dispose();dirty=false;location.reload();}}};
+ for(const file of ['cnae-descriptions.js','cnae-risk-map.js','esocial-risk-table.js','occupational-risk-table.js','training-rules.js','nr-report-rules.js','dimension-data.js', 'workstation-editor.js','report-opening.js','report-cipa.js','report-sesmt.js','visit-date.js','script.js'])await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=file+'?v='+(file==='script.js'?'20261021-autosave1':file==='report-sesmt.js'?'20261020-sesmt1':file==='report-cipa.js'?'20261020-cipa1':file==='report-opening.js'?'20261020-objective1':'20261019-visit1');script.onload=resolve;script.onerror=reject;document.body.append(script);});
  globalThis.GRO_FORM.restore(row.answers);
+ restoreDraftInputs(row.answers.draftInputs);
  visitResponsiblePicker=createVisitResponsiblePicker({client:authClient,clientId:row.client_id,selectedId:row.visit_responsible_id});
  await visitResponsiblePicker.refresh();
  cleanState=fingerprint();dirty=Boolean(row.unsaved);
  $('#questionnaire').hidden=false;$('#page-title').textContent=row.title;$('#cnpj-form').hidden=true;$('#clear-draft-button').hidden=true;$('#load-draft-button').textContent='Recarregar rascunho';
  assessmentWizard.loaded({id:row.id,title:row.title,isNew:Boolean(row.unsaved)});
- say(row.unsaved?'Novo levantamento ainda não salvo. Use Salvar rascunho para incluí-lo no histórico.':'Rascunho carregado. Clique em Salvar rascunho para guardar suas alterações no sistema.');
+ say('As alterações são salvas automaticamente. Confira o status antes de sair.');
+ const owner={userId:member.user_id,teamId:member.team_id,clientId:row.client_id,draftId:row.id,page:'wizard'};
+ autosave=createDraftAutosave({scope:owner,
+  getSnapshot:()=>({answers:{...globalThis.GRO_FORM.snapshot(),draftInputs:captureDraftInputs()},visit_responsible_id:visitResponsiblePicker.value()}),
+  getRevision:()=>row.revision??null,
+  getMetadata:()=>row.unsaved?{id:row.id,client_id:row.client_id,title:row.title,responsible_id:row.responsible_id,visit_responsible_id:row.visit_responsible_id||null,status:'draft',unsaved:true,answers:row.answers}:null,
+  canSave:()=>!saving&&!accessEnded&&!globalThis.GRO_POSTS?.busy(),
+  persist:async snapshot=>{
+   saving=true;$('#save-draft-button').disabled=true;const version=fingerprint();
+   try{await access();if(accessEnded)throw Object.assign(Error('Seu acesso mudou.'),{code:'DRAFT_ACCESS'});row=await saveAssessment(authClient,{...row,visit_responsible_id:snapshot.visit_responsible_id},snapshot.answers);history.replaceState(null,'',`./levantamento.html?id=${encodeURIComponent(row.id)}`);cleanState=version;return row;}
+   finally{saving=false;$('#save-draft-button').disabled=false;}
+  },
+  onSaved:()=>{dirty=fingerprint()!==cleanState;},
+  onStatus:({state,message})=>{if(accessEnded)return;$('#wizard-save-status').textContent=message;$('#wizard-save-status').dataset.state=state;say(message,['error','blocked'].includes(state));}
+ });
+ autosave.initialize();
+ $('#wizard-save-status').textContent='Salvamento automático ativo. As alterações serão salvas após o preenchimento.';
+ // Keep the identifier even before the first server insert, so a local checkpoint
+ // can be offered after reopening this page (not a complete offline application).
+ history.replaceState(null,'',`./levantamento.html?id=${encodeURIComponent(row.id)}`);
+ await showDraftRecovery(autosave,{revision:row.revision??null,restore:snapshot=>{
+  globalThis.GRO_FORM.restore(snapshot.answers);restoreDraftInputs(snapshot.answers.draftInputs);
+  const select=$('#visit-responsible');if(!Array.from(select.options).some(option=>option.value===snapshot.visit_responsible_id)&&snapshot.visit_responsible_id){const option=document.createElement('option');option.value=snapshot.visit_responsible_id;option.textContent='Responsável recuperado — confira a disponibilidade';select.append(option);}select.value=snapshot.visit_responsible_id||'';select.dispatchEvent(new Event('change',{bubbles:true}));
+ }});
+ // Some model changes finish asynchronously after a dialog/photo operation.
+ clearInterval(autosaveWatch);autosaveWatch=setInterval(()=>{if(!accessEnded){autosave.changed();refreshDirty();}},1000);
+
 }
 let cleanState='';
 function fingerprint(){return JSON.stringify({answers:globalThis.GRO_FORM?.snapshot(),inputs:Array.from($('#questionnaire').querySelectorAll('input,select,textarea'),field=>[field.name||field.id,field.value,field.checked])});}
-function refreshDirty(){if(row?.status==='completed'){dirty=false;return;}if(row&&globalThis.GRO_FORM)dirty=Boolean(row.unsaved)||fingerprint()!==cleanState;if(dirty&&!saving)$('#wizard-save-status').textContent='Alterações não salvas';}
+function refreshDirty(){if(row?.status==='completed'){dirty=false;return;}if(row&&globalThis.GRO_FORM)dirty=Boolean(row.unsaved)||fingerprint()!==cleanState;if(autosave)autosave.changed();else if(dirty&&!saving)$('#wizard-save-status').textContent='Alterações não salvas';}
 for(const event of ['input','change','submit','click'])$('#questionnaire').addEventListener(event,()=>queueMicrotask(refreshDirty));
 const leaveDialog=$('#leave-dialog');
 document.querySelector('.session-home').addEventListener('click',event=>{
  event.preventDefault();refreshDirty();
- if(saving){say('Aguarde o salvamento terminar antes de voltar.',true);return;}
- if(dirty){leaveDialog.showModal();return;}
+ if(saving||autosave?.isSaving()){say('Aguarde o salvamento terminar antes de voltar.',true);return;}
+ if(dirty){autosave?.pause();leaveDialog.showModal();return;}
  location.assign('./inicio.html');
 });
-$('#keep-editing').addEventListener('click',()=>leaveDialog.close());
-$('#leave-without-saving').addEventListener('click',()=>{dirty=false;leaveDialog.close();location.assign('./inicio.html');});
-async function initialize(){if(loading)return;loading=true;workspace.hidden=true;notice.hidden=false;try{await access();if(!loaded){await loadForm();loaded=true;}workspace.hidden=false;notice.hidden=true;}catch(error){notice.querySelector('p').textContent=error.message;}finally{loading=false;}}
+$('#keep-editing').addEventListener('click',()=>{leaveDialog.close();autosave?.resume();});
+leaveDialog.addEventListener('cancel',()=>autosave?.resume());
+$('#leave-without-saving').addEventListener('click',()=>{autosave?.discard();autosave?.dispose();dirty=false;leaveDialog.close();location.assign('./inicio.html');});
+async function initialize(){if(loading)return;loading=true;workspace.hidden=true;notice.hidden=false;try{await access();if(!loaded){await loadForm();loaded=true;}if(accessEnded)return;workspace.hidden=false;notice.hidden=true;}catch(error){notice.querySelector('p').textContent=error.message;}finally{loading=false;}}
 $('#client-select').addEventListener('change',()=>{const client=clientChoices.get($('#client-select').value);if(client)choose(client);else{selected=null;creationId=null;$('#client-history').hidden=true;}});
 $('#retry-clients').addEventListener('click',()=>clientList());
 $('#more-drafts').addEventListener('click',()=>historyList(false));
-$('#sign-out').addEventListener('click',async()=>{if(dirty&&!confirm('Sair sem salvar as alterações?'))return;dirty=false;await authClient.auth.signOut({scope:'local'});login();});
-authClient.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){workspace.hidden=true;dirty=false;login();}});
+$('#sign-out').addEventListener('click',async()=>{if(saving||autosave?.isSaving()){say('Aguarde o salvamento terminar antes de sair.',true);return;}if(dirty&&!confirm('Sair sem salvar as alterações pendentes? A cópia de recuperação desta conta será removida deste aparelho.'))return;autosave?.dispose();clearInterval(autosaveWatch);if(member)clearDraftRecovery({userId:member.user_id,teamId:member.team_id});dirty=false;await authClient.auth.signOut({scope:'local'});login();});
+authClient.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||(member&&session?.user&&session.user.id!==member.user_id)){accessEnded=true;autosave?.dispose();clearInterval(autosaveWatch);if(member)clearDraftRecovery({userId:member.user_id,teamId:member.team_id});workspace.hidden=true;dirty=false;login();}});
 window.addEventListener('beforeunload',event=>{if(dirty||saving){event.preventDefault();event.returnValue='';}});
 
 
@@ -130,7 +158,7 @@ await initialize();
 
 
 
-watchPageResume({getMember:getTeamMember,currentMember:()=>member,onAccessChanged:()=>location.replace('./index.html?reason=expired')});
+watchPageResume({getMember:getTeamMember,currentMember:()=>member,onAccessChanged:()=>{accessEnded=true;autosave?.dispose();clearInterval(autosaveWatch);workspace.hidden=true;location.replace('./index.html?reason=expired');}});
 
 const homeMenuToggle = document.querySelector('#home-menu-toggle');
 const homeNavigation = document.querySelector('#home-navigation');
