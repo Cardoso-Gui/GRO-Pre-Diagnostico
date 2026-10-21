@@ -66,3 +66,14 @@
 .wizard-page .assessment-visit-details label span{font-weight:400;color:#65796f}
 .wizard-page #visit-date{display:block;box-sizing:border-box;width:100%;max-width:260px;min-height:46px;padding:10px 12px;border:1px solid #cbdcd0;border-radius:8px;background:white;color:#294c3e;font:16px Arial,sans-serif}
 .wizard-page #visit-date-help{margin:10px 0 0;font-size:13px;line-height:1.6;color:#65796f}
+
+/* Mobile GHE management keeps the primary action readable and deletion secondary. */
+@media(max-width:760px){
+  .wizard-page #ghe-management-list{gap:16px;margin-top:20px}
+  .wizard-page #ghe-management-list>.risk-card{min-width:0;padding:18px;background:#fff}
+  .wizard-page #ghe-management-list>.risk-card>h3{margin:0 0 8px;font-size:19px;line-height:1.35;overflow-wrap:anywhere}
+  .wizard-page #ghe-management-list .risk-card-note{margin:0;line-height:1.5;overflow-wrap:anywhere}
+  .wizard-page #ghe-management-list .ghe-card-actions{grid-template-columns:minmax(0,1fr);gap:12px;margin:18px 0 0}
+  .wizard-page #ghe-management-list .ghe-card-actions>button{grid-column:1/-1;width:100%;min-width:0;min-height:48px}
+  .wizard-page #ghe-management-list .ghe-card-actions>.ghe-delete{justify-self:end;width:auto;min-width:0;min-height:44px;padding:10px 16px;background:#fff;box-shadow:none}
+}

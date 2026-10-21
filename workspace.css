@@ -60,6 +60,10 @@
 .job-edit-row,.job-card,.workstation-editor,.workstation-card{min-width:0}
 @media(max-width:600px){
   .job-edit-row,.job-card .job-form{grid-template-columns:minmax(0,1fr)}
+  /* Reset the tablet button span: otherwise it creates a second implicit column. */
+  .job-card .job-form>label,.job-card .job-form>button{grid-column:1/-1;min-width:0}
+  .job-card .job-form input,.job-card .job-form textarea{width:100%;min-width:0;max-width:100%}
+  .job-card .job-form textarea{min-height:120px}
   .job-card-header,.sector-card-header{flex-wrap:wrap}
   .job-card-header .delete-sector-button{margin-left:auto;min-height:44px}
   .workstation-editor{padding:10px}

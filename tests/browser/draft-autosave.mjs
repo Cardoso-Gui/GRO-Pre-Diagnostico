@@ -74,6 +74,43 @@ try{
  await page.waitForFunction(()=>document.querySelector('#wizard-save-status').textContent.includes('Aguardando conexão'));assert.equal(writes.length,count);assert.ok(await recoveryCount()>0);
  await page.screenshot({path:path.join(out,'wizard-offline-mobile.png'),fullPage:true});
  await context.setOffline(false);await page.waitForFunction(()=>document.querySelector('#wizard-save-status').textContent==='Salvo no servidor.');assert.equal(row.answers.visitDate,'2026-10-19');
+ // Actual Add cargo form: protect against implicit CSS grid columns at phone widths.
+ await page.locator('#wizard-step-select').selectOption('2');
+ const jobCard=page.locator('.job-card').first();
+ await jobCard.locator('.add-job').click();
+ const jobForm=jobCard.locator('.job-form');
+ for(const width of [390,320]){
+  await page.setViewportSize({width,height:844});
+  const layout=await jobForm.evaluate(form=>{
+   const rect=el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,bottom:r.bottom};};
+   return {form:rect(form),fields:[...form.querySelectorAll('input,textarea,button')].map(rect),columns:getComputedStyle(form).gridTemplateColumns,textareaMin:getComputedStyle(form.querySelector('textarea')).minHeight};
+  });
+  assert.equal(layout.columns.trim().split(/\s+/).length,1,'one actual column, no implicit track at '+width);
+  for(const field of layout.fields)assert.ok(Math.abs(field.width-layout.form.width)<2,'full-width cargo control at '+width);
+  for(let i=1;i<layout.fields.length;i++)assert.ok(layout.fields[i].y>=layout.fields[i-1].bottom,'cargo controls stack at '+width);
+  assert.equal(layout.textareaMin,'120px');
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'cargo no mobile overflow at '+width);
+  await jobCard.screenshot({path:path.join(out,`add-cargo-mobile-${width}.png`)});
+ }
+ // Desktop keeps the original two-column name/count presentation.
+ await page.setViewportSize({width:1280,height:900});
+ const desktop=await jobForm.evaluate(form=>({columns:getComputedStyle(form).gridTemplateColumns,nameY:form.elements.jobName.getBoundingClientRect().y,countY:form.elements.quantity.getBoundingClientRect().y}));
+ assert.equal(desktop.columns.trim().split(/\s+/).length,2);assert.ok(Math.abs(desktop.nameY-desktop.countY)<2);
+ await page.setViewportSize({width:390,height:844});
+ await page.locator('#wizard-step-select').selectOption('3');
+ const gheCard=page.locator('#ghe-management-list>.risk-card').first();
+ for(const width of [390,320]){
+  await page.setViewportSize({width,height:844});
+  const layout=await gheCard.evaluate(card=>{
+   const actions=card.querySelector('.ghe-card-actions'),primary=actions.querySelector('button:not(.ghe-delete)'),secondary=actions.querySelector('.ghe-delete');
+   return {width:actions.getBoundingClientRect().width,primary:primary.getBoundingClientRect().toJSON(),secondary:secondary.getBoundingClientRect().toJSON(),columns:getComputedStyle(actions).gridTemplateColumns};
+  });
+  assert.equal(layout.columns.trim().split(/\s+/).length,1);assert.ok(Math.abs(layout.primary.width-layout.width)<2,'GHE primary full width');
+  assert.ok(layout.secondary.y>=layout.primary.bottom,'GHE delete on separate row');assert.ok(layout.secondary.height>=44,'GHE delete touch target');
+  assert.ok(layout.secondary.width<layout.primary.width,'GHE delete remains secondary');
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'GHE no mobile overflow at '+width);
+  await gheCard.screenshot({path:path.join(out,`ghe-organized-mobile-${width}.png`)});
+ }
  assert.deepEqual(errors,[]);assert.deepEqual(blocked,[]);
  console.log(JSON.stringify({passed:true,writes:writes.length,errors,blocked,output:out},null,2));
 }finally{await fs.writeFile(path.join(out,'diagnostics.json'),JSON.stringify({writes,errors,blocked},null,2));await browser.close();}
