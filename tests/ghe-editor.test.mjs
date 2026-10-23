@@ -59,7 +59,7 @@ test('excluir só remove GHE confirmado e suas respostas',()=>{
 test('remover setor limpa cargos e vínculos, preserva outro setor e permite cancelar',async()=>{
  for(const accepted of [false,true]){
  const checkbox={checked:true};
- const ctx=vm.createContext({confirmSectorRemoval:async()=>accepted,selectedSectorNames:new Set(['A','B']),
+ const ctx=vm.createContext({confirmSectorRemoval:async()=>accepted,selectedSectorNames:new Set(['A','B']),collapsedJobSectors:new Set(['A','B']),
  jobsBySector:new Map([['A',[{name:'Cargo'}]],['B',[{name:'Outro'}]]]),
  gheList:[{id:'g1',linkedJobs:[{sectorName:'A',jobName:'Cargo'},{sectorName:'B',jobName:'Outro'}]}],
  selectedRisksByTarget:new Map([['job__A__Cargo',new Set(['r'])],['g1',new Set(['r'])]]),
@@ -71,6 +71,8 @@ test('remover setor limpa cargos e vínculos, preserva outro setor e permite can
  await ctx.removeSector('A');
  assert.equal(ctx.jobsBySector.has('A'),!accepted);
  assert.equal(ctx.selectedSectorNames.has('A'),!accepted);
+ assert.equal(ctx.collapsedJobSectors.has('A'),!accepted);
+ assert.equal(ctx.collapsedJobSectors.has('B'),true);
  assert.equal(checkbox.checked,!accepted);
  assert.equal(ctx.gheList[0].linkedJobs.length,accepted?1:2);
  assert.equal(ctx.riskSourcesBySelection.has('source__job__A__Cargo__r'),!accepted);

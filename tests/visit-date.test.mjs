@@ -12,7 +12,7 @@ const read=file=>fs.readFileSync(new URL('../'+file,import.meta.url),'utf8');
 const source=read('script.js');
 function formFixture(){
  const dimensionInputs={'#preponderant-risk':{value:''},'#health-establishment':{checked:false}};
- const context=vm.createContext({input:{value:''},visitDateInput:{value:''},employeeCountInput:{value:''},currentCompany:null,currentRiskGrade:0,
+ const context=vm.createContext({input:{value:''},visitDateInput:{value:''},employeeCountInput:{value:''},currentCompany:null,currentRiskGrade:0,collapsedJobSectors:new Set(),
   document:{querySelector:selector=>dimensionInputs[selector]},selectedSectorNames:new Set(),jobsBySector:new Map(),selectedRiskMode:'',gheList:[],selectedRisksByTarget:new Map(),riskSourcesBySelection:new Map(),epiBySelection:new Map(),
   GRO_VISIT_DATE:globalThis.GRO_VISIT_DATE,sectorOptions:{},clearCheckboxes(){},addSectorOption(){},renderCompany(){},renderJobSections(){},renderRiskModeSummary(){},renderRiskSelection(){},setRiskModeInput(){},restoreMapOfSets(){},mapOfSetsToArray:map=>[...map].map(([key,value])=>[key,[...value]])});
  vm.runInContext(source.slice(source.indexOf('function getDraft()'),source.indexOf('function saveDraft()'))+source.slice(source.indexOf('function restoreDraft('),source.indexOf('function setRiskModeInput(')),context);

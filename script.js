@@ -42,6 +42,9 @@ let currentRiskGrade = null;
 let currentCompany = null;
 const selectedSectorNames = new Set();
 const jobsBySector = new Map();
+// Presentation only: never serialize collapsed state into assessment data.
+const collapsedJobSectors = new Set();
+let jobSectorContentId = 0;
 const gheList = [];
 const selectedRisksByTarget = new Map();
 const riskSourcesBySelection = new Map();
@@ -445,6 +448,18 @@ function createJobCard(sectorName) {
   const card=document.createElement('article'); card.className='job-card';
   const title=document.createElement('h3');title.textContent=sectorName;
   const header=document.createElement('div');header.className='sector-card-header';header.append(title);card.append(header);
+  const content=document.createElement('div');content.className='sector-card-content';content.id='sector-content-'+(++jobSectorContentId);
+  const toggle=document.createElement('button');toggle.type='button';toggle.className='sector-collapse-button';
+  toggle.setAttribute('aria-controls',content.id);
+  const updateCollapsed=()=>{
+    const collapsed=collapsedJobSectors.has(sectorName);
+    content.hidden=collapsed;card.classList.toggle('is-collapsed',collapsed);
+    toggle.setAttribute('aria-expanded',String(!collapsed));
+    toggle.setAttribute('aria-label',(collapsed?'Expandir':'Recolher')+' setor '+sectorName);
+    toggle.textContent=collapsed?'Expandir':'Recolher';
+  };
+  toggle.onclick=()=>{if(collapsedJobSectors.has(sectorName))collapsedJobSectors.delete(sectorName);else collapsedJobSectors.add(sectorName);updateCollapsed();};
+  updateCollapsed();header.append(toggle);
   const removeSectorButton=document.createElement('button');
   removeSectorButton.type='button';removeSectorButton.className='delete-sector-button';
   removeSectorButton.innerHTML='<svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg><span>Excluir setor</span>';
@@ -452,13 +467,13 @@ function createJobCard(sectorName) {
   removeSectorButton.onclick=()=>removeSector(sectorName);
   header.append(removeSectorButton);
   if(globalThis.GRO_CLOUD?.rectification){const rename=document.createElement('button');rename.type='button';rename.textContent='Corrigir nome do setor';rename.onclick=()=>globalThis.GRO_CLOUD.rename('sector',sectorName);header.append(rename);}
-  const list=document.createElement('div');list.className='job-list';renderJobList(sectorName,list);card.append(list);
+  const list=document.createElement('div');list.className='job-list';renderJobList(sectorName,list);content.append(list);
   const add=document.createElement('button');add.type='button';add.textContent='＋ Adicionar cargo';add.className='add-job';
   const form=document.createElement('form');form.className='job-form';form.hidden=true;
   form.innerHTML='<label>Nome do cargo<input name="jobName" required maxlength="100" placeholder="Ex.: Técnico de segurança"></label><label>Funcionários<input name="quantity" type="number" min="1" step="1" required placeholder="0"></label><label class="job-activities">Atividades realizadas<textarea name="activities" required maxlength="2000" placeholder="O que essa função faz?"></textarea></label><button type="submit">Adicionar</button>';
   add.onclick=()=>{form.hidden=!form.hidden;if(!form.hidden)form.elements.jobName.focus()};
   form.onsubmit=e=>{e.preventDefault();if(!form.elements.jobName.value.trim()||!form.elements.activities.value.trim())return;addJobToSector(sectorName,form.elements.jobName.value,Number(form.elements.quantity.value),form.elements.activities.value);renderJobSections()};
-  card.append(add,form);return card;
+  content.append(add,form);card.append(content);return card;
 }
 
 function confirmSectorRemoval(sectorName, kind = "setor") {
@@ -513,6 +528,7 @@ async function removeSector(sectorName) {
     selectedRisksByTarget.delete(id);
   });
   jobsBySector.delete(sectorName);
+  collapsedJobSectors.delete(sectorName);
   selectedSectorNames.delete(sectorName);
   gheList.forEach(ghe => {
     ghe.linkedJobs = ghe.linkedJobs.filter(link => link.sectorName !== sectorName);
@@ -2005,6 +2021,7 @@ function clearDraft() {
 }
 
 function restoreDraft(draft) {
+  collapsedJobSectors.clear();
   input.value = draft.cnpj || "";
   visitDateInput.value = globalThis.GRO_VISIT_DATE.read(draft);
   employeeCountInput.value = draft.employees || "";
