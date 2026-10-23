@@ -1501,6 +1501,12 @@ button:disabled {
 
 .sector-card-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}
 .sector-card-header h3{margin:0;overflow-wrap:anywhere;min-width:0}
+.sector-card-header{flex-wrap:wrap}
+.sector-card-header h3{flex:1 1 160px}
+.sector-collapse-button{min-height:44px;flex-shrink:0}
+.sector-collapse-button:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+.job-card.is-collapsed .sector-card-header{margin-bottom:0}
+.sector-card-content[hidden]{display:none!important}
 .delete-sector-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;flex-shrink:0;padding:10px 14px;background:#b42318;color:#fff;border:1px solid #b42318;border-radius:8px;box-shadow:none;font-weight:700;cursor:pointer}
 .delete-sector-button:hover{background:#912018;border-color:#912018}
 .delete-sector-button:focus-visible{outline:3px solid #b42318;outline-offset:3px}

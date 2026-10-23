@@ -79,6 +79,32 @@ try{
  const jobCard=page.locator('.job-card').first();
  await jobCard.locator('.add-job').click();
  const jobForm=jobCard.locator('.job-form');
+ await jobCard.locator('.job-list textarea').first().fill('Atividade existente editada');
+ // Collapse keeps existing inputs mounted and included in the real autosave snapshot.
+ await jobForm.locator('[name=jobName]').fill('Cargo em preenchimento');
+ await jobForm.locator('[name=activities]').fill('Atividade ainda em edição');
+ await jobForm.locator('[name=quantity]').fill('2');
+ const toggle=jobCard.locator('.sector-collapse-button');
+ const controlled=await toggle.getAttribute('aria-controls');
+ assert.ok(controlled);
+ for(let i=0;i<6;i++){
+  await toggle.click();
+  assert.equal(await toggle.getAttribute('aria-expanded'),String(i%2===1));
+  assert.equal(await jobCard.locator('.sector-card-content').isVisible(),i%2===1);
+ }
+ await toggle.focus();await page.keyboard.press('Space');
+ assert.equal(await toggle.getAttribute('aria-expanded'),'false');
+ await page.waitForFunction(()=>document.querySelector('#wizard-save-status').textContent==='Salvo no servidor.');
+ assert.ok(JSON.stringify(row.answers).includes('Cargo em preenchimento'));
+ assert.equal(row.answers.jobsBySector[0][1][0].name,'Auxiliar');
+ assert.equal(row.answers.jobsBySector[0][1][0].activities,'Atividade existente editada');
+ await page.locator('#wizard-step-select').selectOption('3');
+ await page.locator('#wizard-step-select').selectOption('2');
+ assert.equal(await toggle.getAttribute('aria-expanded'),'false');
+ await toggle.focus();await page.keyboard.press('Enter');
+ assert.equal(await jobForm.locator('[name=jobName]').inputValue(),'Cargo em preenchimento');
+ assert.equal(await jobForm.locator('[name=activities]').inputValue(),'Atividade ainda em edição');
+ assert.equal(await jobForm.locator('[name=quantity]').inputValue(),'2');
  for(const width of [390,320]){
   await page.setViewportSize({width,height:844});
   const layout=await jobForm.evaluate(form=>{
@@ -91,11 +117,32 @@ try{
   assert.equal(layout.textareaMin,'120px');
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'cargo no mobile overflow at '+width);
   await jobCard.screenshot({path:path.join(out,`add-cargo-mobile-${width}.png`)});
+  await toggle.click();
+  assert.equal(await jobForm.isVisible(),false);
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'collapsed sector no overflow at '+width);
+  await jobCard.screenshot({path:path.join(out,`collapsed-sector-mobile-${width}.png`)});
+  await toggle.click();
  }
  // Desktop keeps the original two-column name/count presentation.
  await page.setViewportSize({width:1280,height:900});
  const desktop=await jobForm.evaluate(form=>({columns:getComputedStyle(form).gridTemplateColumns,nameY:form.elements.jobName.getBoundingClientRect().y,countY:form.elements.quantity.getBoundingClientRect().y}));
  assert.equal(desktop.columns.trim().split(/\s+/).length,2);assert.ok(Math.abs(desktop.nameY-desktop.countY)<2);
+ await jobForm.getByRole('button',{name:'Adicionar',exact:true}).click();
+ await page.waitForFunction(()=>document.querySelector('#wizard-save-status').textContent==='Salvo no servidor.');
+ assert.ok(row.answers.jobsBySector[0][1].some(job=>job.name==='Cargo em preenchimento'));
+ await toggle.click();
+ // Adding another sector rebuilds cards but keeps the first sector collapsed.
+ await page.evaluate(()=>addSectorOption('Produção de teste',true));
+ assert.equal(await toggle.getAttribute('aria-expanded'),'false');
+ const second=page.locator('.job-card').nth(1);
+ assert.equal(await second.locator('.sector-collapse-button').getAttribute('aria-expanded'),'true');
+ assert.notEqual(await second.locator('.sector-collapse-button').getAttribute('aria-controls'),await toggle.getAttribute('aria-controls'));
+ await second.getByRole('button',{name:'Excluir setor Produção de teste',exact:true}).click();
+ await page.locator('.sector-delete-dialog').getByRole('button',{name:'Excluir setor',exact:true}).click();
+ await second.waitFor({state:'detached'});
+ assert.equal(await page.locator('.job-card').count(),1);
+ assert.equal(await toggle.getAttribute('aria-expanded'),'false');
+ await toggle.click();
  await page.setViewportSize({width:390,height:844});
  await page.locator('#wizard-step-select').selectOption('3');
  const gheCard=page.locator('#ghe-management-list>.risk-card').first();
