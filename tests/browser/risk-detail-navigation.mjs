@@ -108,6 +108,8 @@ try{
   await page.locator('.gro-validation-dialog').waitFor({state:'visible'});
   await page.screenshot({path:path.join(out,'finalization-still-blocked.png'),fullPage:true});
   await page.locator('.gro-validation-dialog').getByRole('button',{name:'OK, preencher'}).click();
+  // The dialog's asynchronous close handler reveals the first incomplete step.
+  await page.waitForFunction(()=>document.querySelector('#wizard-step-select').value==='2');
   // Revisiting the selected risk must retain saved input without duplicate/blank rows.
   await showRisks();
   await page.locator('.target-risk-details').first().click();
