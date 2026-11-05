@@ -47,10 +47,16 @@ await context.route('**/*',async route=>{
 
 const page=await context.newPage();page.on('pageerror',error=>errors.push(error.message));
 page.on('dialog',dialog=>dialog.type()==='beforeunload'?dialog.accept():dialog.dismiss());
+async function showRisks(){
+ await page.locator('#wizard-step-select').selectOption('4');
+ const card=page.locator('#risk-selection-grid details.risk-accordion').first();
+ if(await card.getAttribute('open')===null)await card.locator('summary').click();
+ await card.locator('.target-risk-details').waitFor({state:'visible'});
+}
 try{
  await page.goto(`${origin}/levantamento.html?id=${id}`);
  await page.locator('#questionnaire').waitFor({state:'visible'});
- await page.locator('#wizard-step-select').selectOption('4');
+ await showRisks();
  const open=page.locator('.target-risk-details').first();
  assert.equal(await open.isEnabled(),true);
  if(baselineScript){
@@ -67,7 +73,7 @@ try{
   await page.locator('#wizard-step-select').selectOption('0');
   await page.evaluate(()=>window.__fixtureReject=true);
   await page.locator('#visit-date').fill('2026-11-05');
-  await page.locator('#wizard-step-select').selectOption('4');
+  await showRisks();
   await open.click();
   await page.waitForFunction(()=>document.querySelector('#wizard-save-status').textContent.includes('Falha de conexão simulada'));
   assert.match(page.url(),/levantamento\.html/);
@@ -102,7 +108,7 @@ try{
   await page.screenshot({path:path.join(out,'finalization-still-blocked.png'),fullPage:true});
   await page.locator('.gro-validation-dialog').getByRole('button',{name:'OK, preencher'}).click();
   // Revisiting the selected risk must retain saved input without duplicate/blank rows.
-  await page.locator('#wizard-step-select').selectOption('4');
+  await showRisks();
   await page.locator('.target-risk-details').first().click();
   await page.waitForURL(/risk-detail\.html/);
   await page.locator('#editor').waitFor({state:'visible'});
@@ -111,4 +117,4 @@ try{
   assert.deepEqual(errors,[]);assert.deepEqual(blocked,[]);
   console.log(JSON.stringify({passed:true,writes:writes.length,errors,blocked,output:out},null,2));
  }
-}finally{await fs.writeFile(path.join(out,baselineScript?'baseline-diagnostics.json':'diagnostics.json'),JSON.stringify({writes,errors,blocked},null,2));await browser.close();}
+}catch(error){await page.screenshot({path:path.join(out,'failure.png'),fullPage:true});await fs.writeFile(path.join(out,'failure.html'),await page.content());throw error;}finally{await fs.writeFile(path.join(out,baselineScript?'baseline-diagnostics.json':'diagnostics.json'),JSON.stringify({writes,errors,blocked},null,2));await browser.close();}
