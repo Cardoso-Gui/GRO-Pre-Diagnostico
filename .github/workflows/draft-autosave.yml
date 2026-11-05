@@ -4,12 +4,14 @@ on:
     paths:
       - 'draft-*.js'
       - 'workspace.js'
+      - 'script.js'
       - 'workspace.css'
       - 'levantamento.html'
       - 'risk-detail*'
       - 'assessment-data.js'
       - 'tests/browser/draft-autosave.mjs'
       - 'tests/browser/draft-deletion.mjs'
+      - 'tests/browser/risk-detail-navigation.mjs'
       - '.github/workflows/draft-autosave.yml'
   workflow_dispatch:
 permissions:
@@ -33,10 +35,14 @@ jobs:
         run: node tests/browser/draft-autosave.mjs
       - name: Exercise draft deletion permissions without production
         run: node tests/browser/draft-deletion.mjs
+      - name: Open risk details with incomplete earlier stages
+        run: node tests/browser/risk-detail-navigation.mjs
       - name: Preserve synthetic browser evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: draft-autosave-browser
-          path: test-results/draft-autosave
+          path: |
+            test-results/draft-autosave
+            test-results/risk-detail-navigation
           if-no-files-found: ignore

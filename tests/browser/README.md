@@ -1,5 +1,21 @@
 # Real PDF regression (synthetic only)
 
+## Risk-detail navigation (synthetic only)
+
+Run `node tests/browser/risk-detail-navigation.mjs` to check that a GHE with
+selected risks can be opened and edited while other job/GHE links are incomplete.
+The test verifies a failed save and retry, retention of existing inputs, returning
+to the assessment, reopening the editor, and final-report validation remaining
+blocked. All data and authentication responses are synthetic, and all external
+requests are blocked. Screenshots and diagnostics go to
+`test-results/risk-detail-navigation`.
+
+To reproduce the previous blocking behavior, set `GRO_BASELINE_SCRIPT` to a local
+copy of `script.js` from before the fix. This optional mode verifies the original
+missing-GHE-link dialog without changing the current checkout.
+
+## PDF workflow
+
 `npm run test:pdf` exercises Chromium's actual `page.pdf()` / `beforeprint` /
 `afterprint` path, using production `organizeReport`, `hydrateReportPhotos`,
 `mountReportViewer`, compaction, pagination, and CSS. It prints twice to catch

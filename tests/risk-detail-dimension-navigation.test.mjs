@@ -5,7 +5,8 @@ import vm from 'node:vm';
 
 const source = fs.readFileSync(new URL('../script.js', import.meta.url), 'utf8');
 const validator = source.slice(source.indexOf('function getReportMissingFields('), source.indexOf('function validateReport()'));
-const handler = source.split('\n').find(line => line.includes('button.onclick=async()=>') && line.includes('risk-detail.html'));
+const section = source.slice(source.indexOf("button.id='open-risk-details'"));
+const handler = section.slice(section.indexOf('button.onclick='), section.indexOf('riskSourceGrid.append(note,button);'));
 function fixture({cipa = 'Cálculo pendente', sesmt = 'Cálculo pendente', employees = '1'} = {}) {
   const calls = {save: 0, navigation: [], errors: []};
   const ctx = vm.createContext({
@@ -45,24 +46,105 @@ for (const state of [
   });
 }
 for (const employees of ['', '0', '-1', '1.5', 'texto']) {
-  test(`detalhamento continua bloqueando quantidade de funcionários inválida: ${JSON.stringify(employees)}`, async () => {
+  test(`detalhamento permite completar depois a quantidade de funcionários: ${JSON.stringify(employees)}`, async () => {
     const {ctx, calls} = fixture({employees});
     await ctx.button.onclick();
-    assert.ok(calls.errors.some(item => item.text === 'Informe o número de funcionários.'));
-    assert.equal(calls.save, 0);
-    assert.equal(calls.navigation.length, 0);
+    assert.equal(calls.errors.length, 0);
+    assert.equal(calls.save, 1);
+    assert.equal(calls.navigation.length, 1);
+    assert.ok(ctx.getReportMissingFields().includes('Informe o número de funcionários.'));
   });
 }
-test('dispensa de cálculo não dispensa empresa e vínculos obrigatórios', async () => {
+test('detalhamento permite rascunho com empresa e vínculos pendentes sem liberar o relatório', async () => {
   const {ctx, calls} = fixture();
   ctx.currentCompany = null;
   ctx.gheList[0].linkedJobs = [];
   await ctx.button.onclick();
-  assert.ok(calls.errors.some(item => item.text === 'Selecione a empresa.'));
-  assert.ok(calls.errors.some(item => item.text.includes('vincule')));
-  assert.equal(calls.save, 0);
+  assert.equal(calls.errors.length, 0);
+  assert.equal(calls.save, 1);
+  assert.equal(calls.navigation.length, 1);
+  const missing = ctx.getReportMissingFields();
+  assert.ok(missing.includes('Selecione a empresa.'));
+  assert.ok(missing.some(item => item.includes('vincule')));
 });
 test('dimensionamento calculado continua válido na validação final', () => {
   const {ctx} = fixture({cipa: 'Sem comissão nesta faixa', sesmt: 'Sem equipe'});
   assert.equal(ctx.getReportMissingFields().length, 0);
+});
+
+test('cargos sem vínculo não impedem detalhar um GHE já selecionado', async () => {
+  const {ctx, calls} = fixture();
+  ctx.jobsBySector.get('A').push({name: 'Cargo sem GHE', quantity: 1, activities: ''});
+  ctx.selectedSectorNames.add('Setor incompleto');
+  ctx.gheList.push({id: 'ghe-b', name: 'Outro GHE', linkedJobs: []});
+  ctx.getRiskTargets = () => [{id: 'ghe-a', title: 'GHE A'}, {id: 'ghe-b', title: 'Outro GHE'}];
+  ctx.getSelectedRiskCodes = id => new Set(id === 'ghe-a' ? ['ERG.002'] : []);
+  const before = Array.from(ctx.getReportMissingFields());
+  assert.ok(before.some(text => text.includes('Cargo sem GHE: vincule')));
+  assert.ok(before.some(text => text.includes('Cargo sem GHE: descreva')));
+  assert.ok(before.some(text => text.includes('Setor incompleto: adicione')));
+  assert.ok(before.some(text => text.includes('Outro GHE: vincule')));
+  assert.ok(before.some(text => text.includes('Outro GHE: selecione')));
+  await ctx.button.onclick();
+  assert.equal(calls.errors.length, 0);
+  assert.equal(calls.save, 1);
+  assert.match(calls.navigation[0], /&target=ghe-a&risk=$/);
+  assert.deepEqual(Array.from(ctx.getReportMissingFields()), before);
+});
+
+test('atalho de revisão preserva risco e cargo solicitados mesmo com outras pendências', async () => {
+  const {ctx, calls} = fixture();
+  ctx.selectedRiskMode = 'job';
+  ctx.button.dataset = {target: 'job__A & B', risk: 'ERG.002'};
+  await ctx.button.onclick();
+  assert.match(calls.navigation[0], /&target=job__A%20%26%20B&risk=ERG.002$/);
+});
+
+test('sem acesso ao salvamento não tenta navegar', async () => {
+  const {ctx, calls} = fixture();
+  ctx.GRO_CLOUD = null;
+  await ctx.button.onclick();
+  assert.equal(calls.save, 0);
+  assert.equal(calls.navigation.length, 0);
+  assert.equal(ctx.button.disabled, false);
+});
+
+for (const saved of [null, false]) {
+  test(`salvamento não confirmado (${saved}) mantém a página e permite tentar novamente`, async () => {
+    const {ctx, calls} = fixture();
+    ctx.GRO_CLOUD.save = async () => {calls.save++; return saved;};
+    await ctx.button.onclick();
+    assert.equal(calls.save, 1);
+    assert.equal(calls.navigation.length, 0);
+    assert.equal(ctx.button.disabled, false);
+    ctx.GRO_CLOUD.save = async () => ({id: 'retry'});
+    await ctx.button.onclick();
+    assert.match(calls.navigation[0], /id=retry/);
+  });
+}
+
+test('erro inesperado de salvamento não navega e libera nova tentativa', async () => {
+  const {ctx, calls} = fixture();
+  ctx.GRO_CLOUD.save = async () => {throw Error('Falha simulada');};
+  await assert.rejects(ctx.button.onclick(), /Falha simulada/);
+  assert.equal(calls.navigation.length, 0);
+  assert.equal(ctx.button.disabled, false);
+});
+
+test('cliques repetidos aguardam um único salvamento e mantêm o destino original', async () => {
+  const {ctx, calls} = fixture();
+  let resolveSave;
+  ctx.GRO_CLOUD.save = () => {calls.save++; return new Promise(resolve => {resolveSave = resolve;});};
+  const first = ctx.button.onclick();
+  assert.equal(ctx.button.disabled, true);
+  ctx.button.dataset.target = 'ghe-b';
+  ctx.button.dataset.risk = 'FIS.002';
+  await ctx.button.onclick();
+  assert.equal(calls.save, 1);
+  assert.equal(calls.navigation.length, 0);
+  resolveSave({id: 'saved'});
+  await first;
+  assert.equal(calls.navigation.length, 1);
+  assert.match(calls.navigation[0], /&target=ghe-a&risk=$/);
+  assert.equal(ctx.button.disabled, false);
 });
