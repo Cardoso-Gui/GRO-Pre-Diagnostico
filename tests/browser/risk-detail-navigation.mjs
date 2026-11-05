@@ -85,10 +85,11 @@ try{
   await page.locator('#editor').waitFor({state:'visible'});
   assert.equal(new URL(page.url()).searchParams.get('target'),'ghe__a');
   assert.equal(await page.locator('#target-title').textContent(),'Limpeza automotiva');
-  assert.equal(await page.locator('[data-field=note]').inputValue(),'Observação já preenchida');
+  assert.equal(row.answers.riskSourcesBySelection[0][1].note,'Observação já preenchida');
   await page.locator('[data-field=source]').fill('Exposição preenchida com outros cargos pendentes');
   await page.waitForFunction(()=>document.querySelector('#save-status').textContent==='Salvo no servidor.');
   assert.equal(row.answers.riskSourcesBySelection[0][1].source,'Exposição preenchida com outros cargos pendentes');
+  assert.equal(row.answers.riskSourcesBySelection[0][1].note,'Observação já preenchida');
   assert.deepEqual(row.answers.jobsBySector,base.answers.jobsBySector);
   assert.deepEqual(row.answers.gheList,base.answers.gheList);
   assert.deepEqual(row.answers.epiBySelection,base.answers.epiBySelection);
