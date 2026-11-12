@@ -1,4 +1,11 @@
 // Presentation-only enhancements; never read or write application records.
+// Also clear transient list queries when leaving from another work area.
+document.querySelector('#sign-out')?.addEventListener('click',()=>{
+  try{
+    const storage=globalThis.sessionStorage;
+    for(let i=storage.length-1;i>=0;i--){const key=storage.key(i);if(key?.startsWith('gro-list-v1:'))storage.removeItem(key);}
+  }catch{}
+});
 const header = document.querySelector('header.unified-header');
 if (header) {
   const nav = header.querySelector('nav');

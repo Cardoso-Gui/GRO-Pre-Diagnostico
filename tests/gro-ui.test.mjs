@@ -5,6 +5,11 @@ import {JSDOM} from 'jsdom';
 
 const read = name => readFileSync(new URL('../' + name, import.meta.url), 'utf8');
 const script = read('gro-ui.js');
+test('sign-out from another work area clears list queries without touching other session data',()=>{
+ const dom=new JSDOM('<button id="sign-out">Sair</button>',{url:'https://fixture.test',runScripts:'outside-only'});
+ dom.window.sessionStorage.setItem('gro-list-v1:user:team:clients','query');dom.window.sessionStorage.setItem('unrelated','preserved');
+ dom.window.eval(script);dom.window.document.querySelector('button').click();assert.equal(dom.window.sessionStorage.getItem('gro-list-v1:user:team:clients'),null);assert.equal(dom.window.sessionStorage.getItem('unrelated'),'preserved');dom.window.close();
+});
 function setup() {
   const dom = new JSDOM(`<body><header class="unified-header"><button id="home-menu-toggle" aria-expanded="true">Menu</button><nav class="is-open"><a href="clients.html">Clientes</a></nav><button id="profile-toggle" aria-expanded="false">Perfil</button><div id="profile-panel" hidden>Perfil</div></header><main><div class="draft-filter" hidden><input id="draft-filter"><button id="clear-draft-filter" hidden>Limpar</button><p id="draft-filter-status"></p></div><div id="draft-list"></div></main></body>`, {runScripts: 'outside-only'});
   let resize;
@@ -19,7 +24,7 @@ test('every work area and login loads the shared screen stylesheet and behavior'
     const doc = dom.window.document;
     assert.ok(doc.body.classList.contains('gro-ui'), page);
     assert.equal(doc.querySelectorAll('link[href="./gro-ui.css?v=20261111-ui1"]').length, 1, page);
-    assert.equal(doc.querySelectorAll('script[src="./gro-ui.js?v=20261111-ui1"]').length, 1, page);
+    assert.equal(doc.querySelectorAll('script[src="./gro-ui.js?v=20261112-memory1"]').length, 1, page);
     dom.window.close();
   }
 });
