@@ -1,3 +1,4 @@
+import {mountAssessmentActivity} from './assessment-activity.js?v=20261112-history1';
 import {REPORT_NOTICES} from './report-notices.js?v=20261020-notices1';
 import './report-cipa.js?v=20261020-cipa1';
 import './report-sesmt.js?v=20261020-sesmt1';
@@ -14,6 +15,7 @@ import {updateHeader} from './app-header.js?v=20260928-occ1';
 import {organizeReport} from './report-layout.js?v=20261020-notices1';
 import {addReuseButton} from './reuse-report.js?v=20261020-professional1';
 import {mountReportViewer,reportVisitDate} from './report-viewer.js?v=20261020-notices1';
+let activityView;
 const message=document.querySelector('#report-status'),content=document.querySelector('#report-content'),print=document.querySelector('#report-print');
 const tags=new Set(['section','div','article','h2','h3','h4','p','span','strong','small','ul','li']);
 function renderNode(node,depth=0){
@@ -27,6 +29,7 @@ function renderNode(node,depth=0){
 let resumeMember,viewer,loading=false;
 async function load(){
  if(loading)return;loading=true;document.querySelector('#report-retry').disabled=true;
+ activityView?.dispose();activityView=null;
  viewer?.destroy();viewer=null;
  document.querySelector('#report-shell').hidden=true;document.querySelector('#report-overview').hidden=true;
  document.querySelector('.report-toolbar .reuse-report')?.remove();
@@ -149,14 +152,15 @@ async function load(){
  document.querySelector('.report-toolbar .reuse-report')?.remove();
  if(!original)addReuseButton(document.querySelector('.report-toolbar'),id,authClient,getTeamMember,text=>{message.textContent=text;});
  mountRectificationHistory(state,id,{original});
+ activityView?.dispose();activityView=mountAssessmentActivity({client:authClient,getContext:()=>({id,saved:true}),anchor:content});
  if(new URLSearchParams(location.search).get('print')==='1'){history.replaceState(null,'','./report.html?id='+encodeURIComponent(id)+(original?'&original=1':''));await document.fonts.ready;window.print();}
  }catch(error){message.textContent=error.message;}
  finally{loading=false;document.querySelector('#report-retry').disabled=false;}
 }
 print.onclick=()=>window.print();document.querySelector('#report-retry').onclick=load;
 document.querySelector('#sign-out').onclick=async()=>{content.hidden=true;document.querySelector('#report-shell').hidden=true;document.querySelector('#report-overview').hidden=true;await authClient.auth.signOut({scope:'local'});location.replace('./index.html');};
-authClient.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){viewer?.destroy();content.replaceChildren();content.hidden=true;document.querySelector('#report-shell').hidden=true;document.querySelector('#report-overview').hidden=true;print.disabled=true;location.replace('./index.html');}});
+authClient.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){activityView?.dispose();viewer?.destroy();content.replaceChildren();content.hidden=true;document.querySelector('#report-shell').hidden=true;document.querySelector('#report-overview').hidden=true;print.disabled=true;location.replace('./index.html');}});
 
 await load();
 
-watchPageResume({getMember:getTeamMember,currentMember:()=>resumeMember,onAccessChanged:()=>location.replace('./index.html?reason=expired')});
+watchPageResume({getMember:getTeamMember,currentMember:()=>resumeMember,onAccessChanged:()=>{activityView?.dispose();location.replace('./index.html?reason=expired');}});

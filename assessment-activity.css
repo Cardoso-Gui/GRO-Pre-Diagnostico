@@ -1,0 +1,14 @@
+@media screen {
+ .gro-ui .review-readiness{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:24px 0}
+ .gro-ui .review-readiness>div{padding:20px;border:1px solid var(--ui-line);border-radius:12px;background:#fafcfb;min-width:0}
+ .gro-ui .review-readiness h3{font-size:15px;margin:0 0 12px}.gro-ui .review-readiness strong{font-size:18px;color:var(--ui-green-dark);display:block}
+ .gro-ui .review-readiness p,.gro-ui .review-technical-note{font-size:13px;color:var(--ui-muted);line-height:1.65}
+ .gro-ui .review-readiness ul{padding-left:20px}.gro-ui .review-readiness li{margin-top:8px}.gro-ui .review-readiness button{width:auto;max-width:100%;white-space:normal;text-align:left;min-height:44px}
+ .assessment-activity{margin:0 0 24px;padding:20px;border:1px solid #d8e3dd;border-radius:12px;background:#fff;color:#193c34;font:14px/1.6 Inter,'Segoe UI',sans-serif}
+ .assessment-activity>summary{cursor:pointer;font-weight:650;min-height:44px;line-height:44px}.activity-note,.activity-status{color:#526b62;font-size:13px;line-height:1.65}
+ .activity-controls{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}.activity-controls button{min-height:44px;padding:10px 16px;border:1px solid #d8e3dd;border-radius:8px;background:#fff;color:#12644e;font:inherit}
+ .activity-list{padding-left:24px;margin:16px 0;max-height:420px;overflow:auto}.activity-event{padding:12px 0;border-bottom:1px solid #d8e3dd;overflow-wrap:anywhere}.activity-event strong{display:block}.activity-event p{font-size:13px;margin:6px 0;color:#526b62}.activity-event time{font-size:12px;color:#526b62}
+ .assessment-activity [hidden]{display:none!important}.assessment-activity :focus-visible{outline:3px solid #4a917a;outline-offset:3px}
+ @media(max-width:760px){.gro-ui .review-readiness{grid-template-columns:minmax(0,1fr)}.assessment-activity{padding:16px}.assessment-activity>summary{line-height:1.6;padding-block:12px}.activity-controls button{flex:1}.activity-list{max-height:360px}}
+}
+@media print{.assessment-activity{display:none!important}}
