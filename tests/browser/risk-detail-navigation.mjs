@@ -121,3 +121,5 @@ try{
   console.log(JSON.stringify({passed:true,writes:writes.length,errors,blocked,output:out},null,2));
  }
 }catch(error){await page.screenshot({path:path.join(out,'failure.png'),fullPage:true});await fs.writeFile(path.join(out,'failure.html'),await page.content());throw error;}finally{await fs.writeFile(path.join(out,baselineScript?'baseline-diagnostics.json':'diagnostics.json'),JSON.stringify({writes,errors,blocked},null,2));await browser.close();}
+
+if(!baselineScript) await import('./responsive-ui.mjs');
