@@ -34,6 +34,8 @@ try{
     document.querySelector('#questionnaire').hidden=false;document.querySelector('#company-card').hidden=false;
     window.GRO_FORM={review:()=>({answers:{selectedSectors:['Manutenção'],jobsBySector:[['Manutenção',[{name:'Auxiliar'}]]]},missing:[{section:'Dimensionamento',text:'Informe o total de funcionários.',destination:'#employee-count'}]})};
     const {initAssessmentWizard}=await import('/assessment-wizard.js');initAssessmentWizard().loaded({id:'fixture',title:'Levantamento de demonstração',isNew:true});
+    const {mountAssessmentActivity}=await import('/assessment-activity.js');
+    const activity=mountAssessmentActivity({client:{rpc:async()=>({data:[{event_id:'1',action:'updated',actor_name:'Pessoa de demonstração',occurred_at:'2026-11-12T12:00:00Z',revision:2,changed_fields:['answers.visitDate']}]})},getContext:()=>({id:'fixture',saved:true}),anchor:document.querySelector('.wizard-layout')});activity.host.open=true;await activity.refresh();
    }
    if(screen==='risk-detail'){
     document.querySelector('#editor').hidden=false;document.querySelector('#message').hidden=true;
@@ -58,6 +60,11 @@ try{
   if(screen==='levantamento'){
    await page.locator('#assessment-find').fill('manutencao');assert.equal(await page.locator('.assessment-find-results button').count(),2);
    await page.locator('.assessment-pending>summary').click();await page.getByText('Informe o total de funcionários.',{exact:true}).waitFor();
+   await page.evaluate(()=>{
+    window.GRO_FORM={review:()=>({answers:{currentCompany:{razao_social:'Empresa de demonstração'},selectedSectors:['Manutenção'],jobsBySector:[['Manutenção',[{name:'Auxiliar'}]]],riskSourcesBySelection:[['source__g1__r',{measure:'Sim'}]]},targets:[{id:'g1',title:'Manutenção'}],selections:[{targetId:'g1',targetTitle:'Manutenção',risk:{code:'r',name:'Ruído'}}],missing:[]})};window.GRO_WIZARD.go(6);
+   });
+   assert.equal(await page.locator('#generate-report-button').isEnabled(),true);
+   for(const width of [320,1440]){await page.setViewportSize({width,height:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),true,'review fits viewport');await page.screenshot({path:path.join(out,`review-${width}.png`),fullPage:true});}
   }
   if(screen==='risk-detail'){
    const noOverlap=await page.evaluate(()=>document.querySelector('.bottom').getBoundingClientRect().top>=document.querySelector('#cards').getBoundingClientRect().bottom);

@@ -1,8 +1,9 @@
+import {mountAssessmentActivity} from './assessment-activity.js?v=20261112-history1';
 import {captureDraftInputs,restoreDraftInputs} from './draft-form-state.js?v=20261021-autosave1';
 import {createDraftAutosave,showDraftRecovery,findDraftRecovery,clearDraftRecovery} from './draft-autosave.js?v=20261021-autosave1';
 import {createVisitResponsiblePicker} from './visit-responsible.js?v=20261020-professional1';
-import {initAssessmentWizard} from './assessment-wizard.js?v=20261112-tools1';
-const assessmentWizard=initAssessmentWizard();
+import {initAssessmentWizard} from './assessment-wizard.js?v=20261112-history1';
+const assessmentWizard=initAssessmentWizard();let activityView;
 import {watchPageResume} from './page-resume.js?v=20260930-resume1';
 import {addClientPickerSearch} from './client-search.js?v=20260929-button1';
 addClientPickerSearch(document.querySelector('#client-select'));
@@ -99,6 +100,7 @@ async function loadForm(){
  cleanState=fingerprint();dirty=Boolean(row.unsaved);
  $('#questionnaire').hidden=false;$('#page-title').textContent=row.title;$('#cnpj-form').hidden=true;$('#clear-draft-button').hidden=true;$('#load-draft-button').textContent='Recarregar rascunho';
  assessmentWizard.loaded({id:row.id,title:row.title,isNew:Boolean(row.unsaved)});
+ activityView?.dispose();activityView=mountAssessmentActivity({client:authClient,getContext:()=>({id:row.id,saved:!row.unsaved}),anchor:document.querySelector('.wizard-layout')});
  say('As alterações são salvas automaticamente. Confira o status antes de sair.');
  const owner={userId:member.user_id,teamId:member.team_id,clientId:row.client_id,draftId:row.id,page:'wizard'};
  autosave=createDraftAutosave({scope:owner,

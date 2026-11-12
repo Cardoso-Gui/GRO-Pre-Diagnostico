@@ -15,9 +15,14 @@ export function renderReviewStage(){
  const stats=el('div',null,'review-stats'),sectors=new Set(answers.selectedSectors||[]),jobs=(answers.jobsBySector||[]).filter(([sector])=>sectors.has(sector)).reduce((n,[,rows])=>n+rows.length,0);
  for(const [value,label] of [[answers.employees||0,'funcionários'],[sectors.size,'setores'],[jobs,'cargos'],[groups.length,answers.selectedRiskMode==='ghe'?'GHEs':'cargos com riscos']]){const item=el('div');item.append(el('strong',String(value)),el('span',label));stats.append(item);}summary.append(stats);
  const checks=el('div',null,'review-checks');
- for(const [label,sections,step] of [['Empresa e dimensionamento',['Dados da empresa','Dimensionamento'],1],['Setores e cargos',['Setores e cargos','Postos de trabalho'],2],['Organização dos riscos',['Organização dos riscos'],3]]){
+ for(const [label,sections,step] of [['Empresa e visita',['Dados da empresa','Identificação da visita'],0],['Dimensionamento',['Dimensionamento'],1],['Setores e cargos',['Setores e cargos','Postos de trabalho'],2],['Organização dos riscos',['Organização dos riscos'],3],['Riscos e detalhamento',['Riscos ocupacionais','Detalhamento dos riscos'],4],['Equipamentos de proteção',['EPIs'],5]]){
   const pending=missing.some(m=>sections.includes(m.section)),item=el('div');item.append(el('span',label+': '+(pending?'há pendências':'preenchido')),button('Revisar',()=>globalThis.GRO_WIZARD.go(step)));checks.append(item);
  }summary.append(checks);host.append(summary);
+ const readiness=el('section',null,'review-readiness');readiness.setAttribute('aria-label','Situação antes de concluir');
+ const required=el('div');required.append(el('h3','Preenchimento obrigatório'),el('strong',missing.length?missing.length+' pendência(s)':'Campos preenchidos'),el('p',missing.length?'Use os atalhos abaixo para completar os dados.':'Os campos obrigatórios foram preenchidos. Isso não representa uma aprovação técnica.'));
+ const technical=el('div');technical.append(el('h3','Conferência técnica'),el('strong',points.length?points.length+' risco(s) para medir ou avaliar':'Nenhum risco marcado para medir ou avaliar'),el('p','Confira as informações e as medidas propostas antes de concluir. A lista destaca as marcações feitas no levantamento.'));
+ if(points.length){const items=el('ul');for(const point of points){const li=el('li');li.append(button(point.targetTitle+' / '+point.risk.name,()=>correctReviewItem({section:'Detalhamento dos riscos',destination:'#open-risk-details',riskTarget:point.targetId,riskCode:point.risk.code})));items.append(li);}technical.append(items);}
+ readiness.append(required,technical);host.append(readiness);
  const pending=el('section',null,missing.length?'review-pending':'review-ready');pending.append(el('h3',missing.length?missing.length+' pendência(s) de preenchimento':'✓ Campos obrigatórios preenchidos'),el('p',missing.length?'Corrija os itens abaixo para gerar o relatório.':'Confira o resumo e gere o relatório quando estiver pronto.'));
  missing.forEach(item=>{const row=el('div',null,'review-pending-row'),copy=el('div');copy.append(el('small',item.section),el('span',item.text));row.append(copy,button('Corrigir',()=>correctReviewItem(item)));pending.append(row);});host.append(pending);
  host.append(el('h3',answers.selectedRiskMode==='ghe'?'Conferência por GHE':'Conferência por cargo'));
@@ -31,7 +36,7 @@ export function renderReviewStage(){
   for(const text of [group.total+' risco(s) selecionado(s)',group.detailsDone+' de '+group.detailTotal+' detalhados',group.epiDone+' de '+group.detailTotal+' registros de EPI preenchidos'])counts.append(el('span',text));card.append(counts);
   const links=el('div',null,'review-links');links.append(button('Revisar riscos',()=>openGroup(4,'.risk-accordion',group.id)),button('Revisar EPIs',()=>openGroup(5,'.epi-group',group.id)));card.append(links);host.append(card);
  }
- if(points.length){const info=el('details',null,'review-points');info.append(el('summary','Pontos para revisão técnica · '+points.length),el('p','Riscos marcados para medir ou avaliar. Estes pontos não bloqueiam a geração do relatório.'));points.forEach(s=>info.append(el('p',s.targetTitle+' / '+s.risk.name)));host.append(info);}
+ const explanation=el('p','Os pontos para conferência técnica não bloqueiam a geração do relatório. As regras de preenchimento obrigatório continuam as mesmas.','review-technical-note');host.append(explanation);
  const generate=document.querySelector('#generate-report-button');generate.disabled=globalThis.GRO_CLOUD?.rectification?Boolean(globalThis.GRO_POSTS?.busy()):missing.length>0;
  document.querySelector('#review-generation-hint').textContent=globalThis.GRO_CLOUD?.rectification?'Na retificação, confira as diferenças e informe o motivo. Pendências anteriores não exigem alterações não relacionadas.':missing.length?'Disponível após corrigir os campos obrigatórios.':'Campos obrigatórios preenchidos. Você pode gerar o relatório.';
 }
