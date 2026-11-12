@@ -21,7 +21,7 @@ export function mountAssessmentActivity({client,getContext,anchor,doc=document})
     const row=make('li','','activity-event'),action={created:'Levantamento criado',updated:'Alterações salvas',completed:'Levantamento concluído',rectified:'Relatório retificado'}[item.action]||'Alteração registrada';
     const date=new Date(item.occurred_at),time=make('time',Number.isNaN(date.getTime())?'Data indisponível':date.toLocaleString('pt-BR'));
     if(!Number.isNaN(date.getTime()))time.dateTime=date.toISOString();
-    row.append(make('strong',action),make('p',(item.actor_name||'Sistema')+' · '+(item.revision===null?'Sem revisão informada':'Revisão '+item.revision)),time);
+    row.append(make('strong',action),make('p',(item.actor_name||'Sistema')+' · '+(item.revision===null?'Versão não informada':'Versão do registro '+item.revision)),time);
     const fields=activityFields(Array.isArray(item.changed_fields)?item.changed_fields:[]);if(fields.length)row.append(make('p','Campos ou seções: '+fields.join(' · ')));list.append(row);
    }
    const last=data.slice(0,20).at(-1);cursor=last?.event_id||cursor;more.hidden=data.length<=20;loaded=true;
