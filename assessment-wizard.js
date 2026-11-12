@@ -1,4 +1,5 @@
-import {renderReviewStage} from './review-stage.js?v=20261020-professional1';
+import {renderReviewStage,reviewPending,correctReviewItem} from './review-stage.js?v=20261112-tools1';
+import {mountAssessmentTools} from './assessment-tools.js?v=20261112-tools1';
 import {renderEpiStage} from './epi-stage.js?v=20261019-review1';
 // Navigation changes presentation only; the original form owns data and validation.
 export function initAssessmentWizard(){
@@ -41,6 +42,7 @@ export function initAssessmentWizard(){
   else if(event.key==='Home')next=enabled[0];else if(event.key==='End')next=enabled.at(-1);else return;
   event.preventDefault();next.focus();next.click();next.focus();
  });
+ const tools=mountAssessmentTools({go,getPending:raw=>reviewPending(raw,globalThis.GRO_CLOUD?.visitResponsible?.()),correct:correctReviewItem});
 
  function reveal(target){const group=target.closest('[data-wizard-step]');if(group)go(Number(group.dataset.wizardStep),false);}
  globalThis.GRO_WIZARD={reveal,go};
@@ -48,5 +50,5 @@ export function initAssessmentWizard(){
  const observer=new MutationObserver(()=>{if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;update();});});
  observer.observe($('#company-card'),{subtree:true,childList:true,attributes:true,attributeFilter:['hidden']});
  update();
- return {loaded({id,title,isNew}){ready=true;draftId=id;$('#wizard-title').textContent=title||'Novo levantamento';save.disabled=false;save.removeAttribute('title');$('#wizard-save-status').textContent=isNew?'Novo levantamento ainda não salvo.':'Rascunho carregado. Salve para guardar novas alterações.';let restored=0;try{const stored=sessionStorage.getItem('gro-wizard-step:'+id);if(!isNew&&stored!==null)restored=Number(stored);}catch{}go(Number.isInteger(restored)&&restored>=0&&restored<7?restored:0,false);}};
+ return {loaded({id,title,isNew}){ready=true;draftId=id;$('#wizard-title').textContent=title||'Novo levantamento';save.disabled=false;save.removeAttribute('title');$('#wizard-save-status').textContent=isNew?'Novo levantamento ainda não salvo.':'Rascunho carregado. Salve para guardar novas alterações.';let restored=0;try{const stored=sessionStorage.getItem('gro-wizard-step:'+id);if(!isNew&&stored!==null)restored=Number(stored);}catch{}go(Number.isInteger(restored)&&restored>=0&&restored<7?restored:0,false);tools?.loaded();}};
 }

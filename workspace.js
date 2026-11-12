@@ -1,7 +1,7 @@
 import {captureDraftInputs,restoreDraftInputs} from './draft-form-state.js?v=20261021-autosave1';
 import {createDraftAutosave,showDraftRecovery,findDraftRecovery,clearDraftRecovery} from './draft-autosave.js?v=20261021-autosave1';
 import {createVisitResponsiblePicker} from './visit-responsible.js?v=20261020-professional1';
-import {initAssessmentWizard} from './assessment-wizard.js?v=20261112-ux1';
+import {initAssessmentWizard} from './assessment-wizard.js?v=20261112-tools1';
 const assessmentWizard=initAssessmentWizard();
 import {watchPageResume} from './page-resume.js?v=20260930-resume1';
 import {addClientPickerSearch} from './client-search.js?v=20260929-button1';

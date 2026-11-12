@@ -32,6 +32,7 @@ try{
    if(screen==='client'){document.querySelector('#loading').hidden=true;document.querySelector('#client-form').hidden=false;document.querySelector('#content').hidden=false;}
    if(screen==='levantamento'){
     document.querySelector('#questionnaire').hidden=false;document.querySelector('#company-card').hidden=false;
+    window.GRO_FORM={review:()=>({answers:{selectedSectors:['Manutenção'],jobsBySector:[['Manutenção',[{name:'Auxiliar'}]]]},missing:[{section:'Dimensionamento',text:'Informe o total de funcionários.',destination:'#employee-count'}]})};
     const {initAssessmentWizard}=await import('/assessment-wizard.js');initAssessmentWizard().loaded({id:'fixture',title:'Levantamento de demonstração',isNew:true});
    }
    if(screen==='risk-detail'){
@@ -53,6 +54,10 @@ try{
    results.push({screen,width,...state});
    assert.ok(state.scroll<=width+2,`${screen} ${width}px horizontal overflow: ${JSON.stringify(state)}`);
    if(width===320||width===1440)await page.screenshot({path:path.join(out,`${screen}-${width}.png`),fullPage:true});
+  }
+  if(screen==='levantamento'){
+   await page.locator('#assessment-find').fill('manutencao');assert.equal(await page.locator('.assessment-find-results button').count(),2);
+   await page.locator('.assessment-pending>summary').click();await page.getByText('Informe o total de funcionários.',{exact:true}).waitFor();
   }
   if(screen==='risk-detail'){
    const noOverlap=await page.evaluate(()=>document.querySelector('.bottom').getBoundingClientRect().top>=document.querySelector('#cards').getBoundingClientRect().bottom);

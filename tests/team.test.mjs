@@ -1,3 +1,4 @@
+import {rememberList} from '../list-memory.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -18,7 +19,7 @@ async function fixture(t,{member={...person(1,{team_id:TEAM,role:'admin',is_supe
   const query={};for(const method of ['select','order','eq','range'])query[method]=(...args)=>{call.methods.push([method,...args]);if(method==='eq')filters.push(args);if(method==='range')range=args;return query;};
   query.then=resolve=>{const complete=()=>{let data=state[table==='teams'?'teams':'people'].filter(row=>filters.every(([key,value])=>row[key]===value));resolve({data:data.slice(range[0],range[1]+1),error:state.fail?Error('offline'):null});};if(state.hold)state.pending.push(complete);else complete();};return query;
  }};
- const context=vm.createContext({document,window:dom.window,professionalRoleLabel,location:{replace:url=>redirects.push(url)},getTeamMember:async()=>({member:state.member,error:state.memberError}),authClient,updateHeader:()=>{},watchPageResume:options=>resume=options,console});
+ const context=vm.createContext({rememberList,document,window:dom.window,professionalRoleLabel,location:{replace:url=>redirects.push(url)},getTeamMember:async()=>({member:state.member,error:state.memberError}),authClient,updateHeader:()=>{},watchPageResume:options=>resume=options,console});
  vm.runInContext(source.replace(/^import .*;\n/gm,''),context);await tick();await tick();
  t.after(()=>dom.window.close());
  return {document,calls,state,redirects,context,authChange:event=>authChange(event),resume:()=>resume,async input(id,value,event='change'){const el=document.getElementById(id);el.value=value;el.dispatchEvent(new dom.window.Event(event));await tick();},async click(id){document.getElementById(id).click();await tick();await tick();},async release(){state.hold=false;for(const complete of state.pending.splice(0))complete();await tick();await tick();}};

@@ -1,4 +1,4 @@
-import {initAssessmentWizard} from './assessment-wizard.js?v=20261112-ux1';
+import {initAssessmentWizard} from './assessment-wizard.js?v=20261112-tools1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {updateHeader} from './app-header.js?v=20261019-access1';
 import {watchPageResume} from './page-resume.js?v=20260930-resume1';

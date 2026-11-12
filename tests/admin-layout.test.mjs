@@ -1,3 +1,4 @@
+import {rememberList} from '../list-memory.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -61,7 +62,7 @@ async function fixture(t,{member=defaultMember(),people=defaultPeople(),teams=te
   }},
  };
  const location={replace:url=>redirects.push(url),href:''};
- const context=vm.createContext({document,window:dom.window,location,authClient,PROFESSIONAL_ROLES,REGISTRATION_UFS,professionalRoleLabel,getTeamMember:async()=>({member:state.member,error:state.memberError}),updateHeader:value=>headerCalls.push(value),confirm:message=>{confirmations.push(message);return state.confirm;},console,requestAnimationFrame:callback=>callback(),setTimeout,clearTimeout});
+ const context=vm.createContext({rememberList,document,window:dom.window,location,authClient,PROFESSIONAL_ROLES,REGISTRATION_UFS,professionalRoleLabel,getTeamMember:async()=>({member:state.member,error:state.memberError}),updateHeader:value=>headerCalls.push(value),confirm:message=>{confirmations.push(message);return state.confirm;},console,requestAnimationFrame:callback=>callback(),setTimeout,clearTimeout});
  vm.runInContext(source.replace(/^import .*;\n/gm,''),context);
  await flush();
  t.after(()=>dom.window.close());

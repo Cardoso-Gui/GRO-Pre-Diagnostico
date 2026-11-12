@@ -1,5 +1,22 @@
 /* Each work area uses the shared palette with layouts suited to its task. */
 @media screen {
+  .gro-ui .assessment-tools { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:20px; align-items:start; margin:0 0 24px; }
+  .gro-ui .assessment-find,.gro-ui .assessment-pending { min-width:0; padding:20px; background:#fff; border:1px solid var(--ui-line); border-radius:12px; }
+  .gro-ui .assessment-find label { display:block; font-size:13px; font-weight:600; margin-bottom:8px; }
+  .gro-ui #assessment-find { width:100%; padding:10px 12px; border:1px solid var(--ui-line); font-size:16px; }
+  .gro-ui .assessment-pending>summary { color:var(--ui-green-dark); font-size:14px; font-weight:600; cursor:pointer; min-height:44px; display:list-item; padding:10px 0; margin-left:16px; }
+  .gro-ui .assessment-find-status,.gro-ui .assessment-pending-count { font-size:13px; color:var(--ui-muted); line-height:1.6; margin:12px 0; }
+  .gro-ui .assessment-find-status:empty { display:none; }
+  .gro-ui .assessment-find-results,.gro-ui .assessment-pending-list { display:grid; gap:8px; max-height:340px; overflow:auto; }
+  .gro-ui .assessment-find-results button { min-height:44px; background:#fafcfb; color:var(--ui-green-dark); padding:12px; width:100%; border:1px solid var(--ui-line); border-radius:8px; text-align:left; white-space:normal; overflow-wrap:anywhere; box-shadow:none; }
+  .gro-ui .assessment-pending-row { display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--ui-line); padding:12px 0; }
+  .gro-ui .assessment-pending-row>div { flex:1; min-width:0; overflow-wrap:anywhere; }
+  .gro-ui .assessment-pending-row small,.gro-ui .assessment-pending-row span { display:block; font-size:13px; line-height:1.6; }
+  .gro-ui .assessment-pending-row small { color:var(--ui-muted); font-size:11px; margin-bottom:4px; }
+  .gro-ui .assessment-pending-body>.secondary-button { margin-top:16px; }
+  .gro-ui .quick-help { border:1px solid var(--ui-line); border-radius:8px; padding:12px 16px; margin-block:12px 20px; }
+  .gro-ui .quick-help summary { color:var(--ui-green); cursor:pointer; font-size:13px; min-height:32px; line-height:1.7; }
+  .gro-ui .quick-help p,.gro-ui .risk-selection-help { font-size:13px; line-height:1.7; color:var(--ui-muted); }
   .gro-ui :where(.reports-heading h1, .team-heading h1, .access-heading h1, .occ-page-heading h1) { color: var(--ui-ink); font-size: clamp(28px,3vw,36px); line-height:1.2; letter-spacing:-1px; }
   .gro-ui :where(.team-intro,.access-intro,.reports-heading p,.occ-page-heading .intro) { max-width:64ch; color:var(--ui-muted); line-height:1.65; }
   .gro-ui :where(.team-filters,.access-filters,.reports-filters,.occ-filters) { gap:16px; padding:24px; border-color:var(--ui-line); background:#fff; border-radius:12px; }
@@ -70,6 +87,10 @@
     .gro-ui .team-search,.gro-ui .access-search { grid-column:1/-1; }
   }
   @media(max-width:760px) {
+    .gro-ui .assessment-tools { grid-template-columns:minmax(0,1fr); gap:12px; }
+    .gro-ui .assessment-find,.gro-ui .assessment-pending { padding:16px; }
+    .gro-ui .assessment-pending-row { align-items:flex-start; flex-direction:column; }
+    .gro-ui .assessment-pending-row button { align-self:flex-end; }
     .gro-ui :where(.team-heading,.access-heading,.occ-page-heading,.reports-heading) { flex-direction:column; align-items:stretch; gap:16px; }
     .gro-ui :where(.team-summary,.team-heading .team-summary) { text-align:left; margin:0; max-width:none; flex-shrink:1; }
     .gro-ui :where(.team-filters,.access-filters,.reports-filters,.occ-filters) { grid-template-columns:minmax(0,1fr); padding:16px; gap:16px; }
@@ -112,4 +133,4 @@
     .gro-ui.risk-editor-page #mobile-risk-select { width:100%; max-width:100%; }
   }
 }
-@media print { .filter-tools,.filter-feedback,.risk-pending-tools,.risk-form-outline,.wizard-stage-context,.occ-description-count,.occ-description-hint { display:none!important; } }
+@media print { .assessment-tools,.filter-tools,.filter-feedback,.risk-pending-tools,.risk-form-outline,.wizard-stage-context,.occ-description-count,.occ-description-hint { display:none!important; } }

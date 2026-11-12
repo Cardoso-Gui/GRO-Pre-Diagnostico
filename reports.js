@@ -1,9 +1,11 @@
+import {rememberList} from './list-memory.js?v=20261112-tools1';
 import {overlayReportSummaries} from './report-rectification.js?v=20261020-rectify1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
 import {addReuseButton} from './reuse-report.js?v=20261020-professional1';
 const $=s=>document.querySelector(s),list=$('#report-list'),status=$('#list-status'),more=$('#list-more');
 const clients=[],authors=[],PAGE=20;
+let listMemory;
 let sequence=0,rows=[],isAdmin=false,filters={},hasMore=false,ready=false,linkedClient='';
 const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 function node(tag,text,cls){const el=document.createElement(tag);el.textContent=text;if(cls)el.className=cls;return el;}
@@ -91,6 +93,7 @@ async function initialize(){
   const [companies,people]=await Promise.all([readAll('clients','id,legal_name,trade_name,cnpj','legal_name','id'),readAll('team_members','user_id,display_name','display_name','user_id')]);
   clients.push(...companies);authors.push(...people);
   for(const person of authors){const option=node('option',person.display_name||'Integrante');option.value=person.user_id;$('#report-author').append(option);}
+  listMemory=rememberList({doc:document,member:access.member,page:'reports',fields:['report-search','report-period','report-author','report-order'],submitForm:'#report-search-form',changeFields:['report-order'],clearButtons:['clear-filters']});
   const requested=new URLSearchParams(location.search).get('client'),client=clients.find(c=>c.id===requested);
   if(requested){linkedClient=client?.id||requested;$('#report-search').value=client?.trade_name||client?.legal_name||'Empresa indisponível';$('#report-period').value='all';}
   ready=true;document.querySelectorAll('.reports-filters [disabled],#report-order').forEach(el=>el.disabled=false);await load();
