@@ -1,0 +1,161 @@
+/* Shared visual system. Screen-only rules leave report/PDF geometry intact. */
+@media screen {
+  body.gro-ui {
+    --ui-bg: #f3f6f5;
+    --ui-surface: #fff;
+    --ui-ink: #193c34;
+    --ui-muted: #526b62;
+    --ui-green: #12644e;
+    --ui-green-dark: #0c493a;
+    --ui-line: #d8e3dd;
+    --ui-soft: #e8f2ed;
+    --green: var(--ui-green);
+    --ink: var(--ui-ink);
+    --muted: var(--ui-muted);
+    --line: var(--ui-line);
+    background: var(--ui-bg);
+    color: var(--ui-ink);
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .gro-ui *, .gro-ui *::before, .gro-ui *::after { box-sizing: border-box; }
+  .gro-ui [hidden] { display: none !important; }
+  .gro-ui :where(input, select, textarea, button) { font-family: inherit; }
+  .gro-ui :where(input, select, textarea) { accent-color: var(--ui-green); }
+  .gro-ui :where(input:not([type=checkbox]):not([type=radio]), select, textarea) {
+    border-color: var(--ui-line);
+    border-radius: 10px;
+    color: var(--ui-ink);
+    min-height: 46px;
+  }
+  .gro-ui :where(input, select, textarea):focus-visible {
+    outline: 3px solid #4a917a;
+    outline-offset: 2px;
+    border-color: var(--ui-green);
+  }
+  .gro-ui :where(a, button, summary):focus-visible { outline: 3px solid #4a917a; outline-offset: 3px; }
+  .gro-ui :where(button, .primary-button, .secondary-button) { touch-action: manipulation; }
+  .gro-ui :where(.primary-button, .secondary-button, .view-client) { text-decoration: none; border-radius: 10px; }
+  .gro-ui .primary-button { background: var(--ui-green); border-color: var(--ui-green); }
+  .gro-ui .primary-button:hover { background: var(--ui-green-dark); }
+  .gro-ui :where(h1, h2, h3) { text-wrap: balance; }
+  .gro-ui :where(.home-main, .wizard-shell) { max-width: 1240px; margin-inline: auto; }
+  .gro-ui .home-main { padding: 40px 32px 64px; }
+  .gro-ui .page-heading { gap: 24px; margin-bottom: 32px; }
+  .gro-ui .page-heading h1, .gro-ui .wizard-heading h1 { font-size: clamp(28px, 3vw, 36px); font-weight: 650; letter-spacing: -1.2px; line-height: 1.2; }
+  .gro-ui .intro { color: var(--ui-muted); line-height: 1.65; }
+  .gro-ui :where(.breadcrumb, .wizard-breadcrumb) { color: var(--ui-muted); font-size: 13px; }
+  .gro-ui .home-error { padding: 16px; border: 1px solid #d8b884; border-radius: 10px; background: #fff8eb; color: #725218; }
+  .gro-ui .session-check { max-width: 640px; margin: 64px auto; padding: 28px; line-height: 1.7; }
+  .gro-ui .skip-link { position: fixed; left: 16px; top: -100px; z-index: 100; padding: 12px 20px; border-radius: 8px; background: var(--ui-green-dark); color: white; }
+  .gro-ui .skip-link:focus { top: 12px; }
+
+  /* One navigation and profile language across all work areas. */
+  body.gro-ui header.topbar.unified-header.gro-shared { background: var(--ui-surface); border-bottom-color: var(--ui-line); }
+  body.gro-ui header.topbar.unified-header.gro-shared .topbar-inner { max-width: 1376px; padding: 14px 32px; gap: 24px; }
+  body.gro-ui header.topbar.unified-header.gro-shared .brand-mark { width: 40px; height: 40px; border-radius: 12px; background: var(--ui-green-dark); color: #d5efdf; }
+  body.gro-ui header.topbar.unified-header.gro-shared .brand-mark svg { width: 25px; height: 25px; }
+  body.gro-ui header.topbar.unified-header.gro-shared .brand strong { font-size: 26px; }
+  body.gro-ui header.topbar.unified-header.gro-shared nav { gap: 4px; }
+  body.gro-ui header.topbar.unified-header.gro-shared nav a { padding: 12px; min-height: 44px; color: #456257; font-weight: 600; }
+  body.gro-ui header.topbar.unified-header.gro-shared nav .nav-current { background: var(--ui-soft); color: var(--ui-green-dark); box-shadow: inset 0 -2px 0 #23745b; }
+  body.gro-ui header.topbar.unified-header.gro-shared .profile-panel { border-radius: 12px; }
+
+  /* Main tasks are compact; the primary action has a clear visual priority. */
+  .gro-ui.home-page #home::before { display: none; }
+  .gro-ui.home-page .eyebrow { color: var(--ui-green); letter-spacing: 1.5px; font-size: 11px; }
+  .gro-ui.home-page .date-label { display: block; color: var(--ui-muted); font-size: 13px; }
+  .gro-ui.home-page .cards { gap: 20px; }
+  .gro-ui.home-page .action-card { padding: 24px; min-height: 248px; border: 1px solid var(--ui-line); border-radius: 16px; box-shadow: none; background: white; }
+  .gro-ui.home-page .action-card:hover { border-color: #8bb6a3; box-shadow: 0 6px 20px #193c340a; transform: translateY(-2px); }
+  .gro-ui.home-page .card-top { margin-bottom: 20px; }
+  .gro-ui.home-page .card-icon { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--ui-soft); }
+  .gro-ui.home-page .card-icon svg { width: 28px; height: 28px; }
+  .gro-ui.home-page .card-title { font-size: 21px; line-height: 1.3; }
+  .gro-ui.home-page .card-description { color: var(--ui-muted); font-size: 14px; }
+  .gro-ui.home-page .card-bottom { border: 0; border-top: 1px solid var(--ui-line); border-radius: 0; justify-content: space-between; padding: 16px 0 0; min-height: 40px; }
+  .gro-ui.home-page .card-featured { background: var(--ui-green-dark); border-color: var(--ui-green-dark); color: white; }
+  .gro-ui.home-page .card-featured:hover { background: #105441; border-color: #105441; }
+  .gro-ui.home-page .card-featured .card-icon { background: #ffffff12; color: #dbf3e6; }
+  .gro-ui.home-page .card-featured .card-description { color: #d0e4da; }
+  .gro-ui.home-page .card-featured .card-bottom { background: transparent; border-color: #ffffff30; }
+  .gro-ui.home-page .card-featured .card-meta, .gro-ui.home-page .card-featured .card-arrow { color: white; }
+  .gro-ui .home-counts { margin-top: 16px; gap: 12px; }
+  .gro-ui .home-counts span:not(:empty) { padding: 8px 12px; background: #e9efeb; border-radius: 8px; color: #496357; }
+  .gro-ui.home-page .drafts { margin-top: 40px; }
+  .gro-ui.home-page .drafts-heading h2 { font-size: 23px; }
+  .gro-ui .draft-filter { margin-bottom: 20px; max-width: 560px; }
+  .gro-ui .draft-filter label { display: block; margin-bottom: 8px; color: var(--ui-muted); font-size: 13px; font-weight: 600; }
+  .gro-ui .draft-filter-controls { display: flex; gap: 8px; }
+  .gro-ui .draft-filter input { width: 100%; min-width: 0; padding: 12px 14px; border: 1px solid var(--ui-line); background: white; font-size: 16px; }
+  .gro-ui #draft-filter-status { margin: 8px 0 0; font-size: 13px; color: var(--ui-muted); }
+  .gro-ui #draft-filter-status:empty { display: none; }
+  .gro-ui.home-page .draft-row { padding-block: 20px; }
+  .gro-ui.home-page .draft-row .secondary-button { border: 1px solid var(--ui-line); border-radius: 8px; padding: 10px 14px; background: #fafcfb; }
+
+  /* Consistent list and form surfaces without changing table semantics. */
+  .gro-ui :where(.clients-panel, .reports-panel, .team-panel, .access-panel) { border-color: var(--ui-line); border-radius: 14px; box-shadow: none; }
+  .gro-ui :where(.client-search, .access-filters, .team-filters) { background: #fafcfb; }
+  .gro-ui :where(.list-head, thead) { color: var(--ui-muted); background: #f2f6f3; }
+  .gro-ui .record { transition: background-color .15s; }
+  .gro-ui .record:hover { background: #fbfdfc; }
+  .gro-ui :where(.record h2, .record h3, .draft-info h3) { overflow-wrap: anywhere; }
+  .gro-ui .wizard-shell { padding: 28px 32px 56px; }
+  .gro-ui .wizard-heading { background: var(--ui-bg); }
+  .gro-ui .wizard-sidebar { border-color: var(--ui-line); border-radius: 14px; padding: 24px 16px; }
+  .gro-ui .wizard-content { border-color: var(--ui-line); border-radius: 14px; padding: 32px; }
+  .gro-ui .wizard-step { font-family: inherit; min-height: 54px; }
+  .gro-ui .wizard-step.is-active { background: var(--ui-soft); color: var(--ui-green-dark); }
+  .gro-ui .wizard-step.is-active span { background: var(--ui-green); }
+  .gro-ui .wizard-footer #wizard-next { background: var(--ui-green); }
+  .gro-ui :where(.wizard-step, summary) { scroll-margin-block: 24px; }
+  .gro-ui dialog { border-color: var(--ui-line); border-radius: 16px; max-width: calc(100vw - 32px); max-height: calc(100dvh - 32px); }
+
+  /* Keep the approved centered login, with calmer surfaces and stronger hierarchy. */
+  .gro-ui .login-layout { padding-block: 40px; }
+  .gro-ui:has(.login-layout)::before, .gro-ui:has(.login-layout)::after { display: none; }
+  .gro-ui .login-brand-row svg { padding: 7px; width: 48px; height: 48px; border-radius: 14px; background: var(--ui-green-dark); color: #e0f3e9; }
+  .gro-ui .form-panel { border-color: var(--ui-line); box-shadow: 0 12px 36px #193c3408; padding: 36px; border-radius: 18px; }
+  .gro-ui .form-panel h1 { font-size: 30px; }
+  .gro-ui .login-preferences label { min-height: 44px; font-size: 13px; }
+  .gro-ui .password-tools .text-button { min-height: 44px; font-size: 13px; }
+  .gro-ui .primary { min-height: 50px; background: var(--ui-green); border-radius: 10px; }
+
+  @media (max-width: 1100px) {
+    body.gro-ui header.topbar.unified-header.gro-shared .topbar-inner { padding-inline: 24px; gap: 12px; }
+    body.gro-ui header.topbar.unified-header.gro-shared nav { right: 24px; width: min(320px, calc(100vw - 48px)); padding: 8px; border-radius: 12px; }
+  }
+  @media (max-width: 760px) {
+    .gro-ui :where(input:not([type=checkbox]):not([type=radio]), select, textarea) { font-size: 16px; }
+    body.gro-ui header.topbar.unified-header.gro-shared .topbar-inner { padding: 12px 16px; }
+    body.gro-ui header.topbar.unified-header.gro-shared nav { right: 16px; width: min(320px, calc(100vw - 32px)); }
+    .gro-ui .home-main, .gro-ui.clients-page .home-main { padding: 28px 16px 40px; }
+    .gro-ui .page-heading { margin-bottom: 24px; gap: 16px; }
+    .gro-ui.home-page .date-label { display: none; }
+    .gro-ui.home-page .cards { gap: 12px; }
+    .gro-ui.home-page .action-card { min-height: 100px; padding: 20px 16px; border-radius: 12px; }
+    .gro-ui.home-page .card-top { margin: 0; }
+    .gro-ui.home-page .card-icon { width: 38px; height: 38px; border-radius: 10px; }
+    .gro-ui.home-page .card-icon svg { width: 26px; height: 26px; }
+    .gro-ui.home-page .card-title { font-size: 17px; }
+    .gro-ui.home-page .card-description { font-size: 13px; }
+    .gro-ui.home-page .card-bottom, .gro-ui.home-page .card-featured .card-bottom { padding: 0; border: 0; }
+    .gro-ui.home-page .drafts { margin-top: 32px; }
+    .gro-ui.home-page .drafts-heading h2 { font-size: 21px; }
+    .gro-ui.home-page .draft-row .secondary-button { justify-self: end; }
+    .gro-ui .wizard-shell { padding: 24px 16px calc(100px + env(safe-area-inset-bottom)); }
+    .gro-ui .wizard-content { padding: 24px 16px; }
+    .gro-ui .wizard-sidebar { padding: 16px; }
+    .gro-ui #wizard-save-slot { padding-bottom: calc(10px + env(safe-area-inset-bottom)); background: #f3f6f5f5; }
+    .gro-ui .form-panel { padding: 28px 24px; }
+    .gro-ui .login-layout { padding: 28px 16px; }
+    .gro-ui .intro { font-size: 14px; }
+    .gro-ui dialog { padding: 24px 16px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .gro-ui *, .gro-ui *::before, .gro-ui *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
+  }
+}
+@media print {
+  .gro-ui > .skip-link, .gro-ui .draft-filter { display: none !important; }
+}
