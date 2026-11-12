@@ -1,0 +1,111 @@
+/* Each work area uses the shared palette with layouts suited to its task. */
+@media screen {
+  .gro-ui :where(.reports-heading h1, .team-heading h1, .access-heading h1, .occ-page-heading h1) { color: var(--ui-ink); font-size: clamp(28px,3vw,36px); line-height:1.2; letter-spacing:-1px; }
+  .gro-ui :where(.team-intro,.access-intro,.reports-heading p,.occ-page-heading .intro) { max-width:64ch; color:var(--ui-muted); line-height:1.65; }
+  .gro-ui :where(.team-filters,.access-filters,.reports-filters,.occ-filters) { gap:16px; padding:24px; border-color:var(--ui-line); background:#fff; border-radius:12px; }
+  .gro-ui :where(.team-filters,.access-filters,.reports-filters,.occ-filters) label { color:var(--ui-muted); font-size:13px; font-weight:600; }
+  .gro-ui :where(.team-filters,.access-filters,.reports-filters,.occ-filters) :where(input,select) { min-width:0; width:100%; background:#fff; }
+  .gro-ui .filter-tools { grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; gap:12px; padding-top:12px; border-top:1px solid var(--ui-line); }
+  .gro-ui .filter-count { font-size:12px; color:var(--ui-muted); }
+  .gro-ui .filter-tools button { min-height:44px; padding:10px 14px; font-size:13px; }
+  .gro-ui .filter-feedback { padding:12px 16px; border-left:3px solid var(--ui-green); background:var(--ui-soft); color:var(--ui-green-dark); border-radius:0 8px 8px 0; font-size:14px; }
+  .gro-ui .filter-feedback:empty { display:none; }
+  .gro-ui .team-summary { background:var(--ui-soft); padding:10px 14px; border-radius:10px; color:var(--ui-green-dark); }
+  .gro-ui .directory-group, .gro-ui .access-panel, .gro-ui .report-company, .gro-ui .occ-panel { border-color:var(--ui-line); box-shadow:none; border-radius:14px; }
+  .gro-ui :where(.directory-group-heading,.report-company>summary) { background:#fafcfb; }
+  .gro-ui :where(.directory-table,.access-table) { table-layout:fixed; width:100%; }
+  .gro-ui :where(.directory-table,.access-table) :where(th,td) { overflow-wrap:anywhere; }
+  .gro-ui :where(.access-dialog,.target-dialog,#occ-dialog,#assessments-dialog) { padding:28px; border-radius:16px; width:min(760px,calc(100vw - 32px)); }
+  .gro-ui :where(.access-dialog-heading,.occ-dialog-heading) { padding-bottom:20px; border-bottom:1px solid var(--ui-line); }
+  .gro-ui .access-form-section { padding-block:20px; }
+  .gro-ui :where(.access-form-section h3,.client-form-section h2) { font-size:17px; color:var(--ui-ink); }
+  .gro-ui :where(.access-form-note,.occ-help) { line-height:1.65; }
+  .gro-ui :where(.access-form-actions,.occ-actions) { position:sticky; bottom:-28px; z-index:2; background:white; padding:16px 0; margin-top:20px; border-top:1px solid var(--ui-line); }
+  .gro-ui .clients-panel .client-search { align-items:end; }
+  .gro-ui .clients-panel .search-field>span { font-size:13px; color:var(--ui-muted); font-weight:600; }
+  .gro-ui .clients-panel .client-search label { gap:8px; }
+  .gro-ui .reports-filters { align-items:end; }
+  .gro-ui .report-company>summary { min-height:72px; }
+  .gro-ui .report-record { padding-block:24px; }
+  .gro-ui .report-actions .report-view { min-height:44px; background:var(--ui-green); border-color:var(--ui-green); border-radius:8px; }
+  .gro-ui .access-create-actions { display:flex; gap:12px; flex-wrap:wrap; }
+  .gro-ui .access-tabs button { min-height:48px; }
+  .gro-ui .occ-page-heading #new-occurrence { min-height:48px; }
+  .gro-ui .occ-description-count { display:block; text-align:right; color:var(--ui-muted); font-size:12px; margin-top:6px; }
+  .gro-ui .occ-description-hint { color:var(--ui-muted); font-size:13px; line-height:1.6; margin:8px 0 16px; }
+  .gro-ui .wizard-sidebar { max-height:calc(100dvh - 48px); overflow:auto; }
+  .gro-ui .wizard-stage-context { flex-basis:100%; margin:0 0 4px; color:var(--ui-muted); font-size:12px; }
+  .gro-ui .wizard-footer { flex-wrap:wrap; gap:12px; }
+  .gro-ui .wizard-footer button { min-height:48px; }
+  .gro-ui .wizard-content { scroll-margin-top:140px; }
+  .gro-ui .risk-pending-tools { border-bottom:1px solid var(--ui-line); padding-bottom:18px; margin-bottom:18px; }
+  .gro-ui .risk-pending-count { font-size:13px; color:var(--ui-muted); margin:0 0 12px; line-height:1.6; }
+  .gro-ui .risk-pending-tools .secondary-button { width:100%; min-height:44px; padding:10px 12px; border:1px solid var(--ui-line); background:#fff; color:var(--ui-green); }
+  .gro-ui .risk-pending-filter { display:flex; align-items:center; gap:8px; min-height:44px; margin-top:8px; font-size:12px; color:var(--ui-muted); }
+  .gro-ui .risk-pending-filter input { width:18px; height:18px; margin:0; flex-shrink:0; }
+  .gro-ui.risk-editor-page main { max-width:1240px; padding:0 32px 48px; }
+  .gro-ui.risk-editor-page .layout { grid-template-columns:260px minmax(0,1fr); gap:24px; }
+  .gro-ui.risk-editor-page .risk-sidebar { max-height:calc(100dvh - 40px); overflow:auto; }
+  .gro-ui.risk-editor-page .context { border-color:var(--ui-line); padding:24px; }
+  .gro-ui.risk-editor-page .bottom { position:sticky; bottom:0; z-index:5; background:var(--ui-bg); padding:16px 0; border-top:1px solid var(--ui-line); }
+  .gro-ui.risk-editor-page #save-status { padding:12px 16px; background:var(--ui-soft); border-radius:8px; color:var(--ui-green-dark); overflow-wrap:anywhere; }
+  .gro-ui.risk-editor-page #cards article { border-color:var(--ui-line); }
+  .gro-ui.risk-editor-page .card-head { background:#fafcfb; padding:24px; border-bottom:1px solid var(--ui-line); }
+  .gro-ui.risk-editor-page .section { padding:24px; scroll-margin-top:20px; }
+  .gro-ui.risk-editor-page .section:target { background:#f9fcfa; }
+  .gro-ui .risk-form-outline { grid-column:2; display:flex; gap:8px; flex-wrap:wrap; margin-bottom:-8px; }
+  .gro-ui .risk-form-outline:empty { display:none; }
+  .gro-ui .risk-form-outline a { padding:8px 10px; border:1px solid var(--ui-line); border-radius:8px; background:white; text-decoration:none; color:var(--ui-muted); font-size:12px; min-height:44px; display:flex; align-items:center; }
+  .gro-ui.risk-editor-page #cards { grid-column:2; min-width:0; }
+  .gro-ui.risk-editor-page .risk-sidebar { grid-column:1; grid-row:1/3; }
+  @media(max-width:1000px) {
+    .gro-ui.risk-editor-page .layout { grid-template-columns:220px minmax(0,1fr); gap:16px; }
+    .gro-ui.risk-editor-page .context { flex-wrap:wrap; }
+    .gro-ui.risk-editor-page .progress-box { width:100%; }
+    .gro-ui :where(.team-filters,.access-filters) { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .gro-ui .team-search,.gro-ui .access-search { grid-column:1/-1; }
+  }
+  @media(max-width:760px) {
+    .gro-ui :where(.team-heading,.access-heading,.occ-page-heading,.reports-heading) { flex-direction:column; align-items:stretch; gap:16px; }
+    .gro-ui :where(.team-summary,.team-heading .team-summary) { text-align:left; margin:0; max-width:none; flex-shrink:1; }
+    .gro-ui :where(.team-filters,.access-filters,.reports-filters,.occ-filters) { grid-template-columns:minmax(0,1fr); padding:16px; gap:16px; }
+    .gro-ui .team-directory .team-filters,.gro-ui .access-management .access-filters { grid-template-columns:minmax(0,1fr); }
+    .gro-ui :where(.access-create-actions,.access-create-actions button,#new-occurrence) { width:100%; }
+    .gro-ui .access-management .access-create-actions { flex-shrink:1; }
+    .gro-ui .access-form-grid,.gro-ui .access-dialog .access-form-grid { grid-template-columns:minmax(0,1fr); }
+    .gro-ui :where(.access-dialog,.target-dialog,#occ-dialog,#assessments-dialog) { padding:20px 16px; max-height:calc(100dvh - 24px); }
+    .gro-ui :where(.access-form-actions,.occ-actions) { bottom:-20px; flex-wrap:wrap; padding-bottom:calc(16px + env(safe-area-inset-bottom)); }
+    .gro-ui :where(.access-form-actions,.occ-actions) button { flex:1 1 140px; }
+    .gro-ui .access-tabs { gap:8px; }
+    .gro-ui .access-tabs button { flex:1; padding-inline:12px; }
+    .gro-ui .team-title-row { align-items:flex-start; gap:12px; }
+    .gro-ui .team-picker,.gro-ui .team-picker select { width:100%; max-width:100%; }
+    .gro-ui .directory-person,.gro-ui .access-person { min-width:0; }
+    .gro-ui .wizard-sidebar { max-height:none; overflow:visible; }
+    .gro-ui .wizard-content { scroll-margin-top:16px; }
+    .gro-ui .wizard-footer button { flex:1 1 100%; }
+    .gro-ui .wizard-stage-context { font-size:12px; line-height:1.5; }
+    .gro-ui.risk-editor-page main { padding:0 16px 24px; }
+    .gro-ui.risk-editor-page .page-back { float:none; display:inline-flex; width:auto; margin-bottom:16px; }
+    .gro-ui.risk-editor-page h1 { font-size:28px; line-height:1.2; }
+    .gro-ui.risk-editor-page .context { padding:16px; gap:16px; }
+    .gro-ui.risk-editor-page .target-name { flex-wrap:wrap; }
+    .gro-ui.risk-editor-page .context strong { font-size:18px; overflow-wrap:anywhere; }
+    .gro-ui.risk-editor-page .layout { display:flex; flex-direction:column; gap:16px; }
+    .gro-ui.risk-editor-page .risk-sidebar { width:100%; position:static; max-height:none; overflow:visible; }
+    .gro-ui.risk-editor-page .risk-sidebar h2 { margin-bottom:12px; }
+    .gro-ui.risk-editor-page .risk-pending-tools { border:0; padding:0; margin:12px 0 0; }
+    .gro-ui.risk-editor-page .risk-pending-filter { display:none; }
+    .gro-ui.risk-editor-page .risk-form-outline { margin:0; }
+    .gro-ui.risk-editor-page #cards { width:100%; }
+    .gro-ui.risk-editor-page .card-head { flex-wrap:wrap; padding:20px 16px; }
+    .gro-ui.risk-editor-page .card-head h2 { font-size:22px; }
+    .gro-ui.risk-editor-page .section { padding:20px 16px; }
+    .gro-ui.risk-editor-page .grid,.gro-ui.risk-editor-page .damage-options { grid-template-columns:minmax(0,1fr); }
+    .gro-ui.risk-editor-page .bottom { display:flex; flex-direction:column-reverse; gap:8px; padding-bottom:calc(12px + env(safe-area-inset-bottom)); }
+    .gro-ui.risk-editor-page .bottom button { width:100%; min-height:48px; white-space:normal; }
+    .gro-ui.risk-editor-page .mobile-risk-label { display:grid; gap:8px; }
+    .gro-ui.risk-editor-page #mobile-risk-select { width:100%; max-width:100%; }
+  }
+}
+@media print { .filter-tools,.filter-feedback,.risk-pending-tools,.risk-form-outline,.wizard-stage-context,.occ-description-count,.occ-description-hint { display:none!important; } }

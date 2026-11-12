@@ -19,6 +19,7 @@ export function initAssessmentWizard(){
  function update(){
   buttons.forEach((button,i)=>{button.disabled=!ready&&i!==0;button.classList.toggle('is-active',i===active);if(i===active)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');select.options[i].disabled=!ready&&i!==0;});
   select.value=String(active);$('#wizard-progress-label').textContent=`Etapa ${active+1} de ${steps.length}`;$('#wizard-progress').value=active+1;$('#wizard-step-title').textContent=titles[active];$('#wizard-step-hint').textContent=ready&&active===0?'Dados da empresa deste levantamento.':hints[active];
+  const context=$('#wizard-stage-context');if(context)context.textContent=`Etapa ${active+1} de ${steps.length} · ${steps[active]}`;
   blocks.forEach((items,index)=>items.forEach(el=>{el.classList.toggle('wizard-inactive',index!==active);}));
   $('#wizard-epi').hidden=!ready||active!==5;
   $('#wizard-back').hidden=!ready||active===0;$('#wizard-next').hidden=!ready||active===6;$('.wizard-footer').hidden=!ready;
@@ -30,8 +31,16 @@ export function initAssessmentWizard(){
   if(ready&&active===5)renderEpiStage();
   if(ready&&active===6){$('#final-report-section').hidden=false;$('#wizard-empty').hidden=true;renderReviewStage();}
  }
- function go(index,focus=true){if(!Number.isInteger(index)||index<0||index>=steps.length||(!ready&&index!==0))return;active=index;update();remember();if(focus){$('#wizard-step-title').focus({preventScroll:true});$('.wizard-content').scrollIntoView({block:'start',behavior:'smooth'});}}
+ function go(index,focus=true){if(!Number.isInteger(index)||index<0||index>=steps.length||(!ready&&index!==0))return;active=index;update();remember();if(focus){$('#wizard-step-title').focus({preventScroll:true});$('.wizard-content').scrollIntoView({block:'start',behavior:globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches?'auto':'smooth'});}}
  select.onchange=()=>go(Number(select.value));$('#wizard-back').onclick=()=>go(active-1);$('#wizard-next').onclick=()=>go(active+1);
+ nav.addEventListener('keydown',event=>{
+  const from=buttons.indexOf(document.activeElement);if(from<0)return;
+  const enabled=buttons.filter(button=>!button.disabled),position=enabled.indexOf(buttons[from]);
+  let next;if(event.key==='ArrowDown'||event.key==='ArrowRight')next=enabled[(position+1)%enabled.length];
+  else if(event.key==='ArrowUp'||event.key==='ArrowLeft')next=enabled[(position+enabled.length-1)%enabled.length];
+  else if(event.key==='Home')next=enabled[0];else if(event.key==='End')next=enabled.at(-1);else return;
+  event.preventDefault();next.focus();next.click();next.focus();
+ });
 
  function reveal(target){const group=target.closest('[data-wizard-step]');if(group)go(Number(group.dataset.wizardStep),false);}
  globalThis.GRO_WIZARD={reveal,go};
