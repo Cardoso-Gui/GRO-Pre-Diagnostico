@@ -1,4 +1,9 @@
 import {detailKey} from './risk-detail-data.js';
+export function reviewPending(raw,responsible){
+ const missing=[...(raw.missing||[])];
+ if(responsible&&!responsible.valid)missing.push({section:'Identificação da visita',text:'Selecione um técnico ou engenheiro com registro profissional completo como responsável pela visita.',destination:'#visit-responsible'});
+ return missing;
+}
 export function reviewModel({answers,targets,selections,missing}){
  const sources=new Map(answers.riskSourcesBySelection||[]);
  const groups=targets.map(target=>{

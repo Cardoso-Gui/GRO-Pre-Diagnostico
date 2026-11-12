@@ -1,9 +1,10 @@
+import {rememberList} from './list-memory.js?v=20261112-tools1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {updateHeader} from './app-header.js?v=20261019-access1';
 const $=selector=>document.querySelector(selector);
 const page=$('#clients-page'),check=$('#session-check'),list=$('#records-list'),status=$('#records-status'),more=$('#more-records'),retry=$('#retry-records'),search=$('#client-search');
 let filters={name:'',cnpj:''},offset=0,generation=0,checking=false,sort='asc',total=0;
-const pageSize=20;
+const pageSize=20;let listMemory;
 function element(tag,className,text){const node=document.createElement(tag);node.className=className;if(text!==undefined)node.textContent=text;return node;}
 function link(label,href,className){const a=element('a',className,label);a.href=href;return a;}
 function appendRecord(row){
@@ -54,7 +55,7 @@ async function loadAssessments(reset=false){
  }catch{if(ticket!==assessmentGeneration||!dialog.open||page.hidden)return;$('#assessments-status').textContent='Não foi possível carregar os levantamentos.';$('#assessments-retry').hidden=false;}
 }
 $('#close-assessments').onclick=()=>dialog.close();dialog.addEventListener('close',()=>{assessmentGeneration++;});$('#assessments-more').onclick=()=>loadAssessments();$('#assessments-retry').onclick=()=>loadAssessments();
-async function initialize(){if(checking)return;checking=true;page.hidden=true;generation++;check.hidden=false;try{const access=await getTeamMember();if(!access.member){if(access.reason==='network')throw Error();location.replace('./index.html?reason=expired');return;}updateHeader(access.member);document.querySelector('#profile-short-name').textContent=(access.member.display_name||'Equipe').trim().split(/\s+/)[0];check.hidden=true;page.hidden=false;await loadRecords(true);}catch{check.querySelector('p').textContent='Não foi possível carregar seus clientes. Tente novamente.';document.querySelector('#retry-session').hidden=false;}finally{checking=false;}}
+async function initialize(){if(checking)return;checking=true;page.hidden=true;generation++;check.hidden=false;try{const access=await getTeamMember();if(!access.member){if(access.reason==='network')throw Error();location.replace('./index.html?reason=expired');return;}updateHeader(access.member);if(!listMemory)listMemory=rememberList({doc:document,member:access.member,page:'clients',fields:['search-name','client-sort'],submitForm:'#client-search',changeFields:['client-sort'],clearButtons:['clear-search']});const restoredName=$('#search-name').value.trim();filters={name:restoredName,cnpj:restoredName.replace(/[^a-z0-9]/gi,'').toUpperCase()};sort=$('#client-sort').value;$('#clear-search').hidden=!restoredName;document.querySelector('#profile-short-name').textContent=(access.member.display_name||'Equipe').trim().split(/\s+/)[0];check.hidden=true;page.hidden=false;await loadRecords(true);}catch{check.querySelector('p').textContent='Não foi possível carregar seus clientes. Tente novamente.';document.querySelector('#retry-session').hidden=false;}finally{checking=false;}}
 more.onclick=()=>loadRecords();retry.onclick=()=>loadRecords();document.querySelector('#retry-session').onclick=initialize;
 document.querySelector('#sign-out').onclick=async()=>{page.hidden=true;generation++;await authClient.auth.signOut({scope:'local'});location.replace('./index.html');};
 authClient.auth.onAuthStateChange(e=>{if(e==='SIGNED_OUT'){page.hidden=true;generation++;location.replace('./index.html?reason=expired');}});

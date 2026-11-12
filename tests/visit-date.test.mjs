@@ -80,7 +80,7 @@ test('campo opcional fica no questionário persistente e no grupo da primeira et
 test('nova visita abre na identificação; rascunho conserva a etapa que estava aberta',()=>{
  const wizard=read('assessment-wizard.js'),start=wizard.lastIndexOf('return {loaded('),body=wizard.slice(start+'return '.length,wizard.lastIndexOf('\n}')).trim().replace(/;$/,'');
  for(const [isNew,stored,expected] of [[true,null,0],[true,'4',0],[false,null,0],[false,'4',4],[false,'99',0]]){
-  let selected;const context=vm.createContext({ready:false,draftId:'',save:{removeAttribute(){}},$:()=>({}),sessionStorage:{getItem:()=>stored},go:index=>{selected=index;}});
+  let selected;const context=vm.createContext({ready:false,draftId:'',tools:{loaded(){}},save:{removeAttribute(){}},$:()=>({}),sessionStorage:{getItem:()=>stored},go:index=>{selected=index;}});
   vm.runInContext('api='+body,context);context.api.loaded({id:'synthetic',title:'Visita sintética',isNew});assert.equal(selected,expected);
  }
 });

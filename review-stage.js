@@ -1,4 +1,5 @@
-import {reviewModel} from './review-model.js?v=20261019-review1';
+import {reviewModel,reviewPending} from './review-model.js?v=20261112-tools1';
+export {reviewPending};
 let signature='';
 const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text)n.textContent=text;if(cls)n.className=cls;return n;};
 const button=(label,action)=>{const b=el('button',label,'review-action');b.type='button';b.onclick=action;return b;};
@@ -7,8 +8,7 @@ export function renderReviewStage(){
  const responsible=globalThis.GRO_CLOUD?.visitResponsible?.();
  const key=JSON.stringify({raw,responsible});if(key===signature)return;signature=key;
  const opened=new Set([...host.querySelectorAll('details[open]')].map(x=>x.dataset.target)),first=!host.children.length;
- const {answers}=raw,{groups,points,missing}=reviewModel(raw);
- if(responsible&&!responsible.valid)missing.push({section:'Identificação da visita',text:'Selecione um técnico ou engenheiro com registro profissional completo como responsável pela visita.',destination:'#visit-responsible'});
+ const {answers}=raw,{groups,points}=reviewModel(raw),missing=reviewPending(raw,responsible);
  host.replaceChildren();
  const summary=el('section',null,'review-company');summary.append(el('h3',answers.currentCompany?.razao_social||answers.currentCompany?.nome_fantasia||'Empresa do levantamento'));
  if(responsible){const identity=el('div',null,'review-checks');identity.append(el('span','Responsável pela visita: '+responsible.label),button('Revisar responsável',()=>globalThis.GRO_WIZARD.go(0)));summary.append(identity);}
@@ -19,7 +19,7 @@ export function renderReviewStage(){
   const pending=missing.some(m=>sections.includes(m.section)),item=el('div');item.append(el('span',label+': '+(pending?'há pendências':'preenchido')),button('Revisar',()=>globalThis.GRO_WIZARD.go(step)));checks.append(item);
  }summary.append(checks);host.append(summary);
  const pending=el('section',null,missing.length?'review-pending':'review-ready');pending.append(el('h3',missing.length?missing.length+' pendência(s) de preenchimento':'✓ Campos obrigatórios preenchidos'),el('p',missing.length?'Corrija os itens abaixo para gerar o relatório.':'Confira o resumo e gere o relatório quando estiver pronto.'));
- missing.forEach(item=>{const row=el('div',null,'review-pending-row'),copy=el('div');copy.append(el('small',item.section),el('span',item.text));row.append(copy,button('Corrigir',()=>correct(item)));pending.append(row);});host.append(pending);
+ missing.forEach(item=>{const row=el('div',null,'review-pending-row'),copy=el('div');copy.append(el('small',item.section),el('span',item.text));row.append(copy,button('Corrigir',()=>correctReviewItem(item)));pending.append(row);});host.append(pending);
  host.append(el('h3',answers.selectedRiskMode==='ghe'?'Conferência por GHE':'Conferência por cargo'));
  for(const group of groups){
   const card=el('details',null,'review-group');card.dataset.target=group.id;card.open=opened.has(group.id)||(first&&group.id===groups[0]?.id);
@@ -38,7 +38,7 @@ export function renderReviewStage(){
 function openGroup(step,selector,id){
  globalThis.GRO_WIZARD.go(step);const card=[...document.querySelectorAll(selector)].find(n=>n.dataset.target===id);if(card){card.open=true;card.scrollIntoView({block:'center'});card.querySelector('summary')?.focus();}
 }
-function correct(item){
+export function correctReviewItem(item){
  if(item.section==='EPIs'){openGroup(5,'.epi-group',item.targetId);const card=[...document.querySelectorAll('.epi-group')].find(n=>n.dataset.target===item.targetId);const row=[...(card?.querySelectorAll('.epi-risk-row')||[])].find(n=>n.dataset.riskCode===item.riskCode);row?.querySelector('button')?.click();return;}
  if(globalThis.GRO_CLOUD?.rectification&&item.destination==='#open-risk-details'){globalThis.GRO_WIZARD.go(4);globalThis.GRO_CLOUD.openRiskDetails?.(item.riskTarget,item.riskCode);return;}
  const node=document.querySelector(item.destination);if(!node)return;

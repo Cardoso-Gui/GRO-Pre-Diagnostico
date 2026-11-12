@@ -7,6 +7,12 @@ export function initScreenUX(doc = document) {
     if (cls) el.className = cls;
     return el;
   };
+  const riskHelp=doc.querySelector('#risk-selection-section .dimension-intro');
+  if(riskHelp&&!riskHelp.closest('details')){
+    const detail=make('details','','quick-help');const summary=make('summary','Saiba mais sobre os critérios dos riscos');
+    const intro=make('p','Selecione os riscos de cada grupo. A opção de ausência do eSocial não significa ausência de todos os riscos.','risk-selection-help');
+    riskHelp.before(intro,detail);detail.append(summary,riskHelp);
+  }
   for (const [container, ids] of [
     ['.team-filters', ['member-search', 'role-filter', 'status-filter', 'team-filter']],
     ['#users-section .access-filters', ['user-search', 'user-team-filter', 'user-role-filter', 'user-status-filter']],
@@ -30,6 +36,7 @@ export function initScreenUX(doc = document) {
       sync();fields.find(field => !field.disabled)?.focus();
     });
     fields.forEach(field => {field.addEventListener('input', sync);field.addEventListener('change', sync);});
+    doc.addEventListener('gro:list-restored',sync);
     tools.append(count,clear);root.append(tools);sync();
   }
 

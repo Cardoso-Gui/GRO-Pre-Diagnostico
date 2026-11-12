@@ -1,10 +1,11 @@
+import {rememberList} from './list-memory.js?v=20261112-tools1';
 import {watchPageResume} from './page-resume.js?v=20260930-resume1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
 import {professionalRoleLabel} from './professional-identity.js?v=20261020-professional1';
 const $=s=>document.querySelector(s);
 let member,offset=0,busy=false,rows=[],more=false,teams=[],generation=0;
-const collapsedTeams=new Set();
+const collapsedTeams=new Set();let listMemory,memoryScope='';
 function node(tag,text='',cls){const el=document.createElement(tag);el.textContent=text;if(cls)el.className=cls;return el;}
 function formatPhone(value){const d=String(value||'').replace(/\D/g,'').slice(0,11);if(d.length<3)return d;const split=d.length>10?7:6;return `(${d.slice(0,2)}) ${d.slice(2,split)}${d.length>split?'-'+d.slice(split):''}`;}
 function countLabel(count,singular,plural){return `${count} ${count===1?singular:plural}`;}
@@ -95,7 +96,7 @@ async function load(reset=false){
   const [team,members]=await Promise.all([teamQuery,peopleQuery]);if(request!==generation)return;
   if(team.error||members.error)throw team.error||members.error;
   teams=team.data;rows.push(...members.data);offset=rows.length;more=members.data.length===50;
-  syncTeamContext();$('#session-check').hidden=true;$('#team-page').hidden=false;render();
+  syncTeamContext();const scope=JSON.stringify([member.user_id,member.team_id]);if(memoryScope!==scope){listMemory?.dispose();listMemory=rememberList({doc:document,member,page:'team',fields:['member-search','role-filter','status-filter','team-filter']});memoryScope=scope;}$('#session-check').hidden=true;$('#team-page').hidden=false;render();
  }catch{
   if(request!==generation)return;
   if($('#team-page').hidden){$('#session-check p').textContent='Não foi possível carregar sua equipe. Confira a conexão e tente novamente.';$('#retry-session').hidden=false;}

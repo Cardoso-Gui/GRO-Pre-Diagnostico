@@ -1,6 +1,8 @@
+import {rememberList} from './list-memory.js?v=20261112-tools1';
 import {authClient,getTeamMember} from './auth-client.js?v=20260928-global1';
 import {updateHeader} from './app-header.js?v=20260928-occ1';
 import {PROFESSIONAL_ROLES,REGISTRATION_UFS,professionalRoleLabel} from './professional-identity.js?v=20261020-professional1';
+let listMemory;
 const $=s=>document.querySelector(s),uf=$('#user-form'),tf=$('#team-form');
 let member,users=[],teams=[],busy=false,loading=false,loaded=false;
 const field=(form,name)=>form.elements.namedItem(name);
@@ -113,6 +115,7 @@ async function load(){
   users=ur.data;teams=tr.data;loaded=true;
   const selected=field(uf,'team_id').value,filter=$('#user-team-filter'),selectedFilter=filter.value;field(uf,'team_id').replaceChildren();filter.replaceChildren(el('option','Todas as equipes'));filter.firstChild.value='';
   for(const t of teams){const option=el('option',t.name+(t.active?'':' (inativa)'));option.value=t.id;option.disabled=!t.active;field(uf,'team_id').append(option);const choice=el('option',t.name);choice.value=t.id;filter.append(choice);}field(uf,'team_id').value=selected||member.team_id;filter.value=teams.some(t=>t.id===selectedFilter)?selectedFilter:'';
+  if(!listMemory)listMemory=rememberList({doc:document,member,page:'admin',fields:['user-search','user-team-filter','user-role-filter','user-status-filter','team-search','team-status-filter']});
  }catch(error){$('#reload-list').hidden=false;if(!loaded){$('#users-list').replaceChildren(el('p','A lista de usuários não foi carregada. Tente novamente.','access-empty'));$('#teams-list').replaceChildren(el('p','A lista de equipes não foi carregada. Tente novamente.','access-empty'));}throw error;}
  finally{loading=false;render();}
 }
