@@ -29,6 +29,7 @@ function renderNode(node,depth=0){
 let resumeMember,viewer,loading=false;
 async function load(){
  if(loading)return;loading=true;document.querySelector('#report-retry').disabled=true;
+ activityView?.dispose();activityView=null;
  viewer?.destroy();viewer=null;
  document.querySelector('#report-shell').hidden=true;document.querySelector('#report-overview').hidden=true;
  document.querySelector('.report-toolbar .reuse-report')?.remove();
@@ -158,8 +159,8 @@ async function load(){
 }
 print.onclick=()=>window.print();document.querySelector('#report-retry').onclick=load;
 document.querySelector('#sign-out').onclick=async()=>{content.hidden=true;document.querySelector('#report-shell').hidden=true;document.querySelector('#report-overview').hidden=true;await authClient.auth.signOut({scope:'local'});location.replace('./index.html');};
-authClient.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){viewer?.destroy();content.replaceChildren();content.hidden=true;document.querySelector('#report-shell').hidden=true;document.querySelector('#report-overview').hidden=true;print.disabled=true;location.replace('./index.html');}});
+authClient.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){activityView?.dispose();viewer?.destroy();content.replaceChildren();content.hidden=true;document.querySelector('#report-shell').hidden=true;document.querySelector('#report-overview').hidden=true;print.disabled=true;location.replace('./index.html');}});
 
 await load();
 
-watchPageResume({getMember:getTeamMember,currentMember:()=>resumeMember,onAccessChanged:()=>location.replace('./index.html?reason=expired')});
+watchPageResume({getMember:getTeamMember,currentMember:()=>resumeMember,onAccessChanged:()=>{activityView?.dispose();location.replace('./index.html?reason=expired');}});

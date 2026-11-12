@@ -10,7 +10,7 @@ test('assessment activity is server-derived, append-only and inherits current ac
  await baseline(sql=>db.exec(sql),q);await db.exec(await source(migrationPath));await seedProfessionals(q);
  const snapshot=(await q('select to_jsonb(a) as value from public.assessments a where id=$1',[ids.legacy]))[0].value;
  const policies=await q("select tablename,policyname,qual,with_check from pg_policies where schemaname='public' order by tablename,policyname");
- await db.exec(await source('supabase/migrations/20261112125759_assessment_activity_history.sql'));
+ await db.exec(await source('supabase/migrations/20261112130632_assessment_activity_history.sql'));
  assert.deepEqual((await q('select to_jsonb(a) as value from public.assessments a where id=$1',[ids.legacy]))[0].value,snapshot);
  assert.deepEqual(await q("select tablename,policyname,qual,with_check from pg_policies where schemaname='public' order by tablename,policyname"),policies);
  await as();assert.deepEqual(await history(ids.legacy),[]);

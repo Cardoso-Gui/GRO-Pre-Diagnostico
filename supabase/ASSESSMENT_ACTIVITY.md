@@ -25,3 +25,6 @@ considerar esses eventos; o recurso não introduz expurgo automático.
 Testes usam PostgreSQL isolado com dados sintéticos e verificam RLS, transferências,
 sessão revogada, imutabilidade, paginação, autoria, ausência de valores e no-op.
 A tela só consulta ao abrir o painel e trata falha de consulta sem bloquear a edição.
+
+Ativado em 12/11/2026. O arquivo da migração usa a versão retornada pelo banco,
+`20261112130632`, para manter o repositório e o histórico de implantação alinhados.
