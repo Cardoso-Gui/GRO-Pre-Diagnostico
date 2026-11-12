@@ -55,6 +55,8 @@ try{
    if(width===320||width===1440)await page.screenshot({path:path.join(out,`${screen}-${width}.png`),fullPage:true});
   }
   if(screen==='risk-detail'){
+   const noOverlap=await page.evaluate(()=>document.querySelector('.bottom').getBoundingClientRect().top>=document.querySelector('#cards').getBoundingClientRect().bottom);
+   assert.equal(noOverlap,true,'risk actions must not cover form fields');
    await page.setViewportSize({width:1440,height:1000});await page.locator('.risk-pending-filter input').check();assert.equal(await page.locator('#risk-nav button:visible').count(),1);
   }
   if(screen==='team'){

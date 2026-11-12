@@ -20,7 +20,7 @@
   .gro-ui .access-form-section { padding-block:20px; }
   .gro-ui :where(.access-form-section h3,.client-form-section h2) { font-size:17px; color:var(--ui-ink); }
   .gro-ui :where(.access-form-note,.occ-help) { line-height:1.65; }
-  .gro-ui :where(.access-form-actions,.occ-actions) { position:sticky; bottom:-28px; z-index:2; background:white; padding:16px 0; margin-top:20px; border-top:1px solid var(--ui-line); }
+  .gro-ui :where(.access-form-actions,.occ-actions) { position:static; background:white; padding:16px 0; margin-top:20px; border-top:1px solid var(--ui-line); }
   .gro-ui .clients-panel .client-search { align-items:end; }
   .gro-ui .clients-panel .search-field>span { font-size:13px; color:var(--ui-muted); font-weight:600; }
   .gro-ui .clients-panel .client-search label { gap:8px; }
@@ -38,6 +38,10 @@
   .gro-ui .wizard-footer { flex-wrap:wrap; gap:12px; }
   .gro-ui .wizard-footer button { min-height:48px; }
   .gro-ui .wizard-content { scroll-margin-top:140px; }
+  .gro-ui #assessment-visit-details { display:grid; gap:12px; }
+  .gro-ui #assessment-visit-details label { display:grid; gap:8px; }
+  .gro-ui #assessment-visit-details p { font-size:13px; line-height:1.65; margin:0; color:var(--ui-muted); }
+  .gro-ui #reload-visit-responsible { justify-self:start; margin-bottom:8px; box-shadow:none; }
   .gro-ui .risk-pending-tools { border-bottom:1px solid var(--ui-line); padding-bottom:18px; margin-bottom:18px; }
   .gro-ui .risk-pending-count { font-size:13px; color:var(--ui-muted); margin:0 0 12px; line-height:1.6; }
   .gro-ui .risk-pending-tools .secondary-button { width:100%; min-height:44px; padding:10px 12px; border:1px solid var(--ui-line); background:#fff; color:var(--ui-green); }
@@ -47,7 +51,7 @@
   .gro-ui.risk-editor-page .layout { grid-template-columns:260px minmax(0,1fr); gap:24px; }
   .gro-ui.risk-editor-page .risk-sidebar { max-height:calc(100dvh - 40px); overflow:auto; }
   .gro-ui.risk-editor-page .context { border-color:var(--ui-line); padding:24px; }
-  .gro-ui.risk-editor-page .bottom { position:sticky; bottom:0; z-index:5; background:var(--ui-bg); padding:16px 0; border-top:1px solid var(--ui-line); }
+  .gro-ui.risk-editor-page .bottom { position:static; background:var(--ui-bg); padding:16px 0; border-top:1px solid var(--ui-line); }
   .gro-ui.risk-editor-page #save-status { padding:12px 16px; background:var(--ui-soft); border-radius:8px; color:var(--ui-green-dark); overflow-wrap:anywhere; }
   .gro-ui.risk-editor-page #cards article { border-color:var(--ui-line); }
   .gro-ui.risk-editor-page .card-head { background:#fafcfb; padding:24px; border-bottom:1px solid var(--ui-line); }

@@ -77,7 +77,7 @@ export function initScreenUX(doc = document) {
       cards.querySelectorAll('article > .section').forEach((section,i)=>{
         const title=section.querySelector('h3');if(!title)return;
         section.id=`risk-section-${i+1}`;
-        const link=make('a',title.textContent.trim());link.href='#'+section.id;
+        const link=make('a',title.textContent.trim().replace(/^\d+\s*/,''));link.href='#'+section.id;
         link.addEventListener('click',()=>{title.tabIndex=-1;title.focus({preventScroll:true});});outline.append(link);
       });
     };
